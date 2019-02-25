@@ -24,6 +24,10 @@ namespace UnityEngine.EventSystems
     /// </summary>
     public class OVRInputModule : PointerInputModule
     {
+        [Header("Gear VR Controller")]
+        public Transform trackingSpace;
+        public LineRenderer lineRenderer;
+
         [Tooltip("Object which points with Z axis. E.g. CentreEyeAnchor from OVRCameraRig")]
         public Transform rayTransform;
 
@@ -67,7 +71,7 @@ namespace UnityEngine.EventSystems
         public float angleDragThreshold = 1;
 
         [SerializeField]
-        private float m_SpherecastRadius = 1.0f;       
+        private float m_SpherecastRadius = 1.0f;
 
 
 
@@ -600,7 +604,31 @@ namespace UnityEngine.EventSystems
             leftData.Reset();
 
             //Now set the world space ray. This ray is what the user uses to point at UI elements
-            leftData.worldSpaceRay = new Ray(rayTransform.position, rayTransform.forward);
+
+            OVRInput.Controller controller = OVRInput.GetConnectedControllers () & (OVRInput.Controller.LTrackedRemote | OVRInput.Controller.RTrackedRemote);
+            if (lineRenderer != null) {
+                lineRenderer.enabled = trackingSpace != null && controller != OVRInput.Controller.None;
+            }
+            if (trackingSpace != null && controller != OVRInput.Controller.None) {
+                controller = ((controller & OVRInput.Controller.LTrackedRemote) != OVRInput.Controller.None) ? OVRInput.Controller.LTrackedRemote : OVRInput.Controller.RTrackedRemote;
+
+                Quaternion orientation = OVRInput.GetLocalControllerRotation (controller);
+                Vector3 localStartPoint = OVRInput.GetLocalControllerPosition (controller);
+                Matrix4x4 localToWorld = trackingSpace.localToWorldMatrix;
+                Vector3 worldStartPoint = localToWorld.MultiplyPoint (localStartPoint);
+                Vector3 worldOrientation = localToWorld.MultiplyVector (orientation * Vector3.forward);
+
+                leftData.worldSpaceRay = new Ray(rayTransform.position, worldOrientation);
+
+                if (lineRenderer != null) {
+                    lineRenderer.SetPosition(0, worldStartPoint);
+                    lineRenderer.SetPosition(1, worldStartPoint + worldOrientation * 500.0f);
+                }
+            } else {
+                // Set the ray with the Gaze pointer
+                leftData.worldSpaceRay = new Ray(rayTransform.position, rayTransform.forward);
+            }
+
             leftData.scrollDelta = GetExtraScrollDelta();
 
             //Populate some default values
@@ -612,7 +640,15 @@ namespace UnityEngine.EventSystems
             leftData.pointerCurrentRaycast = raycast;
             m_RaycastResultCache.Clear();
 
-            m_Cursor.SetCursorRay(rayTransform);
+            if (lineRenderer != null) {
+                if (raycast.worldPosition != Vector3.zero) {
+                    lineRenderer.SetPosition (1, raycast.worldPosition);
+                }
+            }
+
+            if (m_Cursor != null) {
+                m_Cursor.SetCursorRay(rayTransform);
+            }
 
             OVRRaycaster ovrRaycaster = raycast.module as OVRRaycaster;
             // We're only interested in intersections from OVRRaycasters
@@ -630,7 +666,9 @@ namespace UnityEngine.EventSystems
                     // Set are gaze indicator with this world position and normal
                     Vector3 worldPos = raycast.worldPosition;
                     Vector3 normal = GetRectTransformNormal(graphicRect);
-                    m_Cursor.SetCursorStartDest(rayTransform.position, worldPos, normal);
+                    if (m_Cursor != null) {
+                        m_Cursor.SetCursorStartDest(rayTransform.position, worldPos, normal);
+                    }
                 }
             }
 
@@ -654,7 +692,9 @@ namespace UnityEngine.EventSystems
 
                 leftData.position = physicsRaycaster.GetScreenPos(raycast.worldPosition);
 
-                m_Cursor.SetCursorStartDest(rayTransform.position, position, raycast.worldNormal);
+                if (m_Cursor != null) {
+                    m_Cursor.SetCursorStartDest(rayTransform.position, position, raycast.worldNormal);
+                }
             }
 
             // Stick default data values in right and middle slots for compatability
