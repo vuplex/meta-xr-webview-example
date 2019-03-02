@@ -9,23 +9,23 @@ class OculusWebViewDemo : MonoBehaviour {
 
     void Start() {
 
+        #if UNITY_ANDROID && !UNITY_EDITOR
+            // Use the alternative input event system for Oculus Go:
+            // https://developer.vuplex.com/webview/AndroidWebView#GloballyUseAlternativeInputEventSystem
+            AndroidWebView.GloballyUseAlternativeInputEventSystem(true);
+        #endif
+
         // Create a 0.6 x 0.4 instance of the prefab.
         _webViewPrefab = WebViewPrefab.Instantiate(0.6f, 0.4f);
         _webViewPrefab.transform.parent = transform;
         _webViewPrefab.transform.localPosition = new Vector3(0, 0f, 0.6f);
         _webViewPrefab.transform.LookAt(transform);
         _webViewPrefab.Initialized += (sender, e) => {
-            // Use the alternative input event system for Oculus Go:
-            // https://developer.vuplex.com/webview/AndroidWebView#UseAlternativeInputEventSystem
-            // In the future, this will be a static so that it doesn't need to be
-            // called for each webview.
-            ((AndroidWebView) _webViewPrefab.WebView).UseAlternativeInputEventSystem(true);
             _webViewPrefab.WebView.LoadUrl("https://www.google.com");
         };
 
         // Add the keyboard under the main webview.
         _keyboard = Keyboard.Instantiate();
-        _keyboard.WebViewPrefab.Initialized += (sender, e) => ((AndroidWebView) _keyboard.WebViewPrefab.WebView).UseAlternativeInputEventSystem(true);
         _keyboard.transform.parent = _webViewPrefab.transform;
         _keyboard.transform.localPosition = new Vector3(0, -0.41f, 0);
         _keyboard.transform.localEulerAngles = new Vector3(0, 0, 0);
