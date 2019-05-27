@@ -588,6 +588,24 @@ namespace UnityEngine.EventSystems
 
         private readonly MouseState m_MouseState = new MouseState();
 
+        private OVRInput.Controller _getController() {
+
+            var connectedControllers = OVRInput.GetConnectedControllers();
+
+            if ((connectedControllers & OVRInput.Controller.RTouch) == OVRInput.Controller.RTouch) {
+                return OVRInput.Controller.RTouch;
+            }
+            if ((connectedControllers & OVRInput.Controller.LTouch) == OVRInput.Controller.LTouch) {
+                return OVRInput.Controller.LTouch;
+            }
+            if ((connectedControllers & OVRInput.Controller.RTrackedRemote) == OVRInput.Controller.RTrackedRemote) {
+                return OVRInput.Controller.RTrackedRemote;
+            }
+            if ((connectedControllers & OVRInput.Controller.LTrackedRemote) == OVRInput.Controller.LTrackedRemote) {
+                return OVRInput.Controller.LTrackedRemote;
+            }
+            return OVRInput.Controller.None;
+        }
 
         // The following 2 functions are equivalent to PointerInputModule.GetMousePointerEventData but are customized to
         // get data for ray pointers and canvas mouse pointers.
@@ -605,12 +623,11 @@ namespace UnityEngine.EventSystems
 
             //Now set the world space ray. This ray is what the user uses to point at UI elements
 
-            OVRInput.Controller controller = OVRInput.GetConnectedControllers () & (OVRInput.Controller.LTrackedRemote | OVRInput.Controller.RTrackedRemote);
+            OVRInput.Controller controller = _getController();
             if (lineRenderer != null) {
                 lineRenderer.enabled = trackingSpace != null && controller != OVRInput.Controller.None;
             }
             if (trackingSpace != null && controller != OVRInput.Controller.None) {
-                controller = ((controller & OVRInput.Controller.LTrackedRemote) != OVRInput.Controller.None) ? OVRInput.Controller.LTrackedRemote : OVRInput.Controller.RTrackedRemote;
 
                 Quaternion orientation = OVRInput.GetLocalControllerRotation (controller);
                 Vector3 localStartPoint = OVRInput.GetLocalControllerPosition (controller);
