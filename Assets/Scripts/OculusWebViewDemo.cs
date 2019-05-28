@@ -9,12 +9,6 @@ class OculusWebViewDemo : MonoBehaviour {
 
     void Start() {
 
-        #if UNITY_ANDROID && !UNITY_EDITOR
-            // Use the alternative input event system for Oculus Go:
-            // https://developer.vuplex.com/webview/AndroidWebView#GloballyUseAlternativeInputEventSystem
-            AndroidWebView.GloballyUseAlternativeInputEventSystem(true);
-        #endif
-
         // Create a 0.6 x 0.4 instance of the prefab.
         _webViewPrefab = WebViewPrefab.Instantiate(0.6f, 0.4f);
         _webViewPrefab.transform.parent = transform;
