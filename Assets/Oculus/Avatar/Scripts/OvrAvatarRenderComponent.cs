@@ -12,9 +12,25 @@ public class OvrAvatarRenderComponent : MonoBehaviour {
 
     protected void UpdateActive(OvrAvatar avatar, ovrAvatarVisibilityFlags mask)
     {
-        bool active = avatar.ShowFirstPerson && (mask & ovrAvatarVisibilityFlags.FirstPerson) != 0;
-        active |= avatar.ShowThirdPerson && (mask & ovrAvatarVisibilityFlags.ThirdPerson) != 0;
-        this.gameObject.SetActive(active);
+        bool doActiveHack = name.Contains("body") && avatar.EnableExpressive && avatar.ShowFirstPerson && !avatar.ShowThirdPerson;
+        if (doActiveHack)
+        {
+            bool showFirstPerson = (mask & ovrAvatarVisibilityFlags.FirstPerson) != 0;
+            bool showThirdPerson = (mask & ovrAvatarVisibilityFlags.ThirdPerson) != 0;
+            gameObject.SetActive(showThirdPerson || showThirdPerson);
+
+            if (!showFirstPerson)
+            {
+                mesh.enabled = false;
+            }
+        }
+        else
+        {
+            bool active = avatar.ShowFirstPerson && (mask & ovrAvatarVisibilityFlags.FirstPerson) != 0;
+            active |= avatar.ShowThirdPerson && (mask & ovrAvatarVisibilityFlags.ThirdPerson) != 0;
+            this.gameObject.SetActive(active);
+            mesh.enabled = active;
+        }
     }
 
     protected SkinnedMeshRenderer CreateSkinnedMesh(ulong assetID, ovrAvatarVisibilityFlags visibilityMask, int thirdPersonLayer, int firstPersonLayer, int sortingOrder)
@@ -91,6 +107,14 @@ public class OvrAvatarRenderComponent : MonoBehaviour {
                 OvrAvatar.ConvertTransform(transform, targetBone);
             }
         }
+
+        ovrAvatarBlendShapeParams blendParams = CAPI.ovrAvatarSkinnedMeshRender_GetBlendShapeParams(renderPart);
+        for (uint i = 0; i < blendParams.blendShapeParamCount; i++)
+        {
+            float value = blendParams.blendShapeParams[i];
+            mesh.SetBlendShapeWeight((int)i, value * 100.0f);
+        }
+
         firstSkinnedUpdate = false;
     }
 

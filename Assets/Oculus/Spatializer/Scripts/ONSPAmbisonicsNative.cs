@@ -1,8 +1,6 @@
 /************************************************************************************
 Filename    :   ONSPAmbisonicsNative.cs
 Content     :   Native interface into the Oculus Ambisonics
-Created     :   November 14, 2016
-Authors     :   Peter Giokaris
 Copyright   :   Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 Licensed under the Oculus SDK Version 3.5 (the "License"); 

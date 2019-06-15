@@ -54,9 +54,9 @@ public class OVRLipSync : MonoBehaviour
         S16_Mono,
         // Signed 16-bit integer stereo audio stream
         S16_Stereo,
-        // Signed 32-bit float mono data type
+        // Signed 32-bit float mono audio stream
         F32_Mono,
-        // Signed 32-bit float stereo data type
+        // Signed 32-bit float stereo audio stream
         F32_Stereo
     };
 
@@ -132,7 +132,11 @@ public class OVRLipSync : MonoBehaviour
 
     // * * * * * * * * * * * * *
     // Import functions
+    #if !UNITY_IOS || UNITY_EDITOR
     public const string strOVRLS = "OVRLipSync";
+    #else
+    public const string strOVRLS = "__Internal";
+    #endif
     [DllImport(strOVRLS)]
     private static extern int ovrLipSyncDll_Initialize(int samplerate, int buffersize);
     [DllImport(strOVRLS)]
@@ -146,6 +150,14 @@ public class OVRLipSync : MonoBehaviour
                                                            ContextProviders provider,
                                                            int sampleRate,
                                                            bool enableAcceleration);
+
+    [DllImport(strOVRLS)]
+    private static extern int ovrLipSyncDll_CreateContextWithModelFile(ref uint context,
+                                                       ContextProviders provider,
+                                                       string modelPath,
+                                                       int sampleRate,
+                                                       bool enableAcceleration);
+
     [DllImport(strOVRLS)]
     private static extern int ovrLipSyncDll_DestroyContext(uint context);
 
@@ -157,27 +169,9 @@ public class OVRLipSync : MonoBehaviour
                                                        Signals signal,
                                                        int arg1, int arg2);
     [DllImport(strOVRLS)]
-    private static extern int ovrLipSyncDll_ProcessFrame(
-        uint context,
-        float[] audioBuffer,
-        ref int frameNumber,
-        ref int frameDelay,
-        float[] visemes,
-        int visemeCount);
-
-    [DllImport(strOVRLS)]
-    private static extern int ovrLipSyncDll_ProcessFrameInterleaved(
-        uint context,
-        float[] audioBuffer,
-        ref int frameNumber,
-        ref int frameDelay,
-        float[] visemes,
-        int visemeCount);
-
-    [DllImport(strOVRLS)]
     private static extern int ovrLipSyncDll_ProcessFrameEx(
         uint context,
-        float[] audioBuffer,
+        IntPtr audioBuffer,
         uint bufferSize,
         AudioDataType dataType,
         ref int frameNumber,
@@ -319,6 +313,33 @@ public class OVRLipSync : MonoBehaviour
     }
 
     /// <summary>
+    /// Creates a lip-sync context with specified model file.
+    /// </summary>
+    /// <returns>error code</returns>
+    /// <param name="context">Context.</param>
+    /// <param name="provider">Provider.</param>
+    /// <param name="modelPath">Model Dir.</param>
+    /// <param name="sampleRate">Sampling Rate.</param>
+    /// <param name="enableAcceleration">Enable DSP Acceleration.</param>
+    public static Result CreateContextWithModelFile(
+        ref uint context,
+        ContextProviders provider,
+        string modelPath,
+        int sampleRate = 0,
+        bool enableAcceleration = false)
+    {
+        if (IsInitialized() != Result.Success && Initialize() != Result.Success)
+            return Result.CannotCreateContext;
+
+        return (Result)ovrLipSyncDll_CreateContextWithModelFile(
+            ref context,
+            provider,
+            modelPath,
+            sampleRate,
+            enableAcceleration);
+    }
+
+    /// <summary>
     /// Destroy a lip-sync context.
     /// </summary>
     /// <returns>The context.</returns>
@@ -360,18 +381,61 @@ public class OVRLipSync : MonoBehaviour
         return (Result)ovrLipSyncDll_SendSignal(context, signal, arg1, arg2);
     }
 
+    /// <summary>
+    ///  Process float[] audio buffer by lip-sync engine.
+    /// </summary>
+    /// <returns>error code</returns>
+    /// <param name="context">Context.</param>
+    /// <param name="audioBuffer"> PCM audio buffer.</param>
+    /// <param name="frame">Lip-sync Frame.</param>
+    /// <param name="stereo">Whether buffer is part of stereo or mono stream.</param>
     public static Result ProcessFrame(
-        uint context, float[] audioBuffer, Frame frame, AudioDataType dataType = AudioDataType.F32_Stereo)
+        uint context, float[] audioBuffer, Frame frame, bool stereo = true)
     {
         if (IsInitialized() != Result.Success)
             return Result.Unknown;
 
-        return (Result)ovrLipSyncDll_ProcessFrameEx(context, audioBuffer, 0, dataType,
-                                          ref frame.frameNumber, ref frame.frameDelay,
-                                          frame.Visemes, frame.Visemes.Length,
-                                          ref frame.laughterScore,
-                                          null, 0
-                                          );
+        var dataType = stereo ? AudioDataType.F32_Stereo : AudioDataType.F32_Mono;
+        var numSamples = (uint)(stereo ? audioBuffer.Length / 2 : audioBuffer.Length);
+        var handle = GCHandle.Alloc(audioBuffer, GCHandleType.Pinned);
+        var rc = ovrLipSyncDll_ProcessFrameEx(context,
+                                              handle.AddrOfPinnedObject(), numSamples, dataType,
+                                              ref frame.frameNumber, ref frame.frameDelay,
+                                              frame.Visemes, frame.Visemes.Length,
+                                              ref frame.laughterScore,
+                                              null, 0
+                                              );
+        handle.Free();
+        return (Result)rc;
 
     }
+
+    /// <summary>
+    ///  Process short[] audio buffer by lip-sync engine.
+    /// </summary>
+    /// <returns>error code</returns>
+    /// <param name="context">Context.</param>
+    /// <param name="audioBuffer"> PCM audio buffer.</param>
+    /// <param name="frame">Lip-sync Frame.</param>
+    /// <param name="stereo">Whether buffer is part of stereo or mono stream.</param>
+    public static Result ProcessFrame(
+    uint context, short[] audioBuffer, Frame frame, bool stereo = true)
+    {
+        if (IsInitialized() != Result.Success)
+            return Result.Unknown;
+
+        var dataType = stereo ? AudioDataType.S16_Stereo : AudioDataType.S16_Mono;
+        var numSamples = (uint)(stereo ? audioBuffer.Length / 2 : audioBuffer.Length);
+        var handle = GCHandle.Alloc(audioBuffer, GCHandleType.Pinned);
+        var rc = ovrLipSyncDll_ProcessFrameEx(context,
+                                              handle.AddrOfPinnedObject(), numSamples, dataType,
+                                              ref frame.frameNumber, ref frame.frameDelay,
+                                              frame.Visemes, frame.Visemes.Length,
+                                              ref frame.laughterScore,
+                                              null, 0
+                                              );
+        handle.Free();
+        return (Result)rc;
+    }
+
 }

@@ -26,16 +26,44 @@ using System.IO;
 using UnityEditor.Android;
 #endif
 using UnityEngine;
+using UnityEditor.Build;
+#if UNITY_2018_1_OR_NEWER
+using UnityEditor.Build.Reporting;
+#endif
+using System;
 
-#if UNITY_2018_1_OR_NEWER && UNITY_ANDROID
-
-public class OVRGradleGeneration : IPostGenerateGradleAndroidProject
+#if UNITY_2018_1_OR_NEWER
+public class OVRGradleGeneration : IPreprocessBuildWithReport
+#if UNITY_ANDROID
+	, IPostGenerateGradleAndroidProject
+#endif
 {
 	public int callbackOrder { get { return 3; } }
+
+	public void OnPreprocessBuild(BuildReport report)
+	{
+		OVRPlugin.AddCustomMetadata("target_platform", report.summary.platform.ToString());
+		if (report.summary.platform == UnityEditor.BuildTarget.StandaloneWindows
+			|| report.summary.platform == UnityEditor.BuildTarget.StandaloneWindows64)
+		{
+			OVRPlugin.AddCustomMetadata("target_oculus_platform", "rift");
+		}
+	}
 
 	public void OnPostGenerateGradleAndroidProject(string path)
 	{
 		Debug.Log("OVRGradleGeneration triggered.");
+#if UNITY_ANDROID
+		var targetOculusPlatform = new List<string>();
+		if (OVRDeviceSelector.isTargetDeviceGearVrOrGo)
+		{
+			targetOculusPlatform.Add("geargo");
+		}
+		if (OVRDeviceSelector.isTargetDeviceQuest)
+		{
+			targetOculusPlatform.Add("quest");
+		}
+		OVRPlugin.AddCustomMetadata("target_oculus_platform", String.Join("_", targetOculusPlatform.ToArray()));
 		Debug.LogFormat("  GearVR or Go = {0}  Quest = {1}", OVRDeviceSelector.isTargetDeviceGearVrOrGo, OVRDeviceSelector.isTargetDeviceQuest);
 
 		bool isQuestOnly = OVRDeviceSelector.isTargetDeviceQuest && !OVRDeviceSelector.isTargetDeviceGearVrOrGo;
@@ -65,7 +93,7 @@ public class OVRGradleGeneration : IPostGenerateGradleAndroidProject
 				Debug.LogWarning("Unable to locate build.gradle");
 			}
 		}
+#endif
 	}
 }
-
 #endif

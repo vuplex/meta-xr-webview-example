@@ -75,7 +75,7 @@ public class OVRSandwichComposition : OVRCameraComposition
 	public override OVRManager.CompositionMethod CompositionMethod() { return OVRManager.CompositionMethod.Sandwich; }
 
 	public OVRSandwichComposition(GameObject parentObject, Camera mainCamera, OVRManager.CameraDevice cameraDevice, bool useDynamicLighting, OVRManager.DepthQuality depthQuality)
-		: base(cameraDevice, useDynamicLighting, depthQuality)
+		: base(parentObject, mainCamera, cameraDevice, useDynamicLighting, depthQuality)
 	{
 		frameRealtime = Time.realtimeSinceStartup;
 
@@ -98,7 +98,7 @@ public class OVRSandwichComposition : OVRCameraComposition
 		historyRecordCursorIndex = 0;
 
 		GameObject fgObject = new GameObject("MRSandwichForegroundCamera");
-		fgObject.transform.parent = parentObject.transform;
+		fgObject.transform.parent = cameraInTrackingSpace ? cameraRig.trackingSpace : parentObject.transform;
 		fgCamera = fgObject.AddComponent<Camera>();
 		fgCamera.depth = 200;
 		fgCamera.clearFlags = CameraClearFlags.SolidColor;
@@ -108,7 +108,7 @@ public class OVRSandwichComposition : OVRCameraComposition
 		fgCamera.farClipPlane = mainCamera.farClipPlane;
 
 		GameObject bgObject = new GameObject("MRSandwichBackgroundCamera");
-		bgObject.transform.parent = parentObject.transform;
+		bgObject.transform.parent = cameraInTrackingSpace ? cameraRig.trackingSpace : parentObject.transform;
 		bgCamera = bgObject.AddComponent<Camera>();
 		bgCamera.depth = 100;
 		bgCamera.clearFlags = mainCamera.clearFlags;
@@ -121,7 +121,7 @@ public class OVRSandwichComposition : OVRCameraComposition
 		Debug.Assert(cameraProxyPlane == null);
 		cameraProxyPlane = GameObject.CreatePrimitive(PrimitiveType.Quad);
 		cameraProxyPlane.name = "MRProxyClipPlane";
-		cameraProxyPlane.transform.parent = parentObject.transform;
+		cameraProxyPlane.transform.parent = cameraInTrackingSpace ? cameraRig.trackingSpace : parentObject.transform;
 		cameraProxyPlane.GetComponent<Collider>().enabled = false;
 		cameraProxyPlane.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 		Material clipMaterial = new Material(Shader.Find("Oculus/OVRMRClipPlane"));
@@ -134,7 +134,7 @@ public class OVRSandwichComposition : OVRCameraComposition
 		foregroundCameraManager.clipPlaneGameObj = cameraProxyPlane;
 
 		GameObject compositionCameraObject = new GameObject("MRSandwichCaptureCamera");
-		compositionCameraObject.transform.parent = parentObject.transform;
+		compositionCameraObject.transform.parent = cameraInTrackingSpace ? cameraRig.trackingSpace : parentObject.transform;
 		compositionCamera = compositionCameraObject.AddComponent<Camera>();
 		compositionCamera.stereoTargetEye = StereoTargetEyeMask.None;
 		compositionCamera.depth = float.MaxValue;
@@ -191,13 +191,17 @@ public class OVRSandwichComposition : OVRCameraComposition
 
 		if (OVRMixedReality.useFakeExternalCamera || OVRPlugin.GetExternalCameraCount() == 0)
 		{
-			OVRPose worldSpacePose = new OVRPose();
+			OVRPose cameraPose = new OVRPose();
 			OVRPose trackingSpacePose = new OVRPose();
 			trackingSpacePose.position = OVRMixedReality.fakeCameraPositon;
 			trackingSpacePose.orientation = OVRMixedReality.fakeCameraRotation;
-			worldSpacePose = OVRExtensions.ToWorldSpacePose(trackingSpacePose);
 
-			RefreshCameraPoses(OVRMixedReality.fakeCameraFov, OVRMixedReality.fakeCameraAspect, worldSpacePose);
+			if (!cameraInTrackingSpace)
+			{
+				cameraPose = OVRExtensions.ToWorldSpacePose(trackingSpacePose);
+			}
+
+			RefreshCameraPoses(OVRMixedReality.fakeCameraFov, OVRMixedReality.fakeCameraAspect, cameraPose);
 		}
 		else
 		{
@@ -207,12 +211,12 @@ public class OVRSandwichComposition : OVRCameraComposition
 			// So far, only support 1 camera for MR and always use camera index 0
 			if (OVRPlugin.GetMixedRealityCameraInfo(0, out extrinsics, out intrinsics))
 			{
-				OVRPose worldSpacePose = ComputeCameraWorldSpacePose(extrinsics);
+				OVRPose cameraPose = cameraInTrackingSpace ? ComputeCameraTrackingSpacePose(extrinsics) : ComputeCameraWorldSpacePose(extrinsics);
 
 				float fovY = Mathf.Atan(intrinsics.FOVPort.UpTan) * Mathf.Rad2Deg * 2;
 				float aspect = intrinsics.FOVPort.LeftTan / intrinsics.FOVPort.UpTan;
 
-				RefreshCameraPoses(fovY, aspect, worldSpacePose);
+				RefreshCameraPoses(fovY, aspect, cameraPose);
 			}
 			else
 			{
@@ -341,7 +345,14 @@ public class OVRSandwichComposition : OVRCameraComposition
 		{
 			c.fieldOfView = fovY;
 			c.aspect = aspect;
-			c.transform.FromOVRPose(pose);
+			if (cameraInTrackingSpace)
+			{
+				c.transform.FromOVRPose(pose, true);
+			}
+			else
+			{
+				c.transform.FromOVRPose(pose);
+			}
 		}
 	}
 

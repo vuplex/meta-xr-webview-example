@@ -8,6 +8,12 @@ public class OvrAvatarSkinnedMeshPBSV2RenderComponent : OvrAvatarRenderComponent
     public OvrAvatarMaterialManager AvatarMaterialManager;
     bool PreviouslyActive = false;
     bool IsCombinedMaterial = false;
+    ovrAvatarExpressiveParameters ExpressiveParameters;
+    bool EnableExpressive = false;
+
+    private const string MAIN_MATERIAL_NAME = "main_material";
+    private const string EYE_MATERIAL_NAME = "eye_material";
+    private const string DEFAULT_MATERIAL_NAME = "_material";
 
     internal void Initialize(
         IntPtr renderPart,
@@ -17,7 +23,10 @@ public class OvrAvatarSkinnedMeshPBSV2RenderComponent : OvrAvatarRenderComponent
         int firstPersonLayer, 
         int sortOrder,
         bool isCombinedMaterial,
-        ovrAvatarAssetLevelOfDetail lod)
+        ovrAvatarAssetLevelOfDetail lod,
+        bool assignExpressiveParams,
+        OvrAvatar avatar,
+        bool isControllerModel)
     {
         AvatarMaterialManager = materialManager;
         IsCombinedMaterial = isCombinedMaterial;
@@ -29,21 +38,93 @@ public class OvrAvatarSkinnedMeshPBSV2RenderComponent : OvrAvatarRenderComponent
             firstPersonLayer, 
             sortOrder);
 
+        EnableExpressive = assignExpressiveParams;
+
 #if UNITY_ANDROID
-        var singleComponentShader = "OvrAvatar/Avatar_Mobile_SingleComponent";
+        var singleComponentShader = EnableExpressive 
+            ? avatar.Skinshaded_Expressive_VertFrag_SingleComponent 
+            : avatar.Skinshaded_VertFrag_SingleComponent;
 #else
-        var singleComponentShader = "OvrAvatar/Avatar_PC_SingleComponent";
+        var singleComponentShader = EnableExpressive
+            ? avatar.Skinshaded_Expressive_SurfaceShader_SingleComponent
+            : avatar.Skinshaded_SurfaceShader_SingleComponent;
 #endif
+        var combinedComponentShader = EnableExpressive
+            ? avatar.Skinshaded_Expressive_VertFrag_CombinedMesh
+            : avatar.Skinshaded_VertFrag_CombinedMesh;
 
-        var shader = IsCombinedMaterial
-             ? Shader.Find("OvrAvatar/Avatar_Mobile_CombinedMesh")
-             : Shader.Find(singleComponentShader);
+        var mainShader = IsCombinedMaterial ? combinedComponentShader : singleComponentShader;
 
-       AvatarLogger.Log("Shader is: " + shader.name);
+        if (isControllerModel)
+        {
+            mainShader = Shader.Find("OvrAvatar/AvatarPBRV2Simple");
+        }
 
-        mesh.sharedMaterial = CreateAvatarMaterial(gameObject.name + "_material", shader);
-        mesh.sharedMaterial.renderQueue = OvrAvatarMaterialManager.RENDER_QUEUE;
+       AvatarLogger.Log("OvrAvatarSkinnedMeshPBSV2RenderComponent Shader is: " + mainShader != null 
+           ? mainShader.name : "null");
 
+        if (EnableExpressive)
+        {
+            ExpressiveParameters = CAPI.ovrAvatar_GetExpressiveParameters(avatar.sdkAvatar);
+
+            var eyeShader = avatar.EyeLens;
+
+            Material[] matArray = new Material[2];
+            matArray[0] = CreateAvatarMaterial(gameObject.name + MAIN_MATERIAL_NAME, mainShader);
+            matArray[1] = CreateAvatarMaterial(gameObject.name + EYE_MATERIAL_NAME, eyeShader);
+
+            if (avatar.UseTransparentRenderQueue)
+            {
+                // Initialize shader to use transparent render queue with alpha blending
+                matArray[0].SetOverrideTag("RenderType", "Transparent");
+                matArray[0].SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                matArray[0].SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                matArray[0].EnableKeyword("_ALPHATEST_ON");
+                matArray[0].EnableKeyword("_ALPHABLEND_ON");
+                matArray[0].EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                matArray[0].renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
+            else
+            {
+                // Initialize shader to use geometry render queue with no blending
+                matArray[0].SetOverrideTag("RenderType", "Opaque");
+                matArray[0].SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                matArray[0].SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                matArray[0].DisableKeyword("_ALPHATEST_ON");
+                matArray[0].DisableKeyword("_ALPHABLEND_ON");
+                matArray[0].DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                matArray[0].renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
+            }
+            // Eye lens shader queue is transparent and set from shader
+            matArray[1].renderQueue = -1;
+            mesh.materials = matArray;
+        }
+        else
+        {
+            mesh.sharedMaterial = CreateAvatarMaterial(gameObject.name + DEFAULT_MATERIAL_NAME, mainShader);
+            if (avatar.UseTransparentRenderQueue && !isControllerModel)
+            {
+                // Initialize shader to use transparent render queue with alpha blending
+                mesh.sharedMaterial.SetOverrideTag("RenderType", "Transparent");
+                mesh.sharedMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                mesh.sharedMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                mesh.sharedMaterial.EnableKeyword("_ALPHATEST_ON");
+                mesh.sharedMaterial.EnableKeyword("_ALPHABLEND_ON");
+                mesh.sharedMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                mesh.sharedMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            }
+            else
+            {
+                // Initialize shader to use geometry render queue with no blending
+                mesh.sharedMaterial.SetOverrideTag("RenderType", "Opaque");
+                mesh.sharedMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
+                mesh.sharedMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
+                mesh.sharedMaterial.DisableKeyword("_ALPHATEST_ON");
+                mesh.sharedMaterial.DisableKeyword("_ALPHABLEND_ON");
+                mesh.sharedMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                mesh.sharedMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry;
+            }
+        }
         bones = mesh.bones;
 
         if (IsCombinedMaterial)
@@ -108,37 +189,49 @@ public class OvrAvatarSkinnedMeshPBSV2RenderComponent : OvrAvatarRenderComponent
             metallicTexture = AvatarMaterialManager.DiffuseFallbacks[lodIndex];
         }
 
-        mesh.sharedMaterial.SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_MAINTEX, diffuseTexture);
-        mesh.sharedMaterial.SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_NORMALMAP, normalTexture);
-        mesh.sharedMaterial.SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_ROUGHNESSMAP, metallicTexture);
+        mesh.materials[0].SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_MAINTEX, diffuseTexture);
+        mesh.materials[0].SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_NORMALMAP, normalTexture);
+        mesh.materials[0].SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_ROUGHNESSMAP, metallicTexture);
 
-        mesh.sharedMaterial.SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_COLOR, 
+        mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_COLOR, 
             materialState.albedoMultiplier);
 
-        mesh.sharedMaterial.SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_DIFFUSEINTENSITY,
+        mesh.materials[0].SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_DIFFUSEINTENSITY,
             defaultProperties[componentType].DiffuseIntensity);
 
-        mesh.sharedMaterial.SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_RIMINTENSITY,
+        mesh.materials[0].SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_RIMINTENSITY,
             defaultProperties[componentType].RimIntensity);
 
-        mesh.sharedMaterial.SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_BACKLIGHTINTENSITY,
-            defaultProperties[componentType].BacklightIntensity);
-
-        mesh.sharedMaterial.SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_REFLECTIONINTENSITY,
+        mesh.materials[0].SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_REFLECTIONINTENSITY,
             defaultProperties[componentType].ReflectionIntensity);
 
         mesh.GetClosestReflectionProbes(AvatarMaterialManager.ReflectionProbes);
         if (AvatarMaterialManager.ReflectionProbes != null &&
             AvatarMaterialManager.ReflectionProbes.Count > 0)
         {
-            mesh.sharedMaterial.SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_CUBEMAP,
+            mesh.materials[0].SetTexture(OvrAvatarMaterialManager.AVATAR_SHADER_CUBEMAP,
                 AvatarMaterialManager.ReflectionProbes[0].probe.texture);
         }
 
-#if UNITY_EDITOR
-        mesh.sharedMaterial.EnableKeyword("FIX_NORMAL_ON");
-#endif
-        mesh.sharedMaterial.EnableKeyword("PBR_LIGHTING_ON");
+        if (EnableExpressive)
+        {
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_IRIS_COLOR, 
+                ExpressiveParameters.irisColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_LIP_COLOR,
+                ExpressiveParameters.lipColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_BROW_COLOR,
+                ExpressiveParameters.browColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_LASH_COLOR,
+                ExpressiveParameters.lashColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_SCLERA_COLOR,
+                ExpressiveParameters.scleraColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_GUM_COLOR,
+                ExpressiveParameters.gumColor);
+            mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_TEETH_COLOR,
+                ExpressiveParameters.teethColor);
+            mesh.materials[0].SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_LIP_SMOOTHNESS,
+                ExpressiveParameters.lipSmoothness);
+        }
     }
 
     private void InitializeCombinedMaterial(IntPtr renderPart, int lodIndex)
@@ -178,11 +271,27 @@ public class OvrAvatarSkinnedMeshPBSV2RenderComponent : OvrAvatarRenderComponent
                 AvatarLogger.Log(AvatarLogger.Tab + "Metallic: " + materialStates[i].metallicnessTextureID);
             }
 
-            AvatarMaterialManager.ValidateTextures();
-        }
+            if (EnableExpressive)
+            {
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_IRIS_COLOR,
+                    ExpressiveParameters.irisColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_LIP_COLOR,
+                    ExpressiveParameters.lipColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_BROW_COLOR,
+                    ExpressiveParameters.browColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_LASH_COLOR,
+                    ExpressiveParameters.lashColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_SCLERA_COLOR,
+                    ExpressiveParameters.scleraColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_GUM_COLOR,
+                    ExpressiveParameters.gumColor);
+                mesh.materials[0].SetVector(OvrAvatarMaterialManager.AVATAR_SHADER_TEETH_COLOR,
+                    ExpressiveParameters.teethColor);
+                mesh.materials[0].SetFloat(OvrAvatarMaterialManager.AVATAR_SHADER_LIP_SMOOTHNESS,
+                    ExpressiveParameters.lipSmoothness);
+            }
 
-#if UNITY_EDITOR
-        mesh.sharedMaterial.EnableKeyword("FIX_NORMAL_ON");
-#endif       
+            AvatarMaterialManager.ValidateTextures();
+        }   
     }
 }

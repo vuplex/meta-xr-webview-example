@@ -12,10 +12,10 @@ namespace Oculus.Platform.Samples.VrBoardGame
 	public class IAPManager : MonoBehaviour
 	{
 		// the game controler to notify when the user purchaes more powerballs
-		[SerializeField] private GameController m_gameController;
+		[SerializeField] private GameController m_gameController = null;
 
 		// where to record to display the current price for the IAP item
-		[SerializeField] private Text m_priceText;
+		[SerializeField] private Text m_priceText = null;
 
 		// purchasable IAP products we've configured on the Oculus Dashboard
 		private const string CONSUMABLE_1 = "PowerballPack1";

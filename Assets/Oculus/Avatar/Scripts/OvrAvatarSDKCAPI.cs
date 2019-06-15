@@ -11,6 +11,7 @@ public enum ovrAvatarCapabilities
     Hands = 1 << 1,
     Base = 1 << 2,
     BodyTilt = 1 << 4,
+    Expressive = 1 << 5,
     All = -1
 };
 
@@ -94,6 +95,19 @@ public struct ovrAvatarMeshVertexV2
     public float[] blendWeights;     ///< Blend weights for each component in the bind pose
 };
 
+// This needs to be the csharp equivalent of ovrAvatarMeshVertex in OVR_Avatar.h
+public struct ovrAvatarBlendVertex
+{
+    public float x;
+    public float y;
+    public float z;
+    public float nx;
+    public float ny;
+    public float nz;
+    public float tx;
+    public float ty;
+    public float tz;
+};
 
 // This needs to be the csharp equivalent of ovrAvatarMeshAssetData in OVR_Avatar.h
 public struct ovrAvatarMeshAssetData
@@ -262,6 +276,7 @@ public enum ovrAvatarControllerType
     Touch,
     Malibu, 
     Go,
+    Quest,
 
     Count,
 };
@@ -407,6 +422,55 @@ public struct ovrAvatarMaterialState
         return hash;
     }
 };
+
+public struct ovrAvatarExpressiveParameters
+{
+    public Vector4 irisColor;
+    public Vector4 scleraColor;
+    public Vector4 lashColor;
+    public Vector4 browColor;
+    public Vector4 lipColor;
+    public Vector4 teethColor;
+    public Vector4 gumColor;
+    public float browLashIntensity;
+    public float lipSmoothness;
+
+    static bool VectorEquals(Vector4 a, Vector4 b)
+    {
+        return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+    }
+    public override bool Equals(object obj)
+    {
+        if (!(obj is ovrAvatarExpressiveParameters))
+        {
+            return false;
+        }
+        ovrAvatarExpressiveParameters other = (ovrAvatarExpressiveParameters)obj;
+        if (!VectorEquals(irisColor, other.irisColor)) return false;
+        if (!VectorEquals(scleraColor, other.scleraColor)) return false;
+        if (!VectorEquals(lashColor, other.lashColor)) return false;
+        if (!VectorEquals(browColor, other.browColor)) return false;
+        if (!VectorEquals(lipColor, other.lipColor)) return false;
+        if (!VectorEquals(teethColor, other.teethColor)) return false;
+        if (!VectorEquals(gumColor, other.gumColor)) return false;
+        if (browLashIntensity != other.browLashIntensity) return false;
+        if (lipSmoothness != other.lipSmoothness) return false;
+
+        return true;
+    }
+    public override int GetHashCode()
+    {
+        return irisColor.GetHashCode() ^
+            scleraColor.GetHashCode() ^
+            lashColor.GetHashCode() ^
+            browColor.GetHashCode() ^
+            lipColor.GetHashCode() ^
+            teethColor.GetHashCode() ^
+            gumColor.GetHashCode() ^
+            browLashIntensity.GetHashCode() ^
+            lipSmoothness.GetHashCode();
+    }
+}
 
 public struct ovrAvatarPBSMaterialState
 {
@@ -560,6 +624,75 @@ public enum ovrAvatarBodyPartType
     Count
 };
 
+// This needs to be the csharp equivalent of ovrAvatarBlendShapeParams in OVR_Avatar.h
+public struct ovrAvatarBlendShapeParams
+{
+    public UInt32 blendShapeParamCount;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+    public float[] blendShapeParams;
+};
+
+// This needs to be the csharp equivalent of ovrAvatarVisemes in OVR_Avatar.h
+public struct ovrAvatarVisemes
+{
+    public UInt32 visemeParamCount;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+    public float[] visemeParams;
+};
+
+// This needs to be the csharp equivalent of ovrAvatarGazeTargetType in OVR_AvatarInternal.h
+public enum ovrAvatarGazeTargetType {
+    AvatarHead = 0,
+    AvatarHand,
+    Object,
+    ObjectStatic,
+    Count,
+};
+
+// This needs to be the csharp equivalent of ovrAvatarGazeTarget in OVR_AvatarInternal.h
+public struct ovrAvatarGazeTarget
+{
+    public UInt32 id;
+    public Vector3 worldPosition;
+    public ovrAvatarGazeTargetType type;
+};
+
+public struct ovrAvatarGazeTargets
+{
+    public UInt32 targetCount;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
+    public ovrAvatarGazeTarget[] targets;
+};
+
+// This needs to be the csharp equivalent of ovrAvatarLightType in OVR_AvatarInternal.h
+public enum ovrAvatarLightType {
+    Point = 0,
+    Direction,
+    Spot,
+    Count,
+};
+
+// This needs to be the csharp equivalent of ovrAvatarLight in OVR_AvatarInternal.h
+public struct ovrAvatarLight
+{
+    public UInt32 id;
+    public ovrAvatarLightType type;
+    public float intensity;
+    public Vector3 worldDirection;
+    public Vector3 worldPosition;
+    public float range;
+    public float spotAngleDeg;
+};
+
+public struct ovrAvatarLights
+{
+    public float ambientIntensity;
+    public UInt32 lightCount;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+    public ovrAvatarLight[] lights;
+};
+
+
 namespace Oculus.Avatar
 {
     public class CAPI
@@ -571,6 +704,8 @@ namespace Oculus.Avatar
         public static extern void ovrAvatar_InitializeAndroidUnity(string appID);
 #else
         private const string LibFile = "libovravatar";
+
+        public static readonly System.Version AvatarSDKVersion = new System.Version(1, 32, 0);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_Initialize(string appID);
@@ -634,6 +769,12 @@ namespace Oculus.Avatar
         public static extern void ovrAvatar_RequestAvatarSpecificationFromSpecRequest(IntPtr specificationRequest);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatarSpecificationRequest_SetFallbackLookAndFeelVersion(IntPtr specificationRequest, ovrAvatarLookAndFeelVersion version);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatarSpecificationRequest_SetExpressiveFlag(IntPtr specificationRequest, bool enable);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr ovrAvatar_Create(IntPtr avatarSpecification,
             ovrAvatarCapabilities capabilities);
 
@@ -660,6 +801,13 @@ namespace Oculus.Avatar
             IntPtr avatar,
             ovrAvatarHandInputState inputStateLeft,
             ovrAvatarHandInputState inputStateRight);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatarPose_UpdateHandsWithType(
+            IntPtr avatar,
+            ovrAvatarHandInputState inputStateLeft,
+            ovrAvatarHandInputState inputStateRight,
+            ovrAvatarControllerType type);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatarPose_Update3DofHands(
@@ -830,6 +978,22 @@ namespace Oculus.Avatar
         private static extern IntPtr ovrAvatarAsset_GetMeshData_Native(IntPtr assetPtr);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 ovrAvatarAsset_GetMeshBlendShapeCount(IntPtr assetPtr);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr ovrAvatarAsset_GetMeshBlendShapeName(IntPtr assetPtr, UInt32 index);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 ovrAvatarAsset_GetSubmeshCount(IntPtr assetPtr);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern UInt32 ovrAvatarAsset_GetSubmeshLastIndex(IntPtr assetPtr, UInt32 index);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern IntPtr ovrAvatarAsset_GetMeshBlendShapeVertices(IntPtr assetPtr);
+
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr ovrAvatarAsset_GetAvatar(IntPtr assetHandle);
 
         public static UInt64[] ovrAvatarAsset_GetCombinedMeshIDs(IntPtr assetHandle)
@@ -935,6 +1099,9 @@ namespace Oculus.Avatar
         public static extern ovrAvatarPBSMaterialState ovrAvatarSkinnedMeshRenderPBSV2_GetPBSMaterialState(IntPtr renderPart);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern ovrAvatarExpressiveParameters ovrAvatar_GetExpressiveParameters(IntPtr avatar);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern UInt64 ovrAvatarSkinnedMeshRender_GetDirtyJoints(IntPtr renderPart);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
@@ -977,6 +1144,15 @@ namespace Oculus.Avatar
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatarRenderPart_GetSkinnedMeshRenderPBSV2")]
         private static extern IntPtr ovrAvatarRenderPart_GetSkinnedMeshRenderPBSV2_Native(IntPtr renderPart);
+
+        public static ovrAvatarBlendShapeParams ovrAvatarSkinnedMeshRender_GetBlendShapeParams(IntPtr renderPart)
+        {
+            IntPtr ptr = ovrAvatarSkinnedMeshRender_GetBlendShapeParams_Native(renderPart);
+            return (ovrAvatarBlendShapeParams) Marshal.PtrToStructure(
+            ptr, typeof(ovrAvatarBlendShapeParams));
+        }
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatarSkinnedMeshRender_GetBlendShapeParams")]
+        private static extern IntPtr ovrAvatarSkinnedMeshRender_GetBlendShapeParams_Native(IntPtr renderPart);
 
         public static ovrAvatarRenderPart_ProjectorRender ovrAvatarRenderPart_GetProjectorRender(IntPtr renderPart)
         {
@@ -1063,7 +1239,117 @@ namespace Oculus.Avatar
             ovrAvatar_SetInternalForceASTCTextures(value);
         }
 
+        public static void ovrAvatar_OverrideExpressiveLogic(IntPtr avatar, ovrAvatarBlendShapeParams blendParams)
+        {
+            IntPtr statePtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarBlendShapeParams)));
+            Marshal.StructureToPtr(blendParams, statePtr, false);
+            ovrAvatar_OverrideExpressiveLogic_Native(avatar, statePtr);
+            Marshal.FreeHGlobal(statePtr);
+        }
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_OverrideExpressiveLogic")]
+        private static extern void ovrAvatar_OverrideExpressiveLogic_Native(IntPtr avatar, IntPtr state);
+
+        public static void ovrAvatar_SetVisemes(IntPtr avatar, ovrAvatarVisemes visemes)
+        {
+            IntPtr statePtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarVisemes)));
+            Marshal.StructureToPtr(visemes, statePtr, false);
+            ovrAvatar_SetVisemes_Native(avatar, statePtr);
+            Marshal.FreeHGlobal(statePtr);
+        }
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_SetVisemes")]
+        private static extern void ovrAvatar_SetVisemes_Native(IntPtr avatar, IntPtr visemes);
+
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ovrAvatarSpecificationRequest_SetFallbackLookAndFeelVersion(IntPtr specificationRequest, ovrAvatarLookAndFeelVersion version);
-    }
+        public static extern void ovrAvatar_UpdateWorldTransform(IntPtr avatar, ovrAvatarTransform transform);
+
+
+        public static void ovrAvatar_UpdateGazeTargets(ovrAvatarGazeTargets targets)
+        {
+            IntPtr targetsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarGazeTargets)));
+            Marshal.StructureToPtr(targets, targetsPtr, false);
+            ovrAvatar_UpdateGazeTargets_Native(targetsPtr);
+            Marshal.FreeHGlobal(targetsPtr);
+        }
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_UpdateGazeTargets")]
+        private static extern void ovrAvatar_UpdateGazeTargets_Native(IntPtr targets);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_RemoveGazeTargets(UInt32 targetCount, UInt32[] ids);
+
+
+        public static void ovrAvatar_UpdateLights(ovrAvatarLights lights)
+        {
+            IntPtr lightsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarLights)));
+            Marshal.StructureToPtr(lights, lightsPtr, false);
+            ovrAvatar_UpdateLights_Native(lightsPtr);
+            Marshal.FreeHGlobal(lightsPtr);
+        }
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_UpdateLights")]
+        private static extern void ovrAvatar_UpdateLights_Native(IntPtr lights);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_RemoveLights(UInt32 lightCount, UInt32[] ids);
+
+
+        private const string ovrPluginDLL = "OVRPlugin";
+        private static System.Version ovrPluginVersion;
+
+        public enum Result
+        {
+          /// Success
+          Success = 0,
+
+          /// Failure
+          Failure = -1000,
+          Failure_InvalidParameter = -1001,
+          Failure_NotInitialized = -1002,
+          Failure_InvalidOperation = -1003,
+          Failure_Unsupported = -1004,
+          Failure_NotYetImplemented = -1005,
+          Failure_OperationFailed = -1006,
+          Failure_InsufficientSize = -1007,
+        }
+
+        public static bool SendEvent(string name, string param = "", string source = "")
+        {
+          try
+          {
+            if (ovrPluginVersion == null)
+            {
+              string version = ovrp_GetVersion();
+              if (!String.IsNullOrEmpty(version))
+              {
+                ovrPluginVersion = new System.Version(version.Split('-')[0]);
+              }
+              else
+              {
+                ovrPluginVersion = new System.Version(0, 0, 0);
+              }
+            }
+            if (ovrPluginVersion >= OVRP_1_30_0.version)
+            {
+              return OVRP_1_30_0.ovrp_SendEvent2(name, param, source.Length == 0 ? "avatar_sdk" : source) == Result.Success;
+            }
+            else
+            {
+              return false;
+            }
+          }
+          catch (Exception)
+          {
+            return false;
+          }
+        }
+
+        [DllImport(ovrPluginDLL, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrp_GetVersion")]
+        private static extern IntPtr _ovrp_GetVersion();
+        public static string ovrp_GetVersion() { return Marshal.PtrToStringAnsi(_ovrp_GetVersion()); }
+
+        private static class OVRP_1_30_0
+        {
+          public static readonly System.Version version = new System.Version(1, 30, 0);
+          [DllImport(ovrPluginDLL, CallingConvention = CallingConvention.Cdecl)]
+          public static extern Result ovrp_SendEvent2(string name, string param, string source);
+        }
+  }
 }

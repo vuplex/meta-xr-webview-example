@@ -190,9 +190,76 @@ public class OVRLipSyncContext : OVRLipSyncContextBase
         DebugShowVisemesAndLaughter();
     }
 
+    /// <summary>
+    /// Preprocess F32 PCM audio buffer
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <param name="channels">Channels.</param>
+    public void PreprocessAudioSamples(float[] data, int channels)
+    {
+        // Increase the gain of the input
+        for (int i = 0; i < data.Length; ++i)
+        {
+            data[i] = data[i] * gain;
+        }
+    }
 
     /// <summary>
-    /// Pass an audio sample to the lip sync module for computation
+    /// Postprocess F32 PCM audio buffer
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <param name="channels">Channels.</param>
+    public void PostprocessAudioSamples(float[] data, int channels)
+    {
+        // Turn off output (so that we don't get feedback from mics too close to speakers)
+        if (!audioLoopback)
+        {
+            for (int i = 0; i < data.Length; ++i)
+                data[i] = data[i] * 0.0f;
+        }
+    }
+
+    /// <summary>
+    /// Pass F32 PCM audio buffer to the lip sync module
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <param name="channels">Channels.</param>
+    public void ProcessAudioSamplesRaw(float[] data, int channels)
+    {
+        // Send data into Phoneme context for processing (if context is not 0)
+        lock (this)
+        {
+            if (Context == 0 || OVRLipSync.IsInitialized() != OVRLipSync.Result.Success)
+            {
+                return;
+            }
+            var frame = this.Frame;
+            OVRLipSync.ProcessFrame(Context, data, frame, channels == 2);
+        }
+    }
+
+    /// <summary>
+    /// Pass S16 PCM audio buffer to the lip sync module
+    /// </summary>
+    /// <param name="data">Data.</param>
+    /// <param name="channels">Channels.</param>
+    public void ProcessAudioSamplesRaw(short[] data, int channels)
+    {
+        // Send data into Phoneme context for processing (if context is not 0)
+        lock (this)
+        {
+            if (Context == 0 || OVRLipSync.IsInitialized() != OVRLipSync.Result.Success)
+            {
+                return;
+            }
+            var frame = this.Frame;
+            OVRLipSync.ProcessFrame(Context, data, frame, channels == 2);
+        }
+    }
+
+
+    /// <summary>
+    /// Process F32 audio sample and pass it to the lip sync module for computation
     /// </summary>
     /// <param name="data">Data.</param>
     /// <param name="channels">Channels.</param>
@@ -201,29 +268,12 @@ public class OVRLipSyncContext : OVRLipSyncContextBase
         // Do not process if we are not initialized, or if there is no
         // audio source attached to game object
         if ((OVRLipSync.IsInitialized() != OVRLipSync.Result.Success) || audioSource == null)
+        {
             return;
-
-        // Increase the gain of the input
-        for (int i = 0; i < data.Length; ++i)
-            data[i] = data[i] * gain;
-
-        // Send data into Phoneme context for processing (if context is not 0)
-        lock (this)
-        {
-            if (Context != 0)
-            {
-
-                OVRLipSync.Frame frame = this.Frame;
-                OVRLipSync.ProcessFrame(Context, data, frame);
-            }
         }
-
-        // Turn off output (so that we don't get feedback from mics too close to speakers)
-        if (!audioLoopback)
-        {
-            for (int i = 0; i < data.Length; ++i)
-                data[i] = data[i] * 0.0f;
-        }
+        PreprocessAudioSamples(data, channels);
+        ProcessAudioSamplesRaw(data, channels);
+        PostprocessAudioSamples(data, channels);
     }
 
     /// <summary>

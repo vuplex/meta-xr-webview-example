@@ -1666,6 +1666,16 @@ namespace Oculus.Platform
       return null;
     }
 
+    /// Indicates that party has been updated
+    ///
+    public static void SetPartyUpdateNotificationCallback(Message<Models.PartyUpdateNotification>.Callback callback)
+    {
+      Callback.SetNotificationCallback(
+        Message.MessageType.Notification_Party_PartyUpdate,
+        callback
+      );
+    }
+    
   }
 
   public static partial class Rooms

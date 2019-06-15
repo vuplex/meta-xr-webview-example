@@ -83,7 +83,7 @@ public class P2PManager
 
     #region Message Sending
     
-    public void SendAvatarUpdate(ulong userID, Transform bodyTransform, UInt32 sequence, byte[] avatarPacket)
+    public void SendAvatarUpdate(ulong userID, Transform rootTransform, UInt32 sequence, byte[] avatarPacket)
     {
         const int UPDATE_DATA_LENGTH = 41;
         byte[] sendBuffer = new byte[avatarPacket.Length + UPDATE_DATA_LENGTH];
@@ -93,13 +93,14 @@ public class P2PManager
 
         PackULong(SocialPlatformManager.MyID, sendBuffer, ref offset);
 
-        PackFloat(bodyTransform.localPosition.x, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localPosition.y, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localPosition.z, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localRotation.x, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localRotation.y, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localRotation.z, sendBuffer, ref offset);
-        PackFloat(bodyTransform.localRotation.w, sendBuffer, ref offset);
+        PackFloat(rootTransform.position.x, sendBuffer, ref offset);
+        // Lock to floor height
+        PackFloat(0f, sendBuffer, ref offset);
+        PackFloat(rootTransform.position.z, sendBuffer, ref offset);
+        PackFloat(rootTransform.rotation.x, sendBuffer, ref offset);
+        PackFloat(rootTransform.rotation.y, sendBuffer, ref offset);
+        PackFloat(rootTransform.rotation.z, sendBuffer, ref offset);
+        PackFloat(rootTransform.rotation.w, sendBuffer, ref offset);
 
         PackUInt32(sequence, sendBuffer, ref offset);
 
@@ -150,19 +151,19 @@ public class P2PManager
         if (remote == null)
             return;
 
-        remote.receivedBodyPositionPrior = remote.receivedBodyPosition;
-        remote.receivedBodyPosition.x = ReadFloat(packet, ref offset);
-        remote.receivedBodyPosition.y = ReadFloat(packet, ref offset);
-        remote.receivedBodyPosition.z = ReadFloat(packet, ref offset);
+        remote.receivedRootPositionPrior = remote.receivedRootPosition;
+        remote.receivedRootPosition.x = ReadFloat(packet, ref offset);
+        remote.receivedRootPosition.y = ReadFloat(packet, ref offset);
+        remote.receivedRootPosition.z = ReadFloat(packet, ref offset);
 
-        remote.receivedBodyRotationPrior = remote.receivedBodyRotation;
-        remote.receivedBodyRotation.x = ReadFloat(packet, ref offset);
-        remote.receivedBodyRotation.y = ReadFloat(packet, ref offset);
-        remote.receivedBodyRotation.z = ReadFloat(packet, ref offset);
-        remote.receivedBodyRotation.w = ReadFloat(packet, ref offset);
+        remote.receivedRootRotationPrior = remote.receivedRootRotation;
+        remote.receivedRootRotation.x = ReadFloat(packet, ref offset);
+        remote.receivedRootRotation.y = ReadFloat(packet, ref offset);
+        remote.receivedRootRotation.z = ReadFloat(packet, ref offset);
+        remote.receivedRootRotation.w = ReadFloat(packet, ref offset);
         
-        remote.RemoteAvatar.transform.localPosition = remote.receivedBodyPosition;
-        remote.RemoteAvatar.transform.localRotation = remote.receivedBodyRotation;
+        remote.RemoteAvatar.transform.position = remote.receivedRootPosition;
+        remote.RemoteAvatar.transform.rotation = remote.receivedRootRotation;
 
         // forward the remaining data to the avatar system
         int sequence = (int)ReadUInt32(packet, ref offset);

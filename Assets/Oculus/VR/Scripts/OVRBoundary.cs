@@ -62,14 +62,6 @@ public class OVRBoundary
 	}
 
 	/// <summary>
-	/// Specifies the boundary system parameters that can be configured. Can be overridden by the system or user.
-	/// </summary>
-	public struct BoundaryLookAndFeel
-	{
-		public Color Color;
-	}
-
-	/// <summary>
 	/// Returns true if the boundary system is currently configured with valid boundary data.
 	/// </summary>
 	public bool GetConfigured()
@@ -123,27 +115,6 @@ public class OVRBoundary
 		};
 
 		return res;
-	}
-
-	/// <summary>
-	/// Requests that the visual look and feel of the boundary system be changed as specified. Can be overridden by the system or user.
-	/// </summary>
-	public void SetLookAndFeel(OVRBoundary.BoundaryLookAndFeel lookAndFeel)
-	{
-		OVRPlugin.BoundaryLookAndFeel lf = new OVRPlugin.BoundaryLookAndFeel()
-		{
-			Color = lookAndFeel.Color.ToColorf()
-		};
-
-		OVRPlugin.SetBoundaryLookAndFeel(lf);
-	}
-
-	/// <summary>
-	/// Resets the visual look and feel of the boundary system to the initial system settings.
-	/// </summary>
-	public void ResetLookAndFeel()
-	{
-		OVRPlugin.ResetBoundaryLookAndFeel();
 	}
 
 	private static int cachedVector3fSize = Marshal.SizeOf(typeof(OVRPlugin.Vector3f));

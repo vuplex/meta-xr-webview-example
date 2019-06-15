@@ -7,7 +7,7 @@ namespace Oculus.Platform.Samples.VrHoops
 	public class PlayerArea : MonoBehaviour
 	{
 		// the prefab for the ball that players will shoot
-		[SerializeField] private GameObject m_ballPrefab;
+		[SerializeField] private GameObject m_ballPrefab = null;
 
 		// cached gameobject that where the player camera will move to
 		private GameObject m_playerHead;

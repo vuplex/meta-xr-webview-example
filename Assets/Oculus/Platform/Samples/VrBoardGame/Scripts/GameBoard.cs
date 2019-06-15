@@ -24,7 +24,7 @@ namespace Oculus.Platform.Samples.VrBoardGame
 		[SerializeField] private Color[] m_playerColors = new Color[MAX_PLAYERS];
 
 		// color for pice the player is considering moving to
-		[SerializeField] private Color m_proposedMoveColor;
+		[SerializeField] private Color m_proposedMoveColor = Color.white;
 
 		// the player scores that are recalcuated after a pice is placed
 		private int[] m_scores = new int[MAX_PLAYERS];

@@ -10,13 +10,13 @@ namespace Oculus.Platform.Samples.VrBoardGame
 	public class EyeCamera : MonoBehaviour
 	{
 		// the EventSystem used by the UI elements
-		[SerializeField] private EventSystem m_eventSystem;
+		[SerializeField] private EventSystem m_eventSystem = null;
 
 		// the GameController to notify
-		[SerializeField] private GameController m_gameController;
+		[SerializeField] private GameController m_gameController = null;
 
 		// a tine ball in the distance to debug where the user is looking
-		[SerializeField] private SphereCollider m_gazeTracker;
+		[SerializeField] private SphereCollider m_gazeTracker = null;
 
 		// the current Button, if any, being looked at
 		private Button m_currentButton;

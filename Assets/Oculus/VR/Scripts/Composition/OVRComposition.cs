@@ -21,6 +21,20 @@ using System.Collections;
 
 public abstract class OVRComposition {
 
+	public bool cameraInTrackingSpace = false;
+	public OVRCameraRig cameraRig = null;
+
+	protected OVRComposition(GameObject parentObject, Camera mainCamera)
+	{
+		OVRCameraRig cameraRig = mainCamera.GetComponentInParent<OVRCameraRig>();
+		if (cameraRig == null)
+		{
+			cameraRig = parentObject.GetComponent<OVRCameraRig>();
+		}
+		cameraInTrackingSpace = (cameraRig != null && cameraRig.trackingSpace != null);
+		this.cameraRig = cameraRig;
+	}
+
 	public abstract OVRManager.CompositionMethod CompositionMethod();
 
 	public abstract void Update(Camera mainCamera);
@@ -33,7 +47,13 @@ public abstract class OVRComposition {
 
 	public OVRPose ComputeCameraWorldSpacePose(OVRPlugin.CameraExtrinsics extrinsics)
 	{
-		OVRPose worldSpacePose = new OVRPose();
+		OVRPose trackingSpacePose = ComputeCameraTrackingSpacePose(extrinsics);
+		OVRPose worldSpacePose = OVRExtensions.ToWorldSpacePose(trackingSpacePose);
+		return worldSpacePose;
+	}
+
+	public OVRPose ComputeCameraTrackingSpacePose(OVRPlugin.CameraExtrinsics extrinsics)
+	{
 		OVRPose trackingSpacePose = new OVRPose();
 
 		OVRPose cameraTrackingSpacePose = extrinsics.RelativePose.ToOVRPose();
@@ -63,8 +83,7 @@ public abstract class OVRComposition {
 			}
 		}
 
-		worldSpacePose = OVRExtensions.ToWorldSpacePose(trackingSpacePose);
-		return worldSpacePose;
+		return trackingSpacePose;
 	}
 
 }

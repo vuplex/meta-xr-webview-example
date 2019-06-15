@@ -6,6 +6,9 @@ using Oculus.Avatar;
 
 public class OvrAvatarLocalDriver : OvrAvatarDriver {
 
+    Vector3 centerEyePosition = Vector3.zero;
+    Quaternion centerEyeRotation = Quaternion.identity;
+
     ControllerPose GetMalibuControllerPose(OVRInput.Controller controller)
     {
         ovrAvatarButton buttons = 0;
@@ -53,23 +56,19 @@ public class OvrAvatarLocalDriver : OvrAvatarDriver {
 
     private void CalculateCurrentPose()
     {
-#if UNITY_2017_2_OR_NEWER
-        Vector3 headPos = UnityEngine.XR.InputTracking.GetLocalPosition(UnityEngine.XR.XRNode.CenterEye);
-#else
-        Vector3 headPos = UnityEngine.VR.InputTracking.GetLocalPosition(UnityEngine.VR.VRNode.CenterEye);
-#endif
+        // Platform and device agnostic calls to return center eye pose, used to pass in head pose to sdk
+        OVRNodeStateProperties.GetNodeStatePropertyVector3(UnityEngine.XR.XRNode.CenterEye, NodeStatePropertyType.Position,
+            OVRPlugin.Node.EyeCenter, OVRPlugin.Step.Render, out centerEyePosition);
+        OVRNodeStateProperties.GetNodeStatePropertyQuaternion(UnityEngine.XR.XRNode.CenterEye, NodeStatePropertyType.Orientation,
+            OVRPlugin.Node.EyeCenter, OVRPlugin.Step.Render, out centerEyeRotation);
 
         if (GetIsTrackedRemote())
         {
             CurrentPose = new PoseFrame
             {
                 voiceAmplitude = voiceAmplitude,
-                headPosition = headPos,
-#if UNITY_2017_2_OR_NEWER
-                headRotation = UnityEngine.XR.InputTracking.GetLocalRotation(UnityEngine.XR.XRNode.CenterEye),
-#else
-                headRotation = UnityEngine.VR.InputTracking.GetLocalRotation(UnityEngine.VR.VRNode.CenterEye),
-#endif
+                headPosition = centerEyePosition,
+                headRotation = centerEyeRotation,
                 handLeftPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTrackedRemote),
                 handLeftRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTrackedRemote),
                 handRightPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTrackedRemote),
@@ -83,12 +82,8 @@ public class OvrAvatarLocalDriver : OvrAvatarDriver {
             CurrentPose = new PoseFrame
             {
                 voiceAmplitude = voiceAmplitude,
-                headPosition = headPos,
-#if UNITY_2017_2_OR_NEWER
-                headRotation = UnityEngine.XR.InputTracking.GetLocalRotation(UnityEngine.XR.XRNode.CenterEye),
-#else
-                headRotation = UnityEngine.VR.InputTracking.GetLocalRotation(UnityEngine.VR.VRNode.CenterEye),
-#endif
+                headPosition = centerEyePosition,
+                headRotation = centerEyeRotation,
                 handLeftPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch),
                 handLeftRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch),
                 handRightPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch),
@@ -97,7 +92,6 @@ public class OvrAvatarLocalDriver : OvrAvatarDriver {
                 controllerRightPose = GetControllerPose(OVRInput.Controller.RTouch),
             };
         }
-
     }
 
     public override void UpdateTransforms(IntPtr sdkAvatar)

@@ -1,0 +1,245 @@
+package com.oculus.videoplayer;
+
+import android.content.Context;
+import android.graphics.SurfaceTexture;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.storage.OnObbStateChangeListener;
+import android.os.storage.StorageManager;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.Surface;
+
+import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.RenderersFactory;
+import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioProcessor;
+import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.audio.AudioSink;
+import com.google.android.exoplayer2.drm.DrmSessionManager;
+import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.TextOutput;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.upstream.BandwidthMeter;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.upstream.FileDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
+import com.google.android.exoplayer2.video.VideoListener;
+import com.google.android.exoplayer2.video.VideoRendererEventListener;
+import com.twobigears.audio360.AudioEngine;
+import com.twobigears.audio360.ChannelMap;
+import com.twobigears.audio360.SpatDecoderQueue;
+import com.twobigears.audio360exo2.Audio360Sink;
+import com.twobigears.audio360exo2.OpusRenderer;
+import com.unity3d.player.UnityPlayer;
+
+import java.io.File;
+import java.util.ArrayList;
+
+/**
+ * Created by trevordasch on 9/19/2018.
+ */
+
+public class MyVideoPlayer
+{
+    static AudioEngine engine;
+    static SpatDecoderQueue spat;
+    static float SAMPLE_RATE = 48000.f;
+
+    static SimpleExoPlayer exoPlayer;
+    static AudioSink audio360Sink;
+
+    static Handler handler;
+
+    private static Handler getHandler()
+    {
+        if (handler == null)
+        {
+            handler = new Handler(Looper.getMainLooper());
+        }
+
+        return handler;
+    }
+
+
+    private static class CustomRenderersFactory extends DefaultRenderersFactory {
+        public CustomRenderersFactory(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected void buildAudioRenderers(Context context, @Nullable DrmSessionManager<FrameworkMediaCrypto> drmSessionManager, AudioProcessor[] audioProcessors, Handler eventHandler, AudioRendererEventListener eventListener, int extensionRendererMode, ArrayList<Renderer> out) {
+            super.buildAudioRenderers(context, drmSessionManager, audioProcessors, eventHandler, eventListener, extensionRendererMode, out);
+
+            // The output latency of the engine can be used to compensate for sync
+            double latency = engine.getOutputLatencyMs();
+
+            // Audio: opus codec with the spatial audio engine
+            // TBE_8_2 implies 10 channels of audio (8 channels of spatial audio, 2 channels of head-locked)
+            audio360Sink = new Audio360Sink(spat, ChannelMap.TBE_8_2, latency);
+            final OpusRenderer audioRenderer = new OpusRenderer(audio360Sink);
+
+            out.add(audioRenderer);
+        }
+    }
+
+    public static void playVideo( final Context context, final String filePath, final Surface surface)
+    {
+        // set up exoplayer on main thread
+        getHandler().post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                // 1. Create a default TrackSelector
+                BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+                TrackSelection.Factory videoTrackSelectionFactory =
+                        new AdaptiveTrackSelection.Factory(bandwidthMeter);
+                DefaultTrackSelector trackSelector =
+                        new DefaultTrackSelector(videoTrackSelectionFactory);
+                // Produces DataSource instances through which media data is loaded.
+                DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(context, "MyVideoPlayer");
+
+                Uri uri = Uri.parse( filePath );
+
+                if (filePath.startsWith( "jar:file:" )) {
+                    if (filePath.contains(".apk")) { // APK
+                        uri = new Uri.Builder().scheme( "asset" ).path( filePath.substring( filePath.indexOf( "/assets/" ) + "/assets/".length() ) ).build();
+                    }
+                    else if (filePath.contains(".obb")) { // OBB
+                        String obbPath = filePath.substring(11, filePath.indexOf(".obb") + 4);
+
+                        StorageManager sm = (StorageManager)context.getSystemService(Context.STORAGE_SERVICE);
+                        if (!sm.isObbMounted(obbPath))
+                        {
+                            sm.mountObb(obbPath, null, new OnObbStateChangeListener() {
+                                @Override
+                                public void onObbStateChange(String path, int state) {
+                                    super.onObbStateChange(path, state);
+                                }
+                            });
+                        }
+
+                        uri = new Uri.Builder().scheme( "file" ).path( sm.getMountedObbPath(obbPath) + filePath.substring(filePath.indexOf(".obb") + 5) ).build();
+                    }
+                }
+
+                // This is the MediaSource representing the media to be played.
+                MediaSource videoSource = new ExtractorMediaSource.Factory(dataSourceFactory)
+                        .createMediaSource( uri );
+
+                Log.d("MyVideoPlayer", "Requested play of " +filePath + " uri: "+uri.toString());
+
+                // 2. Create the player
+                //--------------------------------------
+                //- Audio Engine
+
+                engine = AudioEngine.create(SAMPLE_RATE, context);
+                spat = engine.createSpatDecoderQueue();
+                engine.start();
+
+                //--------------------------------------
+                //- ExoPlayer
+
+                // Create our modified ExoPlayer instance
+                exoPlayer = ExoPlayerFactory.newSimpleInstance(new CustomRenderersFactory(context), trackSelector);
+
+                exoPlayer.setVideoSurface( surface );
+
+                // Prepare the player with the source.
+                exoPlayer.prepare(videoSource);
+
+                // Loop video for sample
+                exoPlayer.setRepeatMode( Player.REPEAT_MODE_ONE );
+
+                exoPlayer.setPlayWhenReady( true );
+
+            }
+        });
+
+    }
+
+    public static void stop()
+    {
+        getHandler().post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if ( exoPlayer != null )
+                {
+                    exoPlayer.stop();
+                    exoPlayer.release();
+                    exoPlayer = null;
+                }
+            }
+        });
+    }
+
+    public static void pause()
+    {
+        getHandler().post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if ( exoPlayer != null )
+                {
+                    exoPlayer.setPlayWhenReady(false);
+                }
+            }
+        });
+    }
+
+    public static void resume()
+    {
+        getHandler().post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if ( exoPlayer != null )
+                {
+                    exoPlayer.setPlayWhenReady(true);
+                }
+            }
+        });
+    }
+
+    public static void setPlaybackSpeed(final float speed)
+    {
+        getHandler().post( new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                if ( exoPlayer != null )
+                {
+                    PlaybackParameters param = new PlaybackParameters(speed);
+                    exoPlayer.setPlaybackParameters(param);
+                }
+            }
+        });
+    
+    }
+}

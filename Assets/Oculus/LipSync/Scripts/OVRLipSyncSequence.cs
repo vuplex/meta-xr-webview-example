@@ -20,9 +20,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ************************************************************************************/
+using System.IO;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Threading;
 
 // Sequence - holds ordered entries for playback
 [System.Serializable]
@@ -36,7 +36,6 @@ public class OVRLipSyncSequence : ScriptableObject
         OVRLipSync.Frame frame = null;
         if (time < length && entries.Count > 0)
         {
-            // todo: we could blend frame output here if we wanted.
             float percentComplete = time / length;
             frame = entries[(int)(entries.Count * percentComplete)];
         }
@@ -47,7 +46,8 @@ public class OVRLipSyncSequence : ScriptableObject
 
     private static readonly int sSampleSize = 1024;
 
-    public static OVRLipSyncSequence CreateSequenceFromAudioClip(AudioClip clip)
+    public static OVRLipSyncSequence CreateSequenceFromAudioClip(
+        AudioClip clip, bool useOfflineModel = false)
     {
         OVRLipSyncSequence sequence = null;
 
@@ -80,8 +80,13 @@ public class OVRLipSyncSequence : ScriptableObject
         }
 
         uint context = 0;
-        OVRLipSync.Result result =
-            OVRLipSync.CreateContext(ref context, OVRLipSync.ContextProviders.Enhanced);
+
+        OVRLipSync.Result result = useOfflineModel
+            ? OVRLipSync.CreateContextWithModelFile(
+                ref context,
+                OVRLipSync.ContextProviders.Enhanced,
+                Path.Combine(Application.dataPath, "Oculus/LipSync/Assets/OfflineModel/ovrlipsync_offline_model.pb"))
+            : OVRLipSync.CreateContext(ref context, OVRLipSync.ContextProviders.Enhanced);
 
         if (result != OVRLipSync.Result.Success)
         {
@@ -110,7 +115,7 @@ public class OVRLipSyncSequence : ScriptableObject
             else
             {
                 // mono
-                OVRLipSync.ProcessFrame(context, samples, frame, OVRLipSync.AudioDataType.F32_Mono);
+                OVRLipSync.ProcessFrame(context, samples, frame, false);
             }
 
             frames.Add(frame);

@@ -7,22 +7,22 @@ namespace Oculus.Platform.Samples.VrBoardGame
 	public class GameController : MonoBehaviour
 	{
 		// instance of the object interfacing with the matchmaking service
-		[SerializeField] private MatchmakingManager m_matchmaking;
+		[SerializeField] private MatchmakingManager m_matchmaking = null;
 
-		[SerializeField] private GameBoard m_board;
-		[SerializeField] private GamePiece m_pieceA;
-		[SerializeField] private GamePiece m_pieceB;
-		[SerializeField] private GamePiece m_powerPiece;
+		[SerializeField] private GameBoard m_board = null;
+		[SerializeField] private GamePiece m_pieceA = null;
+		[SerializeField] private GamePiece m_pieceB = null;
+		[SerializeField] private GamePiece m_powerPiece = null;
 
 		// colors for the various states of the selectable games pieces
-		[SerializeField] private Color m_unusableColor;
-		[SerializeField] private Color m_unselectedColor;
-		[SerializeField] private Color m_selectedColor;
-		[SerializeField] private Color m_highlightedColor;
+		[SerializeField] private Color m_unusableColor = Color.white;
+		[SerializeField] private Color m_unselectedColor = Color.white;
+		[SerializeField] private Color m_selectedColor = Color.white;
+		[SerializeField] private Color m_highlightedColor = Color.white;
 
-		[SerializeField] private Text m_ballCountText;
-		[SerializeField] private Text m_player0Text;
-		[SerializeField] private Text m_player1Text;
+		[SerializeField] private Text m_ballCountText = null;
+		[SerializeField] private Text m_player0Text = null;
+		[SerializeField] private Text m_player1Text = null;
 
 		private enum GameState {
 			None,

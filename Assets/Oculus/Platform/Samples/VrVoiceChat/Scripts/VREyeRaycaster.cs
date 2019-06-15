@@ -8,7 +8,7 @@ namespace Oculus.Platform.Samples.VrVoiceChat
 	// user is looking to select/deselect Buttons.
 	public class VREyeRaycaster : MonoBehaviour
 	{
-		[SerializeField] private UnityEngine.EventSystems.EventSystem m_eventSystem;
+		[SerializeField] private UnityEngine.EventSystems.EventSystem m_eventSystem = null;
 
 		private Button m_currentButton;
 

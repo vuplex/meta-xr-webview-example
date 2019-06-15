@@ -33,7 +33,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
 
         [Range(0, 1)] public float DiffuseIntensity;
         [Range(0, 10)] public float RimIntensity;
-        [Range(0, 1)] public float BacklightIntensity;
         [Range(0, 1)] public float ReflectionIntensity;
     }
 
@@ -52,7 +51,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         public Vector4[] Colors;
         public float[] DiffuseIntensities;
         public float[] RimIntensities;
-        public float[] BacklightIntensities;
         public float[] ReflectionIntensities;
     }
 
@@ -63,7 +61,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         "_RoughnessMap"   // TextureType.RoughnessMaps
     };
 
-    public Color[] BodyColorTints;
     public List<ReflectionProbeBlendInfo> ReflectionProbes = new List<ReflectionProbeBlendInfo>();
 
     // Container class for all the data relating to an avatar material description
@@ -82,10 +79,9 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     // Property block for pushing to shader
     private AvatarMaterialPropertyBlock LocalAvatarMaterialPropertyBlock;
 
-    public static int RENDER_QUEUE = 3640;
-
+    // cache the previous shader when swapping in the loading shader.
+    private Shader CombinedShader; 
     // Shader properties
-    public static string AVATAR_SHADER_COMBINED = "OvrAvatar/Avatar_Mobile_CombinedMesh";
     public static string AVATAR_SHADER_LOADER = "OvrAvatar/Avatar_Mobile_Loader";
     public static string AVATAR_SHADER_MAINTEX = "_MainTex";
     public static string AVATAR_SHADER_NORMALMAP = "_NormalMap";
@@ -93,11 +89,19 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     public static string AVATAR_SHADER_COLOR = "_BaseColor";
     public static string AVATAR_SHADER_DIFFUSEINTENSITY = "_DiffuseIntensity";
     public static string AVATAR_SHADER_RIMINTENSITY = "_RimIntensity";
-    public static string AVATAR_SHADER_BACKLIGHTINTENSITY = "_BacklightIntensity";
     public static string AVATAR_SHADER_REFLECTIONINTENSITY = "_ReflectionIntensity";
     public static string AVATAR_SHADER_CUBEMAP = "_Cubemap";
     public static string AVATAR_SHADER_ALPHA = "_Alpha";
     public static string AVATAR_SHADER_LOADING_DIMMER = "_LoadingDimmer";
+
+    public static string AVATAR_SHADER_IRIS_COLOR = "_MaskColorIris";
+    public static string AVATAR_SHADER_LIP_COLOR = "_MaskColorLips";
+    public static string AVATAR_SHADER_BROW_COLOR = "_MaskColorBrows";
+    public static string AVATAR_SHADER_LASH_COLOR = "_MaskColorLashes";
+    public static string AVATAR_SHADER_SCLERA_COLOR = "_MaskColorSclera";
+    public static string AVATAR_SHADER_GUM_COLOR = "_MaskColorGums";
+    public static string AVATAR_SHADER_TEETH_COLOR = "_MaskColorTeeth";
+    public static string AVATAR_SHADER_LIP_SMOOTHNESS = "_LipSmoothness";
 
     // Loading animation
     private const float LOADING_ANIMATION_AMPLITUDE = 0.5f;
@@ -207,8 +211,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
                     = LocalAvatarConfig.ComponentMaterialProperties[i].DiffuseIntensity;
                 LocalAvatarConfig.MaterialPropertyBlock.RimIntensities[i] 
                     = LocalAvatarConfig.ComponentMaterialProperties[i].RimIntensity;
-                LocalAvatarConfig.MaterialPropertyBlock.BacklightIntensities[i] 
-                    = LocalAvatarConfig.ComponentMaterialProperties[i].BacklightIntensity;
                 LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities[i] 
                     = LocalAvatarConfig.ComponentMaterialProperties[i].ReflectionIntensity;
             }
@@ -224,8 +226,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
             LocalAvatarConfig.MaterialPropertyBlock.DiffuseIntensities);
         materialPropertyBlock.SetFloatArray(AVATAR_SHADER_RIMINTENSITY, 
             LocalAvatarConfig.MaterialPropertyBlock.RimIntensities);
-        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_BACKLIGHTINTENSITY, 
-            LocalAvatarConfig.MaterialPropertyBlock.BacklightIntensities);
         materialPropertyBlock.SetFloatArray(AVATAR_SHADER_REFLECTIONINTENSITY, 
             LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities);
         TargetRenderer.GetClosestReflectionProbes(ReflectionProbes);
@@ -331,9 +331,17 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     private IEnumerator RunLoadingAnimation()
     {
         // Set the material to single component while the avatar loads
+        CombinedShader = TargetRenderer.sharedMaterial.shader;
+
+        // Save shader properties
+        int srcBlend = TargetRenderer.sharedMaterial.GetInt("_SrcBlend");
+        int dstBlend = TargetRenderer.sharedMaterial.GetInt("_DstBlend");
+        bool transparentQueue = TargetRenderer.sharedMaterial.IsKeywordEnabled("_ALPHATEST_ON");
         int renderQueue = TargetRenderer.sharedMaterial.renderQueue;
+        string renderTag = TargetRenderer.sharedMaterial.GetTag("RenderType", false);
+
+        // Swap in loading shader
         TargetRenderer.sharedMaterial.shader = Shader.Find(AVATAR_SHADER_LOADER);
-        TargetRenderer.sharedMaterial.renderQueue = renderQueue;
         TargetRenderer.sharedMaterial.SetColor(AVATAR_SHADER_COLOR, Color.white);
 
         while (TextureCopyManager.GetTextureCount() > 0)
@@ -343,10 +351,26 @@ public class OvrAvatarMaterialManager : MonoBehaviour
             TargetRenderer.sharedMaterial.SetFloat(AVATAR_SHADER_LOADING_DIMMER, distance);
             yield return null;
         }
-        // Restore render order and swap the combined material
-        renderQueue = TargetRenderer.sharedMaterial.renderQueue;
+        // Swap back main shader
         TargetRenderer.sharedMaterial.SetFloat(AVATAR_SHADER_LOADING_DIMMER, 1f);
-        TargetRenderer.sharedMaterial.shader = Shader.Find(AVATAR_SHADER_COMBINED);
+        TargetRenderer.sharedMaterial.shader = CombinedShader;
+        
+        // Restore shader properties
+        TargetRenderer.sharedMaterial.SetOverrideTag("RenderType", renderTag);
+        TargetRenderer.sharedMaterial.SetInt("_SrcBlend", srcBlend);
+        TargetRenderer.sharedMaterial.SetInt("_DstBlend", dstBlend);
+        if (transparentQueue)
+        {
+            TargetRenderer.sharedMaterial.EnableKeyword("_ALPHATEST_ON");
+            TargetRenderer.sharedMaterial.EnableKeyword("_ALPHABLEND_ON");
+            TargetRenderer.sharedMaterial.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+        }
+        else
+        {
+            TargetRenderer.sharedMaterial.DisableKeyword("_ALPHATEST_ON");
+            TargetRenderer.sharedMaterial.DisableKeyword("_ALPHABLEND_ON");
+            TargetRenderer.sharedMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        }
         TargetRenderer.sharedMaterial.renderQueue = renderQueue;
 
         ApplyMaterialPropertyBlock();

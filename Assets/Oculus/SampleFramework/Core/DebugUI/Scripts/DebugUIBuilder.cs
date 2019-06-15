@@ -206,13 +206,6 @@ public class DebugUIBuilder : MonoBehaviour
       }
       canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, maxWidth);
       canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -y + marginV);
-
-      //r.anchoredPosition = insertPositions[targetCanvas]; // - Vector2.up * r.rect.height / 2;
-      //insertPositions[targetCanvas].y -= r.rect.height + elementSpacing;
-      //targetContentPanels[targetCanvas].GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -insertPositions[targetCanvas].y);
-
-      //canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(canvasRect.rect.width, r.rect.width+2*marginH));
-      //canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(canvasRect.rect.height, insertPositions[targetCanvas].y)+marginV-elementSpacing);
     }
   }
 
@@ -225,15 +218,6 @@ public class DebugUIBuilder : MonoBehaviour
     }
 
     r.transform.SetParent(targetContentPanels[targetCanvas], false);
-    /*
-    r.anchoredPosition = insertPositions[targetCanvas]; // - Vector2.up * r.rect.height / 2;
-        insertPositions[targetCanvas].y -= r.rect.height + elementSpacing;
-        //targetContentPanels[targetCanvas].GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, -insertPositions[targetCanvas].y);
-
-    RectTransform canvasRect = targetContentPanels[targetCanvas].GetComponent<RectTransform>();
-    canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Max(canvasRect.rect.width, r.rect.width+2*marginH));
-    canvasRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(canvasRect.rect.height, insertPositions[targetCanvas].y)+marginV-elementSpacing);
-    */
     insertedElements[targetCanvas].Add(r);
     if (gameObject.activeInHierarchy)
     {
@@ -241,8 +225,6 @@ public class DebugUIBuilder : MonoBehaviour
     }
   }
 
-  // optional update method for all of them, we'll iterate through in our update fn
-  // more useful params: radio ID; panel; status refresh fn; 
   public RectTransform AddButton(string label, OnClick handler, int targetCanvas = 0)
   {
     RectTransform buttonRT = GameObject.Instantiate(buttonPrefab).GetComponent<RectTransform>();

@@ -1,8 +1,6 @@
 /************************************************************************************
 Filename    :   ONSPVersion.cs
 Content     :   Get version number of plug-in
-Created     :   March 30, 2016
-Authors     :   Peter Giokaris
 Copyright   :   Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 Licensed under the Oculus SDK Version 3.5 (the "License"); 

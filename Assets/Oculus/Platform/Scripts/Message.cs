@@ -215,6 +215,9 @@ namespace Oculus.Platform
       /// microseconds or indicates that there was a timeout.
       Notification_Networking_PingResult = 0x51153012,
 
+      /// Indicates that party has been updated
+      Notification_Party_PartyUpdate = 0x1D118AB2,
+
       /// Indicates that the user has accepted an invitation, for example in Oculus
       /// Home. Use Message.GetString() to extract the ID of the room that the user
       /// has been inivted to as a string. Then call ovrID_FromString() to parse it
@@ -312,6 +315,7 @@ namespace Oculus.Platform
     public virtual OrgScopedID GetOrgScopedID() { return null; }
     public virtual Party GetParty() { return null; }
     public virtual PartyID GetPartyID() { return null; }
+    public virtual PartyUpdateNotification GetPartyUpdateNotification() { return null; }
     public virtual PidList GetPidList() { return null; }
     public virtual ProductList GetProductList() { return null; }
     public virtual Purchase GetPurchase() { return null; }
@@ -499,6 +503,10 @@ namespace Oculus.Platform
 
         case Message.MessageType.Party_GetCurrent:
           message = new MessageWithPartyUnderCurrentParty(messageHandle);
+          break;
+
+        case Message.MessageType.Notification_Party_PartyUpdate:
+          message = new MessageWithPartyUpdateNotification(messageHandle);
           break;
 
         case Message.MessageType.ApplicationLifecycle_GetRegisteredPIDs:
@@ -1120,6 +1128,18 @@ namespace Oculus.Platform
       var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
       var obj = CAPI.ovr_Message_GetPartyID(msg);
       return new PartyID(obj);
+    }
+
+  }
+  public class MessageWithPartyUpdateNotification : Message<PartyUpdateNotification>
+  {
+    public MessageWithPartyUpdateNotification(IntPtr c_message) : base(c_message) { }
+    public override PartyUpdateNotification GetPartyUpdateNotification() { return Data; }
+    protected override PartyUpdateNotification GetDataFromMessage(IntPtr c_message)
+    {
+      var msg = CAPI.ovr_Message_GetNativeMessage(c_message);
+      var obj = CAPI.ovr_Message_GetPartyUpdateNotification(msg);
+      return new PartyUpdateNotification(obj);
     }
 
   }

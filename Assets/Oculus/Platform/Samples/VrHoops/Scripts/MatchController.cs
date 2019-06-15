@@ -11,16 +11,16 @@ namespace Oculus.Platform.Samples.VrHoops
 	public class MatchController : MonoBehaviour
 	{
 		// Text to display when the match will start or finish
-		[SerializeField] private Text m_timerText;
+		[SerializeField] private Text m_timerText = null;
 
 		// the camera is moved between the idle position and the assigned court position
-		[SerializeField] private Camera m_camera;
+		[SerializeField] private Camera m_camera = null;
 
 		// where the camera will be when not in a match
-		[SerializeField] private Transform m_idleCameraTransform;
+		[SerializeField] private Transform m_idleCameraTransform = null;
 
 		// button that toggles between matchmaking and cancel
-		[SerializeField] private Text m_matchmakeButtonText;
+		[SerializeField] private Text m_matchmakeButtonText = null;
 
 		// this should equal the maximum number of players configured on the Oculus Dashboard
 		[SerializeField] private PlayerArea[] m_playerAreas = new PlayerArea[3];
@@ -38,16 +38,16 @@ namespace Oculus.Platform.Samples.VrHoops
 		[SerializeField] private uint MATCH_COOLDOWN_TIME = 10;
 
 		// panel to add most-wins leaderboard entries to
-		[SerializeField] private GameObject m_mostWinsLeaderboard;
+		[SerializeField] private GameObject m_mostWinsLeaderboard = null;
 
 		// panel to add high-score leaderboard entries to
-		[SerializeField] private GameObject m_highestScoresLeaderboard;
+		[SerializeField] private GameObject m_highestScoresLeaderboard = null;
 
 		// leaderboard entry Text prefab
-		[SerializeField] private GameObject m_leaderboardEntryPrefab;
+		[SerializeField] private GameObject m_leaderboardEntryPrefab = null;
 
 		// Text prefab to use for achievements fly-text
-		[SerializeField] private GameObject m_flytext;
+		[SerializeField] private GameObject m_flytext = null;
 
 		// the current state of the match controller
 		private State m_currentState;

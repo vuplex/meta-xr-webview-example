@@ -35,7 +35,7 @@ public static class OVRPlugin
 #if OVRPLUGIN_UNSUPPORTED_PLATFORM
 	public static readonly System.Version wrapperVersion = _versionZero;
 #else
-	public static readonly System.Version wrapperVersion = OVRP_1_34_0.version;
+	public static readonly System.Version wrapperVersion = OVRP_1_37_0.version;
 #endif
 
 #if !OVRPLUGIN_UNSUPPORTED_PLATFORM
@@ -234,6 +234,7 @@ public static class OVRPlugin
 	{
 		EyeLevel       = 0,
 		FloorLevel     = 1,
+		Stage          = 2,
 		Count,
 	}
 
@@ -296,6 +297,8 @@ public static class OVRPlugin
 		Rift_DK1 = 0x1000,
 		Rift_DK2,
 		Rift_CV1,
+		Rift_CB,
+		Rift_S,
 	}
 
 	public enum OverlayShape
@@ -748,12 +751,6 @@ public static class OVRPlugin
 		public float ClosestDistance;
 		public Vector3f ClosestPoint;
 		public Vector3f ClosestPointNormal;
-	}
-
-	[StructLayout(LayoutKind.Sequential)]
-	public struct BoundaryLookAndFeel
-	{
-		public Colorf Color;
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -2026,38 +2023,6 @@ public static class OVRPlugin
 #endif
 	}
 
-	public static bool SetBoundaryLookAndFeel(BoundaryLookAndFeel lookAndFeel)
-	{
-#if OVRPLUGIN_UNSUPPORTED_PLATFORM
-		return false;
-#else
-		if (version >= OVRP_1_8_0.version)
-		{
-			return OVRP_1_8_0.ovrp_SetBoundaryLookAndFeel(lookAndFeel) == OVRPlugin.Bool.True;
-		}
-		else
-		{
-			return false;
-		}
-#endif
-	}
-
-	public static bool ResetBoundaryLookAndFeel()
-	{
-#if OVRPLUGIN_UNSUPPORTED_PLATFORM
-		return false;
-#else
-		if (version >= OVRP_1_8_0.version)
-		{
-			return OVRP_1_8_0.ovrp_ResetBoundaryLookAndFeel() == OVRPlugin.Bool.True;
-		}
-		else
-		{
-			return false;
-		}
-#endif
-	}
-
 	public static BoundaryGeometry GetBoundaryGeometry(BoundaryType boundaryType)
 	{
 #if OVRPLUGIN_UNSUPPORTED_PLATFORM
@@ -2988,14 +2953,14 @@ public static class OVRPlugin
 				if (version >= OVRP_1_21_0.version)
 				{
 					int numFrequencies = 0;
-					Result result = OVRP_1_21_0.ovrp_GetSystemDisplayAvailableFrequencies(IntPtr.Zero, out numFrequencies);
+					Result result = OVRP_1_21_0.ovrp_GetSystemDisplayAvailableFrequencies(IntPtr.Zero, ref numFrequencies);
 					if (result == Result.Success)
 					{
 						if (numFrequencies > 0)
 						{
 							int maxNumElements = numFrequencies;
 							_nativeSystemDisplayFrequenciesAvailable = new OVRNativeBuffer(sizeof(float) * maxNumElements);
-							result = OVRP_1_21_0.ovrp_GetSystemDisplayAvailableFrequencies(_nativeSystemDisplayFrequenciesAvailable.GetPointer(), out numFrequencies);
+							result = OVRP_1_21_0.ovrp_GetSystemDisplayAvailableFrequencies(_nativeSystemDisplayFrequenciesAvailable.GetPointer(), ref numFrequencies);
 							if (result == Result.Success)
 							{
 								int numElementsToCopy = (numFrequencies <= maxNumElements) ? numFrequencies : maxNumElements;
@@ -3661,12 +3626,6 @@ public static class OVRPlugin
 		public static extern BoundaryTestResult ovrp_TestBoundaryPoint(Vector3f point, BoundaryType boundaryType);
 
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern Bool ovrp_SetBoundaryLookAndFeel(BoundaryLookAndFeel lookAndFeel);
-
-		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern Bool ovrp_ResetBoundaryLookAndFeel();
-
-		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern BoundaryGeometry ovrp_GetBoundaryGeometry(BoundaryType boundaryType);
 
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
@@ -3922,7 +3881,7 @@ public static class OVRPlugin
 		public static extern Result ovrp_GetSystemDisplayFrequency2(out float systemDisplayFrequency);
 
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
-		public static extern Result ovrp_GetSystemDisplayAvailableFrequencies(IntPtr systemDisplayAvailableFrequencies, out int numFrequencies);
+		public static extern Result ovrp_GetSystemDisplayAvailableFrequencies(IntPtr systemDisplayAvailableFrequencies, ref int numFrequencies);
 
 		[DllImport(pluginName, CallingConvention = CallingConvention.Cdecl)]
 		public static extern Result ovrp_SetSystemDisplayFrequency(float requestedFrequency);
@@ -4018,6 +3977,21 @@ public static class OVRPlugin
 		public static extern Result ovrp_EnqueueSubmitLayer2(uint flags, IntPtr textureLeft, IntPtr textureRight, int layerId, int frameIndex, ref Posef pose, ref Vector3f scale, int layerIndex,
 		Bool overrideTextureRectMatrix, ref TextureRectMatrixf textureRectMatrix, Bool overridePerLayerColorScaleAndOffset, ref Vector4 colorScale, ref Vector4 colorOffset);
 
+	}
+
+	private static class OVRP_1_35_0
+	{
+		public static readonly System.Version version = new System.Version(1, 35, 0);
+	}
+
+	private static class OVRP_1_36_0
+	{
+		public static readonly System.Version version = new System.Version(1, 36, 0);
+	}
+
+	private static class OVRP_1_37_0
+	{
+		public static readonly System.Version version = new System.Version(1, 37, 0);
 	}
 
 #endif // !OVRPLUGIN_UNSUPPORTED_PLATFORM

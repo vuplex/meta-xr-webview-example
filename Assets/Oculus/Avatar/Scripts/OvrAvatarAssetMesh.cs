@@ -15,31 +15,32 @@ public class OvrAvatarAssetMesh : OvrAvatarAsset
         mesh = new Mesh();
         mesh.name = "Procedural Geometry for asset " + _assetId;
 
+        SetSkinnedBindPose(asset, meshType);
+
+        long vertexCount = 0;
+        IntPtr vertexBuffer = IntPtr.Zero;
+        uint indexCount = 0;
+        IntPtr indexBuffer = IntPtr.Zero;
+
+        GetVertexAndIndexData(asset, meshType, out vertexCount, out vertexBuffer, out indexCount, out indexBuffer);
+
+        AvatarLogger.Log("OvrAvatarAssetMesh: " + _assetId + " " + meshType.ToString() + " VertexCount:" + vertexCount);
+
+        Vector3[] vertices = new Vector3[vertexCount];
+        Vector3[] normals = new Vector3[vertexCount];
+        Vector4[] tangents = new Vector4[vertexCount];
+        Vector2[] uv = new Vector2[vertexCount];
+        Color[] colors = new Color[vertexCount];
+        BoneWeight[] boneWeights = new BoneWeight[vertexCount];
+
+        long vertexBufferStart = vertexBuffer.ToInt64();
+
+        // We have different underlying vertex types to unpack, so switch on mesh type. 
         switch (meshType)
         {
             case ovrAvatarAssetType.Mesh:
                 {
-                    ovrAvatarMeshAssetData meshAssetData = CAPI.ovrAvatarAsset_GetMeshData(asset);
-
-                    AvatarLogger.Log(
-                        "OvrAvatarAssetMesh: "
-                        + _assetId
-                        + " "
-                        + meshType.ToString()
-                        + " VertexCount:"
-                        + meshAssetData.vertexCount);
-
-
-                    long vertexCount = (long)meshAssetData.vertexCount;
-                    Vector3[] vertices = new Vector3[vertexCount];
-                    Vector3[] normals = new Vector3[vertexCount];
-                    Vector4[] tangents = new Vector4[vertexCount];
-                    Vector2[] uv = new Vector2[vertexCount];
-                    Color[] colors = new Color[vertexCount];
-                    BoneWeight[] boneWeights = new BoneWeight[vertexCount];
-
                     long vertexSize = (long)Marshal.SizeOf(typeof(ovrAvatarMeshVertex));
-                    long vertexBufferStart = meshAssetData.vertexBuffer.ToInt64();
 
                     for (long i = 0; i < vertexCount; i++)
                     {
@@ -61,60 +62,12 @@ public class OvrAvatarAssetMesh : OvrAvatarAsset
                         boneWeights[i].weight2 = vertex.blendWeights[2];
                         boneWeights[i].weight3 = vertex.blendWeights[3];
                     }
-
-                    mesh.vertices = vertices;
-                    mesh.normals = normals;
-                    mesh.uv = uv;
-                    mesh.tangents = tangents;
-                    mesh.boneWeights = boneWeights;
-                    mesh.colors = colors;
-
-                    skinnedBindPose = meshAssetData.skinnedBindPose;
-
-                    ulong indexCount = meshAssetData.indexCount;
-                    Int16[] indices = new Int16[indexCount];
-                    IntPtr indexBufferPtr = meshAssetData.indexBuffer;
-                    Marshal.Copy(indexBufferPtr, indices, 0, (int)indexCount);
-                    Int32[] triangles = new Int32[indexCount];
-                    for (ulong i = 0; i < indexCount; i += 3)
-                    {
-                        triangles[i + 2] = (Int32)indices[i];
-                        triangles[i + 1] = (Int32)indices[i + 1];
-                        triangles[i] = (Int32)indices[i + 2];
-                    }
-                    mesh.triangles = triangles;
-
-                    UInt32 jointCount = skinnedBindPose.jointCount;
-                    jointNames = new string[jointCount];
-                    for (UInt32 i = 0; i < jointCount; i++)
-                    {
-                        jointNames[i] = Marshal.PtrToStringAnsi(skinnedBindPose.jointNames[i]);
-                    }
                 }
                 break;
 
             case ovrAvatarAssetType.CombinedMesh:
                 {
-                    ovrAvatarMeshAssetDataV2 meshAssetData = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset);
-
-                    AvatarLogger.Log(
-                        "OvrAvatarAssetMesh: "
-                        + _assetId
-                        + " "
-                        + meshType.ToString()
-                        + " VertexCount:"
-                        + meshAssetData.vertexCount);
-
-                    long vertexCount = (long)meshAssetData.vertexCount;
-                    Vector3[] vertices = new Vector3[vertexCount];
-                    Vector3[] normals = new Vector3[vertexCount];
-                    Vector4[] tangents = new Vector4[vertexCount];
-                    Vector2[] uv = new Vector2[vertexCount];
-                    Color[] colors = new Color[vertexCount];
-                    BoneWeight[] boneWeights = new BoneWeight[vertexCount];
-
                     long vertexSize = (long)Marshal.SizeOf(typeof(ovrAvatarMeshVertexV2));
-                    long vertexBufferStart = meshAssetData.vertexBuffer.ToInt64();
 
                     for (long i = 0; i < vertexCount; i++)
                     {
@@ -136,40 +89,147 @@ public class OvrAvatarAssetMesh : OvrAvatarAsset
                         boneWeights[i].weight2 = vertex.blendWeights[2];
                         boneWeights[i].weight3 = vertex.blendWeights[3];
                     }
-
-                    mesh.vertices = vertices;
-                    mesh.normals = normals;
-                    mesh.uv = uv;
-                    mesh.tangents = tangents;
-                    mesh.boneWeights = boneWeights;
-                    mesh.colors = colors;
-
-                    skinnedBindPose = meshAssetData.skinnedBindPose;
-
-                    ulong indexCount = meshAssetData.indexCount;
-                    Int16[] indices = new Int16[indexCount];
-                    IntPtr indexBufferPtr = meshAssetData.indexBuffer;
-                    Marshal.Copy(indexBufferPtr, indices, 0, (int)indexCount);
-                    Int32[] triangles = new Int32[indexCount];
-                    for (ulong i = 0; i < indexCount; i += 3)
-                    {
-                        triangles[i + 2] = (Int32)indices[i];
-                        triangles[i + 1] = (Int32)indices[i + 1];
-                        triangles[i] = (Int32)indices[i + 2];
-                    }
-                    mesh.triangles = triangles;
-
-                    UInt32 jointCount = skinnedBindPose.jointCount;
-                    jointNames = new string[jointCount];
-                    for (UInt32 i = 0; i < jointCount; i++)
-                    {
-                        jointNames[i] = Marshal.PtrToStringAnsi(skinnedBindPose.jointNames[i]);
-                    }
                 }
                 break;
-
             default:
                 throw new Exception("Bad Mesh Asset Type");
+        }
+
+        mesh.vertices = vertices;
+        mesh.normals = normals;
+        mesh.uv = uv;
+        mesh.tangents = tangents;
+        mesh.boneWeights = boneWeights;
+        mesh.colors = colors;
+
+        LoadBlendShapes(asset, vertexCount);
+        LoadSubmeshes(asset, indexBuffer, indexCount);
+
+        UInt32 jointCount = skinnedBindPose.jointCount;
+        jointNames = new string[jointCount];
+        for (UInt32 i = 0; i < jointCount; i++)
+        {
+            jointNames[i] = Marshal.PtrToStringAnsi(skinnedBindPose.jointNames[i]);
+        }
+    }
+
+    private void LoadSubmeshes(IntPtr asset, IntPtr indexBufferPtr, ulong indexCount)
+    {
+        UInt32 subMeshCount = CAPI.ovrAvatarAsset_GetSubmeshCount(asset);
+
+        AvatarLogger.Log("LoadSubmeshes: " + subMeshCount);
+
+        Int16[] indices = new Int16[indexCount];
+        Marshal.Copy(indexBufferPtr, indices, 0, (int)indexCount);
+
+        mesh.subMeshCount = (int)subMeshCount;
+        uint accumedOffset = 0;
+        for (UInt32 index = 0; index < subMeshCount; index++)
+        {
+            var submeshIndexCount = CAPI.ovrAvatarAsset_GetSubmeshLastIndex(asset, index);
+            var currSpan = submeshIndexCount - accumedOffset;
+
+            Int32[] triangles = new Int32[currSpan];
+
+            int triangleOffset = 0;
+            for (ulong i = accumedOffset; i < submeshIndexCount; i += 3)
+            {
+                // NOTE: We are changing the order of each triangle to match unity expectations vs pipeline.
+                triangles[triangleOffset + 2] = (Int32)indices[i];
+                triangles[triangleOffset + 1] = (Int32)indices[i + 1];
+                triangles[triangleOffset] = (Int32)indices[i + 2];
+
+                triangleOffset += 3;
+            }
+
+            accumedOffset += currSpan;
+
+            mesh.SetIndices(triangles, MeshTopology.Triangles, (int)index);
+        }
+    }
+   
+    private void LoadBlendShapes(IntPtr asset, long vertexCount)
+    {
+        UInt32 blendShapeCount = CAPI.ovrAvatarAsset_GetMeshBlendShapeCount(asset);
+        IntPtr blendShapeVerts = CAPI.ovrAvatarAsset_GetMeshBlendShapeVertices(asset);
+
+        AvatarLogger.Log("LoadBlendShapes: " + blendShapeCount);
+
+        if (blendShapeVerts != IntPtr.Zero)
+        {
+            long offset = 0;
+            long blendVertexSize = (long)Marshal.SizeOf(typeof(ovrAvatarBlendVertex));
+            long blendVertexBufferStart = blendShapeVerts.ToInt64();
+
+            for (UInt32 blendIndex = 0; blendIndex < blendShapeCount; blendIndex++)
+            {
+                Vector3[] blendVerts = new Vector3[vertexCount];
+                Vector3[] blendNormals = new Vector3[vertexCount];
+                Vector3[] blendTangents = new Vector3[vertexCount];
+
+                for (long i = 0; i < vertexCount; i++)
+                {
+                    ovrAvatarBlendVertex vertex = (ovrAvatarBlendVertex)Marshal.PtrToStructure(new IntPtr(blendVertexBufferStart + offset), typeof(ovrAvatarBlendVertex));
+                    blendVerts[i] = new Vector3(vertex.x, vertex.y, -vertex.z);
+                    blendNormals[i] = new Vector3(vertex.nx, vertex.ny, -vertex.nz);
+                    blendTangents[i] = new Vector4(vertex.tx, vertex.ty, -vertex.tz);
+
+                    offset += blendVertexSize;
+                }
+
+                IntPtr namePtr = CAPI.ovrAvatarAsset_GetMeshBlendShapeName(asset, blendIndex);
+                string name = Marshal.PtrToStringAnsi(namePtr);
+                const float frameWeight = 100f;
+                mesh.AddBlendShapeFrame(name, frameWeight, blendVerts, blendNormals, blendTangents);
+            }
+        }
+    }
+
+    private void SetSkinnedBindPose(IntPtr asset, ovrAvatarAssetType meshType)
+    {
+        switch (meshType)
+        {
+            case ovrAvatarAssetType.Mesh:
+                skinnedBindPose = CAPI.ovrAvatarAsset_GetMeshData(asset).skinnedBindPose;
+                break;
+            case ovrAvatarAssetType.CombinedMesh:
+                skinnedBindPose = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset).skinnedBindPose;
+                break;
+            default:
+                break;
+
+        }
+    }
+
+    private void GetVertexAndIndexData(
+        IntPtr asset,
+        ovrAvatarAssetType meshType,
+        out long vertexCount,
+        out IntPtr vertexBuffer,
+        out uint indexCount,
+        out IntPtr indexBuffer)
+    {
+        vertexCount = 0;
+        vertexBuffer = IntPtr.Zero;
+        indexCount = 0;
+        indexBuffer = IntPtr.Zero;
+
+        switch (meshType)
+        {
+            case ovrAvatarAssetType.Mesh:
+                vertexCount = CAPI.ovrAvatarAsset_GetMeshData(asset).vertexCount;
+                vertexBuffer = CAPI.ovrAvatarAsset_GetMeshData(asset).vertexBuffer;
+                indexCount = CAPI.ovrAvatarAsset_GetMeshData(asset).indexCount;
+                indexBuffer = CAPI.ovrAvatarAsset_GetMeshData(asset).indexBuffer;
+                break;
+            case ovrAvatarAssetType.CombinedMesh:
+                vertexCount = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset).vertexCount;
+                vertexBuffer = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset).vertexBuffer;
+                indexCount = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset).indexCount;
+                indexBuffer = CAPI.ovrAvatarAsset_GetCombinedMeshData(asset).indexBuffer;
+                break;
+            default:
+                break;
         }
     }
 

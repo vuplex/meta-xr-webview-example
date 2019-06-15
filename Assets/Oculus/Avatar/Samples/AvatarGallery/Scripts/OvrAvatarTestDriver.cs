@@ -6,7 +6,8 @@ using Oculus.Avatar;
 
 public class OvrAvatarTestDriver : OvrAvatarDriver {
 
-    private const float mobileBaseHeadHeight = 1.7f;
+    private Vector3 headPos = new Vector3(0f, 1.6f, 0f);
+    private Quaternion headRot = Quaternion.identity;
 
     ControllerPose GetMalibuControllerPose(OVRInput.Controller controller)
     {
@@ -55,23 +56,13 @@ public class OvrAvatarTestDriver : OvrAvatarDriver {
 
     private void CalculateCurrentPose()
     {
-#if UNITY_2017_2_OR_NEWER
-        Vector3 headPos = Vector3.zero;
-#else
-        Vector3 headPos = Vector3.zero;
-#endif
-
         if (GetIsTrackedRemote())
         {
             CurrentPose = new PoseFrame
             {
                 voiceAmplitude = voiceAmplitude,
                 headPosition = headPos,
-#if UNITY_2017_2_OR_NEWER
-                headRotation = Quaternion.identity,
-#else
-                headRotation = Quaternion.identity,
-#endif
+                headRotation = headRot,
                 handLeftPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTrackedRemote),
                 handLeftRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTrackedRemote),
                 handRightPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTrackedRemote),
@@ -86,11 +77,7 @@ public class OvrAvatarTestDriver : OvrAvatarDriver {
             {
                 voiceAmplitude = voiceAmplitude,
                 headPosition = headPos,
-#if UNITY_2017_2_OR_NEWER
-                headRotation = Quaternion.identity,
-#else
-                headRotation = Quaternion.identity,
-#endif
+                headRotation = headRot,
                 handLeftPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.LTouch),
                 handLeftRotation = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch),
                 handRightPosition = OVRInput.GetLocalControllerPosition(OVRInput.Controller.RTouch),
@@ -99,7 +86,6 @@ public class OvrAvatarTestDriver : OvrAvatarDriver {
                 controllerRightPose = GetControllerPose(OVRInput.Controller.RTouch),
             };
         }
-
     }
 
     public override void UpdateTransforms(IntPtr sdkAvatar)

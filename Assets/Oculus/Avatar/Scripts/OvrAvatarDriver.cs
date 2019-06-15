@@ -11,6 +11,11 @@ public abstract class OvrAvatarDriver : MonoBehaviour {
         Unity
     };
 
+#if UNITY_ANDROID
+    private const ovrAvatarControllerType Desired6DofController = ovrAvatarControllerType.Quest;
+#else
+    private const ovrAvatarControllerType Desired6DofController = ovrAvatarControllerType.Touch;
+#endif
 
     public PacketMode Mode;
     protected PoseFrame CurrentPose;
@@ -79,15 +84,7 @@ public abstract class OvrAvatarDriver : MonoBehaviour {
             ovrAvatarHandInputState inputStateRight = OvrAvatar.CreateInputState(OvrAvatar.CreateOvrAvatarTransform(CurrentPose.handRightPosition, CurrentPose.handRightRotation), CurrentPose.controllerRightPose);
 
             CAPI.ovrAvatarPose_UpdateBody(sdkAvatar, bodyTransform);
-
-            if (GetIsTrackedRemote())
-            {
-                CAPI.ovrAvatarPose_UpdateSDK3DofHands(sdkAvatar, inputStateLeft, inputStateRight, GetRemoteControllerType());
-            }
-            else
-            {
-                CAPI.ovrAvatarPose_UpdateHands(sdkAvatar, inputStateLeft, inputStateRight);
-            }
+            CAPI.ovrAvatarPose_UpdateHandsWithType(sdkAvatar, inputStateLeft, inputStateRight, GetControllerType());
         }
     }
 
@@ -96,8 +93,13 @@ public abstract class OvrAvatarDriver : MonoBehaviour {
         return OVRInput.IsControllerConnected(OVRInput.Controller.RTrackedRemote) || OVRInput.IsControllerConnected(OVRInput.Controller.LTrackedRemote);
     }
 
-    private ovrAvatarControllerType GetRemoteControllerType()
+    private ovrAvatarControllerType GetControllerType()
     {
-        return OVRPlugin.productName == "Oculus Go" ? ovrAvatarControllerType.Go : ovrAvatarControllerType.Malibu;
+        if (GetIsTrackedRemote())
+        {
+            return OVRPlugin.productName == "Oculus Go" ? ovrAvatarControllerType.Go : ovrAvatarControllerType.Malibu;
+        }
+
+        return Desired6DofController;
     }
 }

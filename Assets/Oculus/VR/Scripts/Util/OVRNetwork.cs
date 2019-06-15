@@ -159,6 +159,10 @@ public class OVRNetwork
 					Debug.LogWarningFormat("[OVRNetworkTcpServer] can't accept new client: {0}", e.Message);
 				}
 			}
+			catch (ObjectDisposedException)
+			{
+				// Do nothing. It happens when stop preview in editor, which is normal behavior.
+			}
 			catch (Exception e)
 			{
 				Debug.LogWarningFormat("[OVRNetworkTcpServer] EndAcceptTcpClient failed: {0}", e.Message);

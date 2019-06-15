@@ -1,8 +1,6 @@
 /************************************************************************************
 Filename    :   ONSPReflectionZone.cs
 Content     :   Add reflection zone volumes to set reflection parameters via snapshots.
-Created     :   September 8, 2016
-Authors     :   Peter Giokaris
 Copyright   :   Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 Licensed under the Oculus SDK Version 3.5 (the "License"); 

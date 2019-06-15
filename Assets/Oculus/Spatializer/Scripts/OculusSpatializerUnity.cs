@@ -1,7 +1,6 @@
 /************************************************************************************
 Filename    :   OculusSpatializerUnity.cs
 Content     :   Interface into real-time geometry reflection engine for native Unity
-Created     :   November 27, 2017
 Copyright   :   Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.
 
 Licensed under the Oculus SDK Version 3.5 (the "License"); 
