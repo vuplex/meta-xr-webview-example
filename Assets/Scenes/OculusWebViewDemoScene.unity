@@ -1111,7 +1111,7 @@ MonoBehaviour:
   lineRenderer: {fileID: 1166138243}
   rayTransform: {fileID: 1166138239}
   m_Cursor: {fileID: 0}
-  joyPadClickButton: 8192
+  joyPadClickButton: 1
   gazeClickKey: 32
   performSphereCastForGazepointer: 0
   useRightStickScroll: 1
