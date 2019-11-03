@@ -635,7 +635,7 @@ namespace UnityEngine.EventSystems
                 Vector3 worldStartPoint = localToWorld.MultiplyPoint (localStartPoint);
                 Vector3 worldOrientation = localToWorld.MultiplyVector (orientation * Vector3.forward);
 
-                leftData.worldSpaceRay = new Ray(rayTransform.position, worldOrientation);
+                leftData.worldSpaceRay = new Ray(worldStartPoint, worldOrientation);
 
                 if (lineRenderer != null) {
                     lineRenderer.SetPosition(0, worldStartPoint);
