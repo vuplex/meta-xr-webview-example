@@ -19,6 +19,10 @@ limitations under the License.
 
 ************************************************************************************/
 
+#if USING_XR_MANAGEMENT && USING_XR_SDK_OCULUS
+#define USING_XR_SDK
+#endif
+
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -120,7 +124,9 @@ class OVREngineConfigurationUpdater
 			return;
 		
 		EnforceBundleId();
+#if !USING_XR_SDK
 		EnforceVRSupport();
+#endif
 		EnforceInstallLocation();
 	}
 

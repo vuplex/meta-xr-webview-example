@@ -29,7 +29,7 @@ public class OculusSampleFrameworkUtil
     {
       if (EditorApplication.isPlaying)
       {
-        OVRPlugin.SendEvent("load", "", "sample_framework");
+        OVRPlugin.SendEvent("load", OVRPlugin.wrapperVersion.ToString(), "sample_framework");
       }
     };
 #endif
@@ -40,7 +40,7 @@ public class OculusSampleFrameworkUtil
   {
     if (state == PlayModeStateChange.EnteredPlayMode)
     {
-      OVRPlugin.SendEvent("load", "", "sample_framework");
+      OVRPlugin.SendEvent("load", OVRPlugin.wrapperVersion.ToString(), "sample_framework");
     }
   }
 #endif

@@ -17,7 +17,7 @@ permissions and limitations under the License.
 using UnityEngine;
 using System.Collections.Generic;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_ANDROID
 
 internal class OVRCompositionUtil {
 
@@ -35,9 +35,12 @@ internal class OVRCompositionUtil {
 
 	public static void SafeDestroy(ref GameObject obj)
 	{
-		SafeDestroy(obj);
-		obj = null;
-	}
+        if (obj != null)
+        {
+            SafeDestroy(obj);
+            obj = null;
+        }
+    }
 
 	public static OVRPlugin.CameraDevice ConvertCameraDevice(OVRManager.CameraDevice cameraDevice)
 	{

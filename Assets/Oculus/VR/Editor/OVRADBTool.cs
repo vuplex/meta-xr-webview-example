@@ -106,6 +106,31 @@ public class OVRADBTool
 		return exitCode;
 	}
 
+	public List<string> GetDevices()
+	{
+		string outputString;
+		string errorString;
+
+		RunCommand(new string[] { "devices" }, null, out outputString, out errorString);
+		string[] devices = outputString.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+		List<string> deviceList = new List<string>(devices);
+		deviceList.RemoveAt(0);
+
+		for(int i = 0; i < deviceList.Count; i++)
+		{
+			string deviceName = deviceList[i];
+			int index = deviceName.IndexOf('\t');
+			if (index >= 0)
+				deviceList[i] = deviceName.Substring(0, index);
+			else
+				deviceList[i] = "";
+
+		}
+
+		return deviceList;
+	}
+
 	private StringBuilder outputStringBuilder = null;
 	private StringBuilder errorStringBuilder = null;
 
@@ -136,6 +161,7 @@ public class OVRADBTool
 
 		Process process = Process.Start(startInfo);
 		process.OutputDataReceived += new DataReceivedEventHandler(OutputDataReceivedHandler);
+		process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceivedHandler);
 
 		process.BeginOutputReadLine();
 		process.BeginErrorReadLine();
@@ -167,7 +193,49 @@ public class OVRADBTool
 		outputStringBuilder = null;
 		errorStringBuilder = null;
 
+		if (!string.IsNullOrEmpty(errorString))
+		{
+			if (errorString.Contains("Warning"))
+			{
+				UnityEngine.Debug.LogWarning("OVRADBTool " + errorString);
+			}
+			else
+			{
+				UnityEngine.Debug.LogError("OVRADBTool " + errorString);
+			}
+		}
+
 		return exitCode;
+	}
+
+	public Process RunCommandAsync(string[] arguments, DataReceivedEventHandler outputDataRecievedHandler)
+	{
+		if (!isReady)
+		{
+			Debug.LogWarning("OVRADBTool not ready");
+			return null;
+		}
+
+		string args = string.Join(" ", arguments);
+
+		ProcessStartInfo startInfo = new ProcessStartInfo(adbPath, args);
+		startInfo.WorkingDirectory = androidSdkRoot;
+		startInfo.CreateNoWindow = true;
+		startInfo.UseShellExecute = false;
+		startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+		startInfo.RedirectStandardOutput = true;
+		startInfo.RedirectStandardError = true;
+
+		Process process = Process.Start(startInfo);
+		if (outputDataRecievedHandler != null)
+		{
+			process.OutputDataReceived += new DataReceivedEventHandler(outputDataRecievedHandler);
+		}
+
+		process.BeginOutputReadLine();
+		process.BeginErrorReadLine();
+
+		return process;
 	}
 
 	private void OutputDataReceivedHandler(object sendingProcess, DataReceivedEventArgs args)

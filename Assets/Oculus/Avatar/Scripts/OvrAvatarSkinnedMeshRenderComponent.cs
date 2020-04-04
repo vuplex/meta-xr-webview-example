@@ -9,11 +9,11 @@ public class OvrAvatarSkinnedMeshRenderComponent : OvrAvatarRenderComponent
     Shader surfaceSelfOccluding;
     bool previouslyActive = false;
         
-    internal void Initialize(ovrAvatarRenderPart_SkinnedMeshRender skinnedMeshRender, Shader surface, Shader surfaceSelfOccluding, int thirdPersonLayer, int firstPersonLayer, int sortOrder)
+    internal void Initialize(ovrAvatarRenderPart_SkinnedMeshRender skinnedMeshRender, Shader surface, Shader surfaceSelfOccluding, int thirdPersonLayer, int firstPersonLayer)
     {
         this.surfaceSelfOccluding = surfaceSelfOccluding != null ? surfaceSelfOccluding :  Shader.Find("OvrAvatar/AvatarSurfaceShaderSelfOccluding");
         this.surface = surface != null ? surface : Shader.Find("OvrAvatar/AvatarSurfaceShader");
-        this.mesh = CreateSkinnedMesh(skinnedMeshRender.meshAssetID, skinnedMeshRender.visibilityMask, thirdPersonLayer, firstPersonLayer, sortOrder);
+        this.mesh = CreateSkinnedMesh(skinnedMeshRender.meshAssetID, skinnedMeshRender.visibilityMask, thirdPersonLayer, firstPersonLayer);
         bones = mesh.bones;
         UpdateMeshMaterial(skinnedMeshRender.visibilityMask, mesh);
     }

@@ -24,10 +24,6 @@ namespace UnityEngine.EventSystems
     /// </summary>
     public class OVRInputModule : PointerInputModule
     {
-        [Header("Gear VR Controller")]
-        public Transform trackingSpace;
-        public LineRenderer lineRenderer;
-
         [Tooltip("Object which points with Z axis. E.g. CentreEyeAnchor from OVRCameraRig")]
         public Transform rayTransform;
 
@@ -71,7 +67,7 @@ namespace UnityEngine.EventSystems
         public float angleDragThreshold = 1;
 
         [SerializeField]
-        private float m_SpherecastRadius = 1.0f;
+        private float m_SpherecastRadius = 1.0f;       
 
 
 
@@ -588,24 +584,6 @@ namespace UnityEngine.EventSystems
 
         private readonly MouseState m_MouseState = new MouseState();
 
-        private OVRInput.Controller _getController() {
-
-            var connectedControllers = OVRInput.GetConnectedControllers();
-
-            if ((connectedControllers & OVRInput.Controller.RTouch) == OVRInput.Controller.RTouch) {
-                return OVRInput.Controller.RTouch;
-            }
-            if ((connectedControllers & OVRInput.Controller.LTouch) == OVRInput.Controller.LTouch) {
-                return OVRInput.Controller.LTouch;
-            }
-            if ((connectedControllers & OVRInput.Controller.RTrackedRemote) == OVRInput.Controller.RTrackedRemote) {
-                return OVRInput.Controller.RTrackedRemote;
-            }
-            if ((connectedControllers & OVRInput.Controller.LTrackedRemote) == OVRInput.Controller.LTrackedRemote) {
-                return OVRInput.Controller.LTrackedRemote;
-            }
-            return OVRInput.Controller.None;
-        }
 
         // The following 2 functions are equivalent to PointerInputModule.GetMousePointerEventData but are customized to
         // get data for ray pointers and canvas mouse pointers.
@@ -622,30 +600,7 @@ namespace UnityEngine.EventSystems
             leftData.Reset();
 
             //Now set the world space ray. This ray is what the user uses to point at UI elements
-
-            OVRInput.Controller controller = _getController();
-            if (lineRenderer != null) {
-                lineRenderer.enabled = trackingSpace != null && controller != OVRInput.Controller.None;
-            }
-            if (trackingSpace != null && controller != OVRInput.Controller.None) {
-
-                Quaternion orientation = OVRInput.GetLocalControllerRotation (controller);
-                Vector3 localStartPoint = OVRInput.GetLocalControllerPosition (controller);
-                Matrix4x4 localToWorld = trackingSpace.localToWorldMatrix;
-                Vector3 worldStartPoint = localToWorld.MultiplyPoint (localStartPoint);
-                Vector3 worldOrientation = localToWorld.MultiplyVector (orientation * Vector3.forward);
-
-                leftData.worldSpaceRay = new Ray(worldStartPoint, worldOrientation);
-
-                if (lineRenderer != null) {
-                    lineRenderer.SetPosition(0, worldStartPoint);
-                    lineRenderer.SetPosition(1, worldStartPoint + worldOrientation * 500.0f);
-                }
-            } else {
-                // Set the ray with the Gaze pointer
-                leftData.worldSpaceRay = new Ray(rayTransform.position, rayTransform.forward);
-            }
-
+            leftData.worldSpaceRay = new Ray(rayTransform.position, rayTransform.forward);
             leftData.scrollDelta = GetExtraScrollDelta();
 
             //Populate some default values
@@ -657,15 +612,7 @@ namespace UnityEngine.EventSystems
             leftData.pointerCurrentRaycast = raycast;
             m_RaycastResultCache.Clear();
 
-            if (lineRenderer != null) {
-                if (raycast.worldPosition != Vector3.zero) {
-                    lineRenderer.SetPosition (1, raycast.worldPosition);
-                }
-            }
-
-            if (m_Cursor != null) {
-                m_Cursor.SetCursorRay(rayTransform);
-            }
+            m_Cursor.SetCursorRay(rayTransform);
 
             OVRRaycaster ovrRaycaster = raycast.module as OVRRaycaster;
             // We're only interested in intersections from OVRRaycasters
@@ -683,9 +630,7 @@ namespace UnityEngine.EventSystems
                     // Set are gaze indicator with this world position and normal
                     Vector3 worldPos = raycast.worldPosition;
                     Vector3 normal = GetRectTransformNormal(graphicRect);
-                    if (m_Cursor != null) {
-                        m_Cursor.SetCursorStartDest(rayTransform.position, worldPos, normal);
-                    }
+                    m_Cursor.SetCursorStartDest(rayTransform.position, worldPos, normal);
                 }
             }
 
@@ -709,9 +654,7 @@ namespace UnityEngine.EventSystems
 
                 leftData.position = physicsRaycaster.GetScreenPos(raycast.worldPosition);
 
-                if (m_Cursor != null) {
-                    m_Cursor.SetCursorStartDest(rayTransform.position, position, raycast.worldNormal);
-                }
+                m_Cursor.SetCursorStartDest(rayTransform.position, position, raycast.worldNormal);
             }
 
             // Stick default data values in right and middle slots for compatability

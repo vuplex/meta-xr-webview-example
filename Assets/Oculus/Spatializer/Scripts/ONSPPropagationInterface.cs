@@ -144,6 +144,7 @@ class ONSPPropagation
         int AudioGeometryGetTransform(IntPtr geometry, out float[] matrix4x4);
         int AudioGeometryWriteMeshFile(IntPtr geometry, string filePath);
         int AudioGeometryReadMeshFile(IntPtr geometry, string filePath);
+        int AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath);
         
         /***********************************************************************************/
         // Material API        
@@ -245,6 +246,13 @@ class ONSPPropagation
         public int AudioGeometryReadMeshFile(IntPtr geometry, string filePath)
         {
             return ovrAudio_AudioGeometryReadMeshFile(geometry, filePath);
+        }
+
+        [DllImport(strOSPS)]
+        private static extern int ovrAudio_AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath);
+        public int AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath)
+        {
+            return ovrAudio_AudioGeometryWriteMeshFileObj(geometry, filePath);
         }
 
         /***********************************************************************************/
@@ -378,6 +386,13 @@ class ONSPPropagation
             return ovrAudio_AudioGeometryReadMeshFile(geometry, filePath);
         }
 
+        [DllImport(strOSPS)]
+        private static extern int ovrAudio_AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath);
+        public int AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath)
+        {
+            return ovrAudio_AudioGeometryWriteMeshFileObj(geometry, filePath);
+        }
+
         /***********************************************************************************/
         // Material API
         [DllImport(strOSPS)]
@@ -507,6 +522,13 @@ class ONSPPropagation
         public int AudioGeometryReadMeshFile(IntPtr geometry, string filePath)
         {
             return ovrAudio_AudioGeometryReadMeshFile(geometry, filePath);
+        }
+
+        [DllImport(strOSPS)]
+        private static extern int ovrAudio_AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath);
+        public int AudioGeometryWriteMeshFileObj(IntPtr geometry, string filePath)
+        {
+            return ovrAudio_AudioGeometryWriteMeshFileObj(geometry, filePath);
         }
 
         /***********************************************************************************/

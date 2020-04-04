@@ -1,19 +1,13 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Oculus.Avatar;
-using System.Collections;
 
 public class OvrAvatarMaterialManager : MonoBehaviour
 {
-    // Set up in the Prefab, and meant to be indexed by LOD
-    public Texture2D[] DiffuseFallbacks;
-    public Texture2D[] NormalFallbacks;
-
     private Renderer TargetRenderer;
     private AvatarTextureArrayProperties[] TextureArrays;
-
-    private OvrAvatarTextureCopyManager TextureCopyManager;
 
     public enum TextureType
     {
@@ -23,21 +17,19 @@ public class OvrAvatarMaterialManager : MonoBehaviour
 
         Count
     }
+
     // Material properties required to render a single component
-    [System.Serializable]
     public struct AvatarComponentMaterialProperties
     {
         public ovrAvatarBodyPartType TypeIndex;
         public Color Color;
         public Texture2D[] Textures;
-
-        [Range(0, 1)] public float DiffuseIntensity;
-        [Range(0, 10)] public float RimIntensity;
-        [Range(0, 1)] public float ReflectionIntensity;
+        public float DiffuseIntensity;
+        public float RimIntensity;
+        public float ReflectionIntensity;
     }
 
     // Texture arrays
-    [System.Serializable]
     public struct AvatarTextureArrayProperties
     {
         public Texture2D[] Textures;
@@ -45,7 +37,6 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     }
 
     // Material property arrays that are pushed to the shader
-    [System.Serializable]
     public struct AvatarMaterialPropertyBlock
     {
         public Vector4[] Colors;
@@ -54,14 +45,12 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         public float[] ReflectionIntensities;
     }
 
-    private readonly string[] TextureTypeToShaderProperties = 
+    private readonly string[] TextureTypeToShaderProperties =
     {
         "_MainTex",       // TextureType.DiffuseTextures = 0
         "_NormalMap",     // TextureType.NormalMaps
         "_RoughnessMap"   // TextureType.RoughnessMaps
     };
-
-    public List<ReflectionProbeBlendInfo> ReflectionProbes = new List<ReflectionProbeBlendInfo>();
 
     // Container class for all the data relating to an avatar material description
     [System.Serializable]
@@ -72,15 +61,12 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     }
 
     // Local config that this manager instance will render
-    public AvatarMaterialConfig LocalAvatarConfig;
-    // Default avatar config used to initially populate the locally managed avatar config
-    public AvatarMaterialConfig DefaultAvatarConfig;
+    public AvatarMaterialConfig LocalAvatarConfig = new AvatarMaterialConfig();
 
-    // Property block for pushing to shader
-    private AvatarMaterialPropertyBlock LocalAvatarMaterialPropertyBlock;
+    public List<ReflectionProbeBlendInfo> ReflectionProbes = new List<ReflectionProbeBlendInfo>();
 
-    // cache the previous shader when swapping in the loading shader.
-    private Shader CombinedShader; 
+    // Cache the previous shader when swapping in the loading shader.
+    private Shader CombinedShader;
     // Shader properties
     public static string AVATAR_SHADER_LOADER = "OvrAvatar/Avatar_Mobile_Loader";
     public static string AVATAR_SHADER_MAINTEX = "_MainTex";
@@ -103,26 +89,33 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     public static string AVATAR_SHADER_TEETH_COLOR = "_MaskColorTeeth";
     public static string AVATAR_SHADER_LIP_SMOOTHNESS = "_LipSmoothness";
 
+    // Diffuse Intensity constants: body, clothes, eyewear, hair, beard
+    public static float[] DiffuseIntensities = new[] {0.3f, 0.1f, 0f, 0.15f, 0.15f};
+    // Rim Intensity constants: body, clothes, eyewear, hair, beard
+    public static float[] RimIntensities = new[] {5f, 2f, 2.84f, 4f, 4f};
+    // Reflection Intensity constants: body, clothes, eyewear, hair, beard
+    public static float[] ReflectionIntensities = new[] {0f, 0.3f, 0.4f, 0f, 0f};
+
     // Loading animation
     private const float LOADING_ANIMATION_AMPLITUDE = 0.5f;
     private const float LOADING_ANIMATION_PERIOD = 0.35f;
     private const float LOADING_ANIMATION_CURVE_SCALE = 0.25f;
     private const float LOADING_ANIMATION_DIMMER_MIN = 0.3f;
 
-    void Awake()
-    {
-        TextureCopyManager = gameObject.AddComponent<OvrAvatarTextureCopyManager>();
-    }
-
     public void CreateTextureArrays()
     {
         const int componentCount = (int)ovrAvatarBodyPartType.Count;
         const int textureTypeCount = (int)TextureType.Count;
 
-        for (int index = 0; index < componentCount; index++)
+        LocalAvatarConfig.ComponentMaterialProperties = new AvatarComponentMaterialProperties[componentCount];
+        LocalAvatarConfig.MaterialPropertyBlock.Colors = new Vector4[componentCount];
+        LocalAvatarConfig.MaterialPropertyBlock.DiffuseIntensities = new float[componentCount];
+        LocalAvatarConfig.MaterialPropertyBlock.RimIntensities = new float[componentCount];
+        LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities = new float[componentCount];
+
+        for (int i = 0; i < LocalAvatarConfig.ComponentMaterialProperties.Length; ++i)
         {
-            LocalAvatarConfig.ComponentMaterialProperties[index].Textures = new Texture2D[textureTypeCount];
-            DefaultAvatarConfig.ComponentMaterialProperties[index].Textures = new Texture2D[textureTypeCount];
+            LocalAvatarConfig.ComponentMaterialProperties[i].Textures = new Texture2D[textureTypeCount];
         }
 
         TextureArrays = new AvatarTextureArrayProperties[textureTypeCount];
@@ -138,7 +131,21 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     {
         InitTextureArrays();
         SetMaterialPropertyBlock();
-        StartCoroutine(RunLoadingAnimation());
+        // Callback to delete texture set once the avatar is fully loaded
+        StartCoroutine(RunLoadingAnimation(DeleteTextureSet));
+    }
+
+    // Add a texture ID so that it's managed for deletion
+    public void AddTextureIDToTextureManager(ulong assetID, bool isSingleComponent)
+    {
+        OvrAvatarSDKManager.Instance.GetTextureCopyManager().AddTextureIDToTextureSet(
+            GetInstanceID(), assetID, isSingleComponent);
+    }
+
+    // Once avatar loading is completed trigger the texture set for deletion
+    private void DeleteTextureSet()
+    {
+        OvrAvatarSDKManager.Instance.GetTextureCopyManager().DeleteTextureSet(GetInstanceID());
     }
 
     // Prepare texture arrays and copy to GPU
@@ -151,18 +158,25 @@ public class OvrAvatarMaterialManager : MonoBehaviour
             TextureArrays[i].TextureArray = new Texture2DArray(
                 localProps.Textures[0].height, localProps.Textures[0].width,
                 LocalAvatarConfig.ComponentMaterialProperties.Length,
-                 localProps.Textures[0].format,
+                localProps.Textures[0].format,
                 true,
                 QualitySettings.activeColorSpace == ColorSpace.Gamma ? false : true
-            ) { filterMode = FilterMode.Trilinear };
+            ) { filterMode = FilterMode.Trilinear,
+                //Can probably get away with 4 for roughness maps as well, once we switch
+                //to BC7/ASTC4x4 texture compression.
+                anisoLevel = (TextureType)i == TextureType.RoughnessMaps ? 16 : 4 };
+            //So a name shows up in Renderdoc
+            TextureArrays[i].TextureArray.name = string.Format("Texture Array Type: {0}", (TextureType)i);
 
-            TextureArrays[i].Textures 
+            TextureArrays[i].Textures
                 = new Texture2D[LocalAvatarConfig.ComponentMaterialProperties.Length];
 
             for (int j = 0; j < LocalAvatarConfig.ComponentMaterialProperties.Length; j++)
             {
-                TextureArrays[i].Textures[j] 
+                TextureArrays[i].Textures[j]
                     = LocalAvatarConfig.ComponentMaterialProperties[j].Textures[i];
+                //So a name shows up in Renderdoc
+                TextureArrays[i].Textures[j].name = string.Format("Texture Type: {0} Component: {1}", (TextureType)i, j);
             }
 
             ProcessTexturesWithMips(
@@ -186,13 +200,13 @@ public class OvrAvatarMaterialManager : MonoBehaviour
             for (int mipLevel = correctNumberOfMips; mipLevel >= 0; mipLevel--)
             {
                 int mipSize = texArrayResolution / currentMipSize;
-                TextureCopyManager.CopyTexture(
-                    textures[i], 
-                    texArray, 
-                    mipLevel, 
-                    mipSize, 
-                    i, 
-                    true);
+                OvrAvatarSDKManager.Instance.GetTextureCopyManager().CopyTexture(
+                    textures[i],
+                    texArray,
+                    mipLevel,
+                    mipSize,
+                    i,
+                    false);
 
                 currentMipSize /= 2;
             }
@@ -205,14 +219,11 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         {
             for (int i = 0; i < LocalAvatarConfig.ComponentMaterialProperties.Length; i++)
             {
-                LocalAvatarConfig.MaterialPropertyBlock.Colors[i] 
+                LocalAvatarConfig.MaterialPropertyBlock.Colors[i]
                     = LocalAvatarConfig.ComponentMaterialProperties[i].Color;
-                LocalAvatarConfig.MaterialPropertyBlock.DiffuseIntensities[i] 
-                    = LocalAvatarConfig.ComponentMaterialProperties[i].DiffuseIntensity;
-                LocalAvatarConfig.MaterialPropertyBlock.RimIntensities[i] 
-                    = LocalAvatarConfig.ComponentMaterialProperties[i].RimIntensity;
-                LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities[i] 
-                    = LocalAvatarConfig.ComponentMaterialProperties[i].ReflectionIntensity;
+                LocalAvatarConfig.MaterialPropertyBlock.DiffuseIntensities[i] = DiffuseIntensities[i];
+                LocalAvatarConfig.MaterialPropertyBlock.RimIntensities[i] = RimIntensities[i];
+                LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities[i] = ReflectionIntensities[i];
             }
         }
     }
@@ -220,13 +231,13 @@ public class OvrAvatarMaterialManager : MonoBehaviour
     private void ApplyMaterialPropertyBlock()
     {
         MaterialPropertyBlock materialPropertyBlock = new MaterialPropertyBlock();
-        materialPropertyBlock.SetVectorArray(AVATAR_SHADER_COLOR, 
+        materialPropertyBlock.SetVectorArray(AVATAR_SHADER_COLOR,
             LocalAvatarConfig.MaterialPropertyBlock.Colors);
-        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_DIFFUSEINTENSITY, 
+        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_DIFFUSEINTENSITY,
             LocalAvatarConfig.MaterialPropertyBlock.DiffuseIntensities);
-        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_RIMINTENSITY, 
+        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_RIMINTENSITY,
             LocalAvatarConfig.MaterialPropertyBlock.RimIntensities);
-        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_REFLECTIONINTENSITY, 
+        materialPropertyBlock.SetFloatArray(AVATAR_SHADER_REFLECTIONINTENSITY,
             LocalAvatarConfig.MaterialPropertyBlock.ReflectionIntensities);
         TargetRenderer.GetClosestReflectionProbes(ReflectionProbes);
 
@@ -271,7 +282,25 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         return ovrAvatarBodyPartType.Count;
     }
 
-    public void ValidateTextures()
+    UInt64 GetTextureIDForType(ovrAvatarPBSMaterialState materialState, TextureType type)
+    {
+        if (type == TextureType.DiffuseTextures)
+        {
+            return materialState.albedoTextureID;
+        }
+        else if (type == TextureType.NormalMaps)
+        {
+            return materialState.normalTextureID;
+        }
+        else if (type == TextureType.RoughnessMaps)
+        {
+            return materialState.metallicnessTextureID;
+        }
+
+        return 0;
+    }
+
+    public void ValidateTextures(ovrAvatarPBSMaterialState[] materialStates)
     {
         var props = LocalAvatarConfig.ComponentMaterialProperties;
 
@@ -285,8 +314,8 @@ public class OvrAvatarMaterialManager : MonoBehaviour
                 if (props[propIndex].Textures[index] == null)
                 {
                     throw new System.Exception(
-                        props[propIndex].TypeIndex.ToString() 
-                        + "Invalid: " 
+                        props[propIndex].TypeIndex.ToString()
+                        + "Invalid: "
                         + ((TextureType)index).ToString());
                 }
 
@@ -299,18 +328,22 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         {
             for (var propIndex = 1; propIndex < props.Length; propIndex++)
             {
-                if (props[propIndex - 1].Textures[textureIndex].height 
+                if (props[propIndex - 1].Textures[textureIndex].height
                     != props[propIndex].Textures[textureIndex].height)
                 {
                     throw new System.Exception(
-                        props[propIndex].TypeIndex.ToString() 
-                        + " Mismatching Resolutions: " 
+                        props[propIndex].TypeIndex.ToString()
+                        + " Mismatching Resolutions: "
                         + ((TextureType)textureIndex).ToString()
                         + " "
-                        + props[propIndex - 1].Textures[textureIndex].height 
-                        + " vs " 
+                        + props[propIndex - 1].Textures[textureIndex].height
+                        + " (ID: "
+                        + GetTextureIDForType(materialStates[propIndex - 1], (TextureType)textureIndex)
+                        + ") vs "
                         + props[propIndex].Textures[textureIndex].height
-                        + " Ensure you are using ASTC texture compression on Android or turn off CombineMeshes");
+                        + " (ID: "
+                        + GetTextureIDForType(materialStates[propIndex], (TextureType)textureIndex)
+                        + ") Ensure you are using ASTC texture compression on Android or turn off CombineMeshes");
                 }
 
                 if (props[propIndex - 1].Textures[textureIndex].format
@@ -320,7 +353,15 @@ public class OvrAvatarMaterialManager : MonoBehaviour
                         props[propIndex].TypeIndex.ToString()
                         + " Mismatching Formats: "
                         + ((TextureType)textureIndex).ToString()
-                        + " Ensure you are using ASTC texture compression on Android or turn off CombineMeshes");
+                        + " "
+                        + props[propIndex - 1].Textures[textureIndex].format
+                        + " (ID: "
+                        + GetTextureIDForType(materialStates[propIndex - 1], (TextureType)textureIndex)
+                        + ") vs "
+                        + props[propIndex].Textures[textureIndex].format
+                        + " (ID: "
+                        + GetTextureIDForType(materialStates[propIndex], (TextureType)textureIndex)
+                        + ") Ensure you are using ASTC texture compression on Android or turn off CombineMeshes");
                 }
             }
         }
@@ -328,7 +369,7 @@ public class OvrAvatarMaterialManager : MonoBehaviour
 
     // Loading animation on the Dimmer properyt
     // Smooth sine lerp every 0.3 seconds between 0.25 and 0.5
-    private IEnumerator RunLoadingAnimation()
+    private IEnumerator RunLoadingAnimation(Action callBack)
     {
         // Set the material to single component while the avatar loads
         CombinedShader = TargetRenderer.sharedMaterial.shader;
@@ -336,15 +377,18 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         // Save shader properties
         int srcBlend = TargetRenderer.sharedMaterial.GetInt("_SrcBlend");
         int dstBlend = TargetRenderer.sharedMaterial.GetInt("_DstBlend");
-        bool transparentQueue = TargetRenderer.sharedMaterial.IsKeywordEnabled("_ALPHATEST_ON");
+        string lightModeTag = TargetRenderer.sharedMaterial.GetTag("LightMode", false);
+        string renderTypeTag = TargetRenderer.sharedMaterial.GetTag("RenderType", false);
+        string renderQueueTag = TargetRenderer.sharedMaterial.GetTag("Queue", false);
+        string ignoreProjectorTag = TargetRenderer.sharedMaterial.GetTag("IgnoreProjector", false);
         int renderQueue = TargetRenderer.sharedMaterial.renderQueue;
-        string renderTag = TargetRenderer.sharedMaterial.GetTag("RenderType", false);
+        bool transparentQueue = TargetRenderer.sharedMaterial.IsKeywordEnabled("_ALPHATEST_ON");
 
         // Swap in loading shader
         TargetRenderer.sharedMaterial.shader = Shader.Find(AVATAR_SHADER_LOADER);
         TargetRenderer.sharedMaterial.SetColor(AVATAR_SHADER_COLOR, Color.white);
 
-        while (TextureCopyManager.GetTextureCount() > 0)
+        while (OvrAvatarSDKManager.Instance.GetTextureCopyManager().GetTextureCount() > 0)
         {
             float distance = (LOADING_ANIMATION_AMPLITUDE * Mathf.Sin(Time.timeSinceLevelLoad / LOADING_ANIMATION_PERIOD) +
                 LOADING_ANIMATION_AMPLITUDE) * (LOADING_ANIMATION_CURVE_SCALE) + LOADING_ANIMATION_DIMMER_MIN;
@@ -354,11 +398,14 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         // Swap back main shader
         TargetRenderer.sharedMaterial.SetFloat(AVATAR_SHADER_LOADING_DIMMER, 1f);
         TargetRenderer.sharedMaterial.shader = CombinedShader;
-        
+
         // Restore shader properties
-        TargetRenderer.sharedMaterial.SetOverrideTag("RenderType", renderTag);
         TargetRenderer.sharedMaterial.SetInt("_SrcBlend", srcBlend);
         TargetRenderer.sharedMaterial.SetInt("_DstBlend", dstBlend);
+        TargetRenderer.sharedMaterial.SetOverrideTag("LightMode", lightModeTag);
+        TargetRenderer.sharedMaterial.SetOverrideTag("RenderType", renderTypeTag);
+        TargetRenderer.sharedMaterial.SetOverrideTag("Queue", renderQueueTag);
+        TargetRenderer.sharedMaterial.SetOverrideTag("IgnoreProjector", ignoreProjectorTag);
         if (transparentQueue)
         {
             TargetRenderer.sharedMaterial.EnableKeyword("_ALPHATEST_ON");
@@ -374,5 +421,10 @@ public class OvrAvatarMaterialManager : MonoBehaviour
         TargetRenderer.sharedMaterial.renderQueue = renderQueue;
 
         ApplyMaterialPropertyBlock();
+
+        if (callBack != null)
+        {
+            callBack();
+        }
     }
 }

@@ -55,13 +55,13 @@ public class MinMaxPropertyDrawer : PropertyDrawer {
 		}
 		float minValue = min.floatValue;
 		float maxValue = max.floatValue;
-#if UNITY_2018_2_OR_NEWER
+#if UNITY_2017_1_OR_NEWER
 		EditorGUI.MinMaxSlider( sliderPosition, GUIContent.none, ref minValue, ref maxValue, minMax.min, minMax.max );
 #else
-    EditorGUI.MinMaxSlider( GUIContent.none, sliderPosition, ref minValue, ref maxValue, minMax.min, minMax.max );
+        EditorGUI.MinMaxSlider( GUIContent.none, sliderPosition, ref minValue, ref maxValue, minMax.min, minMax.max );
 #endif
-    // round to readable values
-    min.floatValue = Mathf.Round( minValue / 0.01f ) * 0.01f;
+        // round to readable values
+        min.floatValue = Mathf.Round( minValue / 0.01f ) * 0.01f;
 		max.floatValue = Mathf.Round( maxValue / 0.01f ) * 0.01f;
 	}
 

@@ -113,6 +113,48 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &672535801
+Prefab:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalRotation.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_LocalRotation.w
+      value: -0.00000016292068
+      objectReference: {fileID: 0}
+    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+      propertyPath: m_RootOrder
+      value: 4
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_ParentPrefab: {fileID: 100100000, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
+  m_IsPrefabParent: 0
 --- !u!1 &957641525
 GameObject:
   m_ObjectHideFlags: 0
@@ -454,72 +496,14 @@ Prefab:
       propertyPath: m_RootOrder
       value: 3
       objectReference: {fileID: 0}
-    - target: {fileID: 11437430, guid: 84c8b8609f9bb434eaf5248f17ff1293, type: 2}
-      propertyPath: oculusUserID
-      value: 972515086092410
-      objectReference: {fileID: 0}
-    - target: {fileID: 11437430, guid: 84c8b8609f9bb434eaf5248f17ff1293, type: 2}
-      propertyPath: EnableExpressive
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 84c8b8609f9bb434eaf5248f17ff1293, type: 2}
-  m_IsPrefabParent: 0
---- !u!1001 &1966604970
-Prefab:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalPosition.z
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalRotation.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_LocalRotation.w
-      value: -0.00000016292068
-      objectReference: {fileID: 0}
-    - target: {fileID: 496618, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: m_RootOrder
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 11464902, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: oculusUserID
-      value: 972515086092410
-      objectReference: {fileID: 0}
-    - target: {fileID: 11464902, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
-      propertyPath: EnableExpressive
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_ParentPrefab: {fileID: 100100000, guid: 90bf33f968e6bb44ea0208fc82c90a44, type: 2}
   m_IsPrefabParent: 0
 --- !u!114 &1966604974 stripped
 MonoBehaviour:
   m_PrefabParentObject: {fileID: 11464902, guid: 90bf33f968e6bb44ea0208fc82c90a44,
     type: 2}
-  m_PrefabInternal: {fileID: 1966604970}
+  m_PrefabInternal: {fileID: 672535801}
   m_Script: {fileID: 11500000, guid: 00f3402a2ea5bff4880c0313515240cd, type: 3}
 --- !u!114 &1997500170 stripped
 MonoBehaviour:

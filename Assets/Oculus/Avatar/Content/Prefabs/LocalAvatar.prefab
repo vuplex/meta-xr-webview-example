@@ -26,9 +26,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children:
-  - {fileID: 4581494204247758}
-  - {fileID: 4468369968689664}
+  m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -43,10 +41,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00f3402a2ea5bff4880c0313515240cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultBodyMaterialManager: {fileID: 114949324920430652}
-  DefaultHandMaterialManager: {fileID: 114029231360713414}
-  Driver: {fileID: 11441414}
   oculusUserID: 0
+  Driver: {fileID: 11441414}
   EnableBody: 1
   EnableHands: 1
   EnableBase: 0
@@ -61,7 +57,10 @@ MonoBehaviour:
   ThirdPersonLayer:
     layerIndex: 0
   ShowFirstPerson: 1
-  ShowThirdPerson: 1
+  ShowThirdPerson: 0
+  LevelOfDetail: 5
+  CombineMeshes: 1
+  UseTransparentRenderQueue: 1
   Monochrome_SurfaceShader: {fileID: 4800000, guid: 73f67c4e7bf718b4385aa6b1f8a06591,
     type: 3}
   Monochrome_SurfaceShader_SelfOccluding: {fileID: 4800000, guid: 69f342b79d37541489919a19cfd8a924,
@@ -83,6 +82,8 @@ MonoBehaviour:
   Loader_VertFrag_CombinedMesh: {fileID: 4800000, guid: 822f5e641dc5dd54ca9555b727b3277f,
     type: 3}
   EyeLens: {fileID: 4800000, guid: 8392f54e79937ed4bb1b692a143dc02b, type: 3}
+  ControllerShader: {fileID: 4800000, guid: 28729c6ae5a33b04cb2f7956f3f3fc01, type: 3}
+  CanOwnMicrophone: 1
   MouthAnchor: {fileID: 0}
   LeftHandCustomPose: {fileID: 0}
   RightHandCustomPose: {fileID: 0}
@@ -111,6 +112,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e19ec58d4a9e844970103e5bd8946a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  RenderParts: []
+  isLeftHand: 1
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1
@@ -122,315 +125,3 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 158226}
   m_IsPrefabParent: 1
---- !u!1 &1098047352992398
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 4581494204247758}
-  - component: {fileID: 114949324920430652}
-  m_Layer: 0
-  m_Name: DefaultBodyMaterialManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!1 &1231602751420816
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  serializedVersion: 5
-  m_Component:
-  - component: {fileID: 4468369968689664}
-  - component: {fileID: 114029231360713414}
-  m_Layer: 0
-  m_Name: DefaultHandMaterialManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4468369968689664
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1231602751420816}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 463470}
-  m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4581494204247758
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1098047352992398}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 463470}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114029231360713414
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1231602751420816}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a139d83bf6796734db220df8a5bfacbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DiffuseFallbacks:
-  - {fileID: 2800000, guid: 7d8da3d06466cc04da8c020819170a59, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: b3e87b1024f5fa8408d004b398e7b0c0, type: 3}
-  NormalFallbacks:
-  - {fileID: 2800000, guid: 93a54b3b63bcc6d49b16f6bdb655b940, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 22a046c12fc7f3c4d98a98add109fa96, type: 3}
-  LocalAvatarConfig:
-    ComponentMaterialProperties: []
-    MaterialPropertyBlock:
-      Colors: []
-      DiffuseIntensities: []
-      RimIntensities: []
-      ReflectionIntensities: []
-  DefaultAvatarConfig:
-    ComponentMaterialProperties:
-    - TypeIndex: 0
-      Color: {r: 1, g: 0.9529412, b: 0.92156863, a: 1}
-      Textures: []
-      DiffuseIntensity: 0.301
-      RimIntensity: 5
-      ReflectionIntensity: 0
-    - TypeIndex: 1
-      Color: {r: 1, g: 1, b: 1, a: 1}
-      Textures: []
-      DiffuseIntensity: 0.1
-      RimIntensity: 2
-      ReflectionIntensity: 0.3
-    - TypeIndex: 2
-      Color: {r: 0.80784315, g: 0.80784315, b: 0.80784315, a: 1}
-      Textures: []
-      DiffuseIntensity: 0
-      RimIntensity: 2.84
-      ReflectionIntensity: 0.4
-    - TypeIndex: 3
-      Color: {r: 0.22352941, g: 0.11372549, b: 0, a: 1}
-      Textures: []
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    - TypeIndex: 4
-      Color: {r: 0.22352941, g: 0.023529412, b: 0.011764706, a: 1}
-      Textures: []
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    MaterialPropertyBlock:
-      Colors:
-      - {x: 0, y: 0, z: 0, w: 0}
-      - {x: 0, y: 0, z: 0, w: 0}
-      - {x: 0, y: 0, z: 0, w: 0}
-      - {x: 0, y: 0, z: 0, w: 0}
-      - {x: 0, y: 0, z: 0, w: 0}
-      DiffuseIntensities:
-      - 0
-      - 0
-      - 0
-      - 0
-      - 0
-      RimIntensities:
-      - 0
-      - 0
-      - 0
-      - 0
-      - 0
-      ReflectionIntensities:
-      - 0
-      - 0
-      - 0
-      - 0
-      - 0
---- !u!114 &114949324920430652
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1098047352992398}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a139d83bf6796734db220df8a5bfacbd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DiffuseFallbacks:
-  - {fileID: 2800000, guid: 7d8da3d06466cc04da8c020819170a59, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-  - {fileID: 2800000, guid: b3e87b1024f5fa8408d004b398e7b0c0, type: 3}
-  NormalFallbacks:
-  - {fileID: 2800000, guid: 93a54b3b63bcc6d49b16f6bdb655b940, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-  - {fileID: 2800000, guid: 22a046c12fc7f3c4d98a98add109fa96, type: 3}
-  LocalAvatarConfig:
-    ComponentMaterialProperties:
-    - TypeIndex: 0
-      Color: {r: 1, g: 0.86, b: 0.77, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.3
-      RimIntensity: 5
-      ReflectionIntensity: 0
-    - TypeIndex: 1
-      Color: {r: 1, g: 1, b: 1, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.1
-      RimIntensity: 2
-      ReflectionIntensity: 0.3
-    - TypeIndex: 2
-      Color: {r: 1, g: 1, b: 1, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0
-      RimIntensity: 2.84
-      ReflectionIntensity: 0.4
-    - TypeIndex: 3
-      Color: {r: 0.6235, g: 0.4627, b: 0.3412, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    - TypeIndex: 4
-      Color: {r: -5.3487954e+9, g: 771.1758, b: -5.6686517e+23, a: 4.9667446e-34}
-      Textures:
-      - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-      - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-      - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    MaterialPropertyBlock:
-      Colors:
-      - {x: 1, y: 0.86, z: 0.77, w: 1}
-      - {x: 1, y: 1, z: 1, w: 1}
-      - {x: 1, y: 1, z: 1, w: 1}
-      - {x: 0.6235, y: 0.4627, z: 0.3412, w: 1}
-      - {x: -0.025753247, y: -2.0311036e-13, z: -6.2685677e-31, w: -2.0021067e+22}
-      DiffuseIntensities:
-      - 0.3
-      - 0.1
-      - 0
-      - 0.15
-      - 0.15
-      RimIntensities:
-      - 5
-      - 2
-      - 2.84
-      - 4
-      - 4
-      ReflectionIntensities:
-      - 0
-      - 0.3
-      - 0.4
-      - 0
-      - 0
-  DefaultAvatarConfig:
-    ComponentMaterialProperties:
-    - TypeIndex: 0
-      Color: {r: 1, g: 0.86, b: 0.77, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.3
-      RimIntensity: 5
-      ReflectionIntensity: 0
-    - TypeIndex: 1
-      Color: {r: 1, g: 1, b: 1, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.1
-      RimIntensity: 2
-      ReflectionIntensity: 0.3
-    - TypeIndex: 2
-      Color: {r: 1, g: 1, b: 1, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0
-      RimIntensity: 2.84
-      ReflectionIntensity: 0.4
-    - TypeIndex: 3
-      Color: {r: 0.6235, g: 0.4627, b: 0.3412, a: 1}
-      Textures:
-      - {fileID: 0}
-      - {fileID: 0}
-      - {fileID: 0}
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    - TypeIndex: 4
-      Color: {r: -5.3487954e+9, g: 771.1758, b: -5.6686517e+23, a: 4.9667446e-34}
-      Textures:
-      - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-      - {fileID: 2800000, guid: 9fb4a3be60417d043865e457a9d51e63, type: 3}
-      - {fileID: 2800000, guid: 502d438d2584976448c3cdb146ed836d, type: 3}
-      DiffuseIntensity: 0.15
-      RimIntensity: 4
-      ReflectionIntensity: 0
-    MaterialPropertyBlock:
-      Colors:
-      - {x: 1, y: 0.86, z: 0.77, w: 1}
-      - {x: 1, y: 1, z: 1, w: 1}
-      - {x: 1, y: 1, z: 1, w: 1}
-      - {x: 0.6235, y: 0.4627, z: 0.3412, w: 1}
-      - {x: -0.025753247, y: -2.0311036e-13, z: -6.2685677e-31, w: -2.0021067e+22}
-      DiffuseIntensities:
-      - 0.3
-      - 0.1
-      - 0
-      - 0.15
-      - 0.15
-      RimIntensities:
-      - 5
-      - 2
-      - 2.84
-      - 4
-      - 4
-      ReflectionIntensities:
-      - 0
-      - 0.3
-      - 0.4
-      - 0
-      - 0

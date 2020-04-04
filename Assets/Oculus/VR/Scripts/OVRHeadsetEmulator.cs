@@ -48,17 +48,27 @@ public class OVRHeadsetEmulator : MonoBehaviour {
 	private Vector3 recordedHeadPoseRelativeOffsetRotation;
 
 	private bool hasSentEvent = false;
+	private bool emulatorHasInitialized = false;
 
 	// Use this for initialization
 	void Start () {
-		Cursor.lockState = CursorLockMode.None;
-		manager = OVRManager.instance;
-		recordedHeadPoseRelativeOffsetTranslation = manager.headPoseRelativeOffsetTranslation;
-		recordedHeadPoseRelativeOffsetRotation = manager.headPoseRelativeOffsetRotation;
 	}
 
 	// Update is called once per frame
 	void Update () {
+		if (!emulatorHasInitialized)
+		{
+			if (OVRManager.OVRManagerinitialized)
+			{
+				Cursor.lockState = CursorLockMode.None;
+				manager = OVRManager.instance;
+				recordedHeadPoseRelativeOffsetTranslation = manager.headPoseRelativeOffsetTranslation;
+				recordedHeadPoseRelativeOffsetRotation = manager.headPoseRelativeOffsetRotation;
+				emulatorHasInitialized = true;
+			}
+			else
+				return;
+		}
 		bool emulationActivated = IsEmulationActivated();
 		if (emulationActivated)
 		{

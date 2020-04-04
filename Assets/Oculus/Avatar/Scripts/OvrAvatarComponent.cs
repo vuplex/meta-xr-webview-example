@@ -7,7 +7,6 @@ using System.Threading;
 
 public class OvrAvatarComponent : MonoBehaviour
 {
-
     public static readonly string[] LayerKeywords = new[] { "LAYERS_0", "LAYERS_1", "LAYERS_2", "LAYERS_3", "LAYERS_4", "LAYERS_5", "LAYERS_6", "LAYERS_7", "LAYERS_8", };
     public static readonly string[] LayerSampleModeParameters = new[] { "_LayerSampleMode0", "_LayerSampleMode1", "_LayerSampleMode2", "_LayerSampleMode3", "_LayerSampleMode4", "_LayerSampleMode5", "_LayerSampleMode6", "_LayerSampleMode7", };
     public static readonly string[] LayerBlendModeParameters = new[] { "_LayerBlendMode0", "_LayerBlendMode1", "_LayerBlendMode2", "_LayerBlendMode3", "_LayerBlendMode4", "_LayerBlendMode5", "_LayerBlendMode6", "_LayerBlendMode7", };
@@ -21,14 +20,21 @@ public class OvrAvatarComponent : MonoBehaviour
     private Dictionary<Material, ovrAvatarMaterialState> materialStates = new Dictionary<Material, ovrAvatarMaterialState>();
     public List<OvrAvatarRenderComponent> RenderParts = new List<OvrAvatarRenderComponent>();
 
-    public ulong ClothingAlphaTexture = 0;
-    public Vector4 ClothingAlphaOffset;
+    protected OvrAvatar owner = null;
+    protected ovrAvatarComponent nativeAvatarComponent = new ovrAvatarComponent();
 
-    public void UpdateAvatar(ovrAvatarComponent component, OvrAvatar avatar)
+    public void SetOvrAvatarOwner(OvrAvatar ovrAvatarOwner)
     {
-        OvrAvatar.ConvertTransform(component.transform, transform);
+        owner = ovrAvatarOwner;
+    }
 
-        for (UInt32 renderPartIndex = 0; renderPartIndex < component.renderPartCount; renderPartIndex++)
+    public void UpdateAvatar(IntPtr nativeComponent)
+    {
+        CAPI.ovrAvatarComponent_Get(nativeComponent, false, ref nativeAvatarComponent);
+
+        OvrAvatar.ConvertTransform(nativeAvatarComponent.transform, transform);
+
+        for (UInt32 renderPartIndex = 0; renderPartIndex < nativeAvatarComponent.renderPartCount; renderPartIndex++)
         {
             if (RenderParts.Count <= renderPartIndex)
             {
@@ -36,21 +42,18 @@ public class OvrAvatarComponent : MonoBehaviour
             }
 
             OvrAvatarRenderComponent renderComponent = RenderParts[(int)renderPartIndex];
-            IntPtr renderPart = OvrAvatar.GetRenderPart(component, renderPartIndex);
+            IntPtr renderPart = OvrAvatar.GetRenderPart(nativeAvatarComponent, renderPartIndex);
             ovrAvatarRenderPartType type = CAPI.ovrAvatarRenderPart_GetType(renderPart);
             switch (type)
             {
                 case ovrAvatarRenderPartType.SkinnedMeshRender:
-                    ((OvrAvatarSkinnedMeshRenderComponent)renderComponent).UpdateSkinnedMeshRender(this, avatar, renderPart);
+                    ((OvrAvatarSkinnedMeshRenderComponent)renderComponent).UpdateSkinnedMeshRender(this, owner, renderPart);
                     break;
                 case ovrAvatarRenderPartType.SkinnedMeshRenderPBS:
-                    ((OvrAvatarSkinnedMeshRenderPBSComponent)renderComponent).UpdateSkinnedMeshRenderPBS(avatar, renderPart, renderComponent.mesh.sharedMaterial);
-                    break;
-                case ovrAvatarRenderPartType.ProjectorRender:
-                    ((OvrAvatarProjectorRenderComponent)renderComponent).UpdateProjectorRender(this, CAPI.ovrAvatarRenderPart_GetProjectorRender(renderPart));
+                    ((OvrAvatarSkinnedMeshRenderPBSComponent)renderComponent).UpdateSkinnedMeshRenderPBS(owner, renderPart, renderComponent.mesh.sharedMaterial);
                     break;
                 case ovrAvatarRenderPartType.SkinnedMeshRenderPBS_V2:
-                    ((OvrAvatarSkinnedMeshPBSV2RenderComponent)renderComponent).UpdateSkinnedMeshRender(this, avatar, renderPart);
+                    ((OvrAvatarSkinnedMeshPBSV2RenderComponent)renderComponent).UpdateSkinnedMeshRender(this, owner, renderPart);
                     break;
                 default:
                     break;
@@ -77,14 +80,6 @@ public class OvrAvatarComponent : MonoBehaviour
             mat.SetTexture("_AlphaMask", GetLoadedTexture(matState.alphaMaskTextureID));
             mat.SetTextureScale("_AlphaMask", new Vector2(matState.alphaMaskScaleOffset.x, matState.alphaMaskScaleOffset.y));
             mat.SetTextureOffset("_AlphaMask", new Vector2(matState.alphaMaskScaleOffset.z, matState.alphaMaskScaleOffset.w));
-        }
-
-        if (ClothingAlphaTexture != 0)
-        {
-            mat.EnableKeyword("VERTALPHA_ON");
-            mat.SetTexture("_AlphaMask2", GetLoadedTexture(ClothingAlphaTexture));
-            mat.SetTextureScale("_AlphaMask2", new Vector2(ClothingAlphaOffset.x, ClothingAlphaOffset.y));
-            mat.SetTextureOffset("_AlphaMask2", new Vector2(ClothingAlphaOffset.z, ClothingAlphaOffset.w));
         }
 
         if (matState.normalMapTextureID != 0)

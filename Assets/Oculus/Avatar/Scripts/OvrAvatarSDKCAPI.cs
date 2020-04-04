@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
+using AOT;
 using Oculus.Avatar;
 
 //This needs to be the csharp equivalent of ovrAvatarCapabilities in OVR_Avatar.h
@@ -42,6 +43,7 @@ public enum ovrAvatarAssetType {
     Material,
     CombinedMesh,
     PBSMaterial,
+    FailedLoad,
     Count
 };
 
@@ -160,6 +162,21 @@ public enum ovrAvatarRenderPartType
     Count
 };
 
+/// Avatar Logging Level
+/// Matches the Android Log Levels
+public enum ovrAvatarLogLevel
+{
+    Unknown,
+    Default,
+    Verbose,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Fatal,
+    Silent
+};
+
 // This needs to be the csharp equivalent of ovrAvatarTransform in OVR_Avatar.h
 public struct ovrAvatarTransform
 {
@@ -216,6 +233,14 @@ public struct ovrAvatarComponent
     public string name;
 };
 
+struct ovrAvatarComponent_Offsets
+{
+    public static long transform = Marshal.OffsetOf(typeof(ovrAvatarComponent), "transform").ToInt64();
+    public static Int32 renderPartCount = Marshal.OffsetOf(typeof(ovrAvatarComponent), "renderPartCount").ToInt32();
+    public static Int32 renderParts = Marshal.OffsetOf(typeof(ovrAvatarComponent), "renderParts").ToInt32();
+    public static Int32 name = Marshal.OffsetOf(typeof(ovrAvatarComponent), "name").ToInt32();
+};
+
 // This needs to be the csharp equivalent of ovrAvatarBodyComponent in OVR_Avatar.h
 public struct ovrAvatarBaseComponent
 {
@@ -229,6 +254,14 @@ public struct ovrAvatarBodyComponent {
     public ovrAvatarTransform  rightEyeTransform;
     public ovrAvatarTransform  centerEyeTransform;
     public IntPtr              renderComponent; //const ovrAvatarComponent*
+};
+
+public struct ovrAvatarBodyComponent_Offsets
+{
+    public static long leftEyeTransform = Marshal.OffsetOf(typeof(ovrAvatarBodyComponent), "leftEyeTransform").ToInt64();
+    public static long rightEyeTransform = Marshal.OffsetOf(typeof(ovrAvatarBodyComponent), "rightEyeTransform").ToInt64();
+    public static long centerEyeTransform = Marshal.OffsetOf(typeof(ovrAvatarBodyComponent), "centerEyeTransform").ToInt64();
+    public static long renderComponent = Marshal.OffsetOf(typeof(ovrAvatarBodyComponent), "renderComponent").ToInt64();
 };
 
 // This needs to be the csharp equivalent of ovrAvatarControllerComponent in OVR_Avatar.h
@@ -632,12 +665,28 @@ public struct ovrAvatarBlendShapeParams
     public float[] blendShapeParams;
 };
 
+struct ovrAvatarBlendShapeParams_Offsets
+{
+    public static Int32 blendShapeParamCount = Marshal.OffsetOf(typeof(ovrAvatarBlendShapeParams), "blendShapeParamCount").ToInt32();
+    // Bug with Marshal.OffsetOf is returning an incorrect offset, causing an off by 1 float issue in the blendShapeParams
+    //public static long blendShapeParams = Marshal.OffsetOf(typeof(ovrAvatarBlendShapeParams), "blendShapeParams").ToInt64();
+    public static long blendShapeParams = Marshal.SizeOf(typeof(UInt32));
+};
+
 // This needs to be the csharp equivalent of ovrAvatarVisemes in OVR_Avatar.h
 public struct ovrAvatarVisemes
 {
     public UInt32 visemeParamCount;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
     public float[] visemeParams;
+};
+
+struct ovrAvatarVisemes_Offsets
+{
+    public static Int32 visemeParamCount = Marshal.OffsetOf(typeof(ovrAvatarVisemes), "visemeParamCount").ToInt32();
+    // Bug with Marshal.OffsetOf is returning an incorrect offset, causing an off by 1 float issue in the visemeParams
+    //public static long visemeParams = Marshal.OffsetOf(typeof(ovrAvatarVisemes), "visemeParams").ToInt64();
+    public static long visemeParams = Marshal.SizeOf(typeof(UInt32));
 };
 
 // This needs to be the csharp equivalent of ovrAvatarGazeTargetType in OVR_AvatarInternal.h
@@ -657,11 +706,26 @@ public struct ovrAvatarGazeTarget
     public ovrAvatarGazeTargetType type;
 };
 
+struct ovrAvatarGazeTarget_Offsets
+{
+    public static Int32 id = 0;
+    public static Int32 worldPosition = Marshal.SizeOf(typeof(UInt32));
+    public static Int32 type = worldPosition + Marshal.SizeOf(typeof(Vector3));
+};
+
 public struct ovrAvatarGazeTargets
 {
     public UInt32 targetCount;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
     public ovrAvatarGazeTarget[] targets;
+};
+
+struct ovrAvatarGazeTargets_Offsets
+{
+    public static Int32 targetCount = Marshal.OffsetOf(typeof(ovrAvatarGazeTargets), "targetCount").ToInt32();
+    // Bug with Marshal.OffsetOf is returning an incorrect offset, causing an off by 1 float issue in the targets
+    //public static long targets = Marshal.OffsetOf(typeof(ovrAvatarGazeTargets), "targets").ToInt64();
+    public static long targets = Marshal.SizeOf(typeof(UInt32));
 };
 
 // This needs to be the csharp equivalent of ovrAvatarLightType in OVR_AvatarInternal.h
@@ -684,6 +748,17 @@ public struct ovrAvatarLight
     public float spotAngleDeg;
 };
 
+struct ovrAvatarLight_Offsets
+{
+    public static long id = Marshal.OffsetOf(typeof(ovrAvatarLight), "id").ToInt64();
+    public static long type = Marshal.OffsetOf(typeof(ovrAvatarLight), "type").ToInt64();
+    public static long intensity = Marshal.OffsetOf(typeof(ovrAvatarLight), "intensity").ToInt64();
+    public static long worldDirection = Marshal.OffsetOf(typeof(ovrAvatarLight), "worldDirection").ToInt64();
+    public static long worldPosition = Marshal.OffsetOf(typeof(ovrAvatarLight), "worldPosition").ToInt64();
+    public static long range = Marshal.OffsetOf(typeof(ovrAvatarLight), "range").ToInt64();
+    public static long spotAngleDeg = Marshal.OffsetOf(typeof(ovrAvatarLight), "spotAngleDeg").ToInt64();
+};
+
 public struct ovrAvatarLights
 {
     public float ambientIntensity;
@@ -692,24 +767,87 @@ public struct ovrAvatarLights
     public ovrAvatarLight[] lights;
 };
 
+struct ovrAvatarLights_Offsets
+{
+    public static long ambientIntensity = Marshal.OffsetOf(typeof(ovrAvatarLights), "ambientIntensity").ToInt64();
+    public static long lightCount = Marshal.OffsetOf(typeof(ovrAvatarLights), "lightCount").ToInt64();
+    public static long lights = Marshal.OffsetOf(typeof(ovrAvatarLights), "lights").ToInt64();
+};
+
+// Debug Render
+[Flags]
+public enum ovrAvatarDebugContext : uint
+{
+    None = 0,
+    GazeTarget = 0x01,
+    Any = 0xffffffff
+};
+
+public struct ovrAvatarDebugLine
+{
+    public Vector3 startPoint;
+    public Vector3 endPoint;
+    public Vector3 color;
+    public ovrAvatarDebugContext context;
+    public IntPtr text;
+};
+public struct ovrAvatarDebugTransform
+{
+    public ovrAvatarTransform transform;
+    public ovrAvatarDebugContext context;
+    public IntPtr text;
+};
 
 namespace Oculus.Avatar
 {
     public class CAPI
     {
 #if UNITY_ANDROID && !UNITY_EDITOR
+#if AVATAR_XPLAT
+        private const string LibFile = "ovravatar";
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_Initialize(string appID);
+#else
         private const string LibFile = "ovravatarloader";
-
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_InitializeAndroidUnity(string appID);
+#endif
 #else
         private const string LibFile = "libovravatar";
 
-        public static readonly System.Version AvatarSDKVersion = new System.Version(1, 32, 0);
+        public static readonly System.Version AvatarSDKVersion = new System.Version(1, 36, 0);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_Initialize(string appID);
 #endif
+
+        static IntPtr nativeVisemeData = IntPtr.Zero;
+        static IntPtr nativeGazeTargetsData = IntPtr.Zero;
+        static IntPtr nativeAvatarLightsData = IntPtr.Zero;
+        static IntPtr DebugLineCountData = IntPtr.Zero;
+        static float[] scratchBufferFloat = new float[16];
+        static GameObject debugLineGo;
+        public static void Initialize()
+        {
+            nativeVisemeData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarVisemes)));
+            nativeGazeTargetsData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarGazeTargets)));
+            nativeAvatarLightsData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarLights)));
+            DebugLineCountData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(uint)));
+
+            debugLineGo = new GameObject();
+            debugLineGo.name = "AvatarSDKDebugDrawHelper";
+        }
+
+        public static void Shutdown()
+        {
+            Marshal.FreeHGlobal(nativeVisemeData);
+            Marshal.FreeHGlobal(nativeGazeTargetsData);
+            Marshal.FreeHGlobal(nativeAvatarLightsData);
+            Marshal.FreeHGlobal(DebugLineCountData);
+
+            debugLineGo = null;
+        }
+
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_Shutdown();
@@ -810,34 +948,6 @@ namespace Oculus.Avatar
             ovrAvatarControllerType type);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ovrAvatarPose_Update3DofHands(
-            IntPtr avatar,
-            IntPtr inputStateLeft,
-            IntPtr inputStateRight,
-            ovrAvatarControllerType type);
-
-        public static void ovrAvatarPose_UpdateSDK3DofHands(
-            IntPtr avatar,
-            ovrAvatarHandInputState inputStateLeft,
-            ovrAvatarHandInputState inputStateRight,
-            ovrAvatarControllerType type)
-        {
-            System.IntPtr leftPtr = Marshal.AllocHGlobal(Marshal.SizeOf(inputStateLeft));
-            System.IntPtr rightPtr = Marshal.AllocHGlobal(Marshal.SizeOf(inputStateRight));
-            Marshal.StructureToPtr(inputStateLeft, leftPtr, false);
-            Marshal.StructureToPtr(inputStateRight, rightPtr, false);
-
-            ovrAvatar_SetLeftControllerVisibility(avatar, true);
-            ovrAvatar_SetRightControllerVisibility(avatar, true);
-            ovrAvatar_SetLeftHandVisibility(avatar, true);
-            ovrAvatar_SetRightHandVisibility(avatar, true);
-            ovrAvatarPose_Update3DofHands(avatar, leftPtr, rightPtr, type);
-
-            Marshal.FreeHGlobal(leftPtr);
-            Marshal.FreeHGlobal(rightPtr);
-        }
-
-        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatarPose_Finalize(IntPtr avatar, float elapsedSeconds);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
@@ -855,90 +965,139 @@ namespace Oculus.Avatar
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern UInt32 ovrAvatarComponent_Count(IntPtr avatar);
 
-        public static ovrAvatarComponent ovrAvatarComponent_Get(
-            IntPtr avatar, UInt32 index)
+        public static void ovrAvatarComponent_Get(IntPtr avatar, UInt32 index, bool includeName, ref ovrAvatarComponent component)
         {
             IntPtr ptr = ovrAvatarComponent_Get_Native(avatar, index);
-            return (ovrAvatarComponent)Marshal.PtrToStructure(
-                ptr, typeof(ovrAvatarComponent));
+            ovrAvatarComponent_Get(ptr, includeName, ref component);
+        }
+
+        public static void ovrAvatarComponent_Get(IntPtr componentPtr, bool includeName, ref ovrAvatarComponent component)
+        {
+            Marshal.Copy(new IntPtr(componentPtr.ToInt64() + ovrAvatarComponent_Offsets.transform), scratchBufferFloat, 0, 10);
+            OvrAvatar.ConvertTransform(scratchBufferFloat, ref component.transform);
+
+            component.renderPartCount = (UInt32)Marshal.ReadInt32(componentPtr, ovrAvatarComponent_Offsets.renderPartCount);
+            component.renderParts = Marshal.ReadIntPtr(componentPtr, ovrAvatarComponent_Offsets.renderParts);
+
+            if (includeName)
+            {
+                IntPtr namePtr = Marshal.ReadIntPtr(componentPtr, ovrAvatarComponent_Offsets.name);
+                component.name = Marshal.PtrToStringAnsi(namePtr);
+            }
         }
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
             "ovrAvatarComponent_Get")]
         public static extern IntPtr ovrAvatarComponent_Get_Native(IntPtr avatar, UInt32 index);
 
-        public static ovrAvatarBaseComponent? ovrAvatarPose_GetBaseComponent(
-            IntPtr avatar)
+        public static bool ovrAvatarPose_GetBaseComponent(IntPtr avatar, ref ovrAvatarBaseComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetBaseComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarBaseComponent?)null
-                :  (ovrAvatarBaseComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarBaseComponent));
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int renderComponentOffset = Marshal.SizeOf(typeof(ovrAvatarBaseComponent)) - Marshal.SizeOf(typeof(IntPtr));
+            component.renderComponent = Marshal.ReadIntPtr(ptr, renderComponentOffset);
+            return true;
         }
 
-        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
-            "ovrAvatarPose_GetBaseComponent")]
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint ="ovrAvatarPose_GetBaseComponent")]
         private static extern IntPtr ovrAvatarPose_GetBaseComponent_Native(IntPtr avatar);
 
-        public static ovrAvatarBodyComponent? ovrAvatarPose_GetBodyComponent(
-            IntPtr avatar)
+        public static IntPtr MarshalRenderComponent<T>(IntPtr ptr) where T : struct
+        {
+            return Marshal.ReadIntPtr(new IntPtr(ptr.ToInt64() + Marshal.OffsetOf(typeof(T), "renderComponent").ToInt64()));
+        }
+        public static bool ovrAvatarPose_GetBodyComponent(IntPtr avatar, ref ovrAvatarBodyComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetBodyComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarBodyComponent?)null
-                :  (ovrAvatarBodyComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarBodyComponent));
+
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            Marshal.Copy(new IntPtr(ptr.ToInt64() + ovrAvatarBodyComponent_Offsets.leftEyeTransform), scratchBufferFloat, 0, 10);
+            OvrAvatar.ConvertTransform(scratchBufferFloat, ref component.leftEyeTransform);
+
+            Marshal.Copy(new IntPtr(ptr.ToInt64() + ovrAvatarBodyComponent_Offsets.rightEyeTransform), scratchBufferFloat, 0, 10);
+            OvrAvatar.ConvertTransform(scratchBufferFloat, ref component.rightEyeTransform);
+
+            Marshal.Copy(new IntPtr(ptr.ToInt64() + ovrAvatarBodyComponent_Offsets.centerEyeTransform), scratchBufferFloat, 0, 10);
+            OvrAvatar.ConvertTransform(scratchBufferFloat, ref component.centerEyeTransform);
+
+            component.renderComponent = MarshalRenderComponent<ovrAvatarBodyComponent>(ptr);
+            return true;
         }
 
-        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
-            "ovrAvatarPose_GetBodyComponent")]
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint ="ovrAvatarPose_GetBodyComponent")]
         private static extern IntPtr ovrAvatarPose_GetBodyComponent_Native(IntPtr avatar);
 
-        public static ovrAvatarControllerComponent? ovrAvatarPose_GetLeftControllerComponent(
-    IntPtr avatar)
+        public static bool ovrAvatarPose_GetLeftControllerComponent(IntPtr avatar, ref ovrAvatarControllerComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetLeftControllerComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarControllerComponent?)null
-                :  (ovrAvatarControllerComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarControllerComponent));
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int renderComponentOffset = Marshal.SizeOf(typeof(ovrAvatarControllerComponent)) - Marshal.SizeOf(typeof(IntPtr));
+            component.renderComponent = Marshal.ReadIntPtr(ptr, renderComponentOffset);
+            return true;
         }
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
             "ovrAvatarPose_GetLeftControllerComponent")]
         private static extern IntPtr ovrAvatarPose_GetLeftControllerComponent_Native(IntPtr avatar);
 
-        public static ovrAvatarControllerComponent? ovrAvatarPose_GetRightControllerComponent(
-            IntPtr avatar)
+        public static bool ovrAvatarPose_GetRightControllerComponent(IntPtr avatar, ref ovrAvatarControllerComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetRightControllerComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarControllerComponent?)null
-                :  (ovrAvatarControllerComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarControllerComponent));
+
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int renderComponentOffset = Marshal.SizeOf(typeof(ovrAvatarControllerComponent)) - Marshal.SizeOf(typeof(IntPtr));
+            component.renderComponent = Marshal.ReadIntPtr(ptr, renderComponentOffset);
+            return true;
         }
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
             "ovrAvatarPose_GetRightControllerComponent")]
         private static extern IntPtr ovrAvatarPose_GetRightControllerComponent_Native(IntPtr avatar);
 
-        public static ovrAvatarHandComponent? ovrAvatarPose_GetLeftHandComponent(
-            IntPtr avatar)
+        public static bool ovrAvatarPose_GetLeftHandComponent(IntPtr avatar, ref ovrAvatarHandComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetLeftHandComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarHandComponent?)null
-                :  (ovrAvatarHandComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarHandComponent));
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int renderComponentOffset = Marshal.SizeOf(typeof(ovrAvatarHandComponent)) - Marshal.SizeOf(typeof(IntPtr));
+            component.renderComponent = Marshal.ReadIntPtr(ptr, renderComponentOffset);
+            return true;
         }
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
             "ovrAvatarPose_GetLeftHandComponent")]
         private static extern IntPtr ovrAvatarPose_GetLeftHandComponent_Native(IntPtr avatar);
 
-        public static ovrAvatarHandComponent? ovrAvatarPose_GetRightHandComponent(
-            IntPtr avatar)
+        public static bool ovrAvatarPose_GetRightHandComponent(IntPtr avatar, ref ovrAvatarHandComponent component)
         {
             IntPtr ptr = ovrAvatarPose_GetRightHandComponent_Native(avatar);
-            return ptr == IntPtr.Zero
-                ?  (ovrAvatarHandComponent?)null
-                :  (ovrAvatarHandComponent)Marshal.PtrToStructure(ptr, typeof(ovrAvatarHandComponent));
+            if (ptr == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            int renderComponentOffset = Marshal.SizeOf(typeof(ovrAvatarHandComponent)) - Marshal.SizeOf(typeof(IntPtr));
+            component.renderComponent = Marshal.ReadIntPtr(ptr, renderComponentOffset);
+            return true;
         }
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint =
@@ -1114,6 +1273,15 @@ namespace Oculus.Avatar
         public static extern ovrAvatarTransform ovrAvatarSkinnedMeshRender_GetJointTransform(IntPtr renderPart, UInt32 jointIndex);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_SetActionUnitOnsetSpeed(IntPtr avatar, float onsetSpeed);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_SetActionUnitFalloffSpeed(IntPtr avatar, float falloffSpeed);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_SetVisemeMultiplier(IntPtr avatar, float visemeMultiplier);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern ovrAvatarTransform ovrAvatarSkinnedMeshRenderPBS_GetJointTransform(IntPtr renderPart, UInt32 jointIndex);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
@@ -1145,12 +1313,13 @@ namespace Oculus.Avatar
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatarRenderPart_GetSkinnedMeshRenderPBSV2")]
         private static extern IntPtr ovrAvatarRenderPart_GetSkinnedMeshRenderPBSV2_Native(IntPtr renderPart);
 
-        public static ovrAvatarBlendShapeParams ovrAvatarSkinnedMeshRender_GetBlendShapeParams(IntPtr renderPart)
+        public static void ovrAvatarSkinnedMeshRender_GetBlendShapeParams(IntPtr renderPart, ref ovrAvatarBlendShapeParams blendParams)
         {
             IntPtr ptr = ovrAvatarSkinnedMeshRender_GetBlendShapeParams_Native(renderPart);
-            return (ovrAvatarBlendShapeParams) Marshal.PtrToStructure(
-            ptr, typeof(ovrAvatarBlendShapeParams));
+            blendParams.blendShapeParamCount = (UInt32)Marshal.ReadInt32(ptr);
+            Marshal.Copy(new IntPtr(ptr.ToInt64() + ovrAvatarBlendShapeParams_Offsets.blendShapeParams), blendParams.blendShapeParams, 0, (int)blendParams.blendShapeParamCount);
         }
+
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatarSkinnedMeshRender_GetBlendShapeParams")]
         private static extern IntPtr ovrAvatarSkinnedMeshRender_GetBlendShapeParams_Native(IntPtr renderPart);
 
@@ -1251,11 +1420,12 @@ namespace Oculus.Avatar
 
         public static void ovrAvatar_SetVisemes(IntPtr avatar, ovrAvatarVisemes visemes)
         {
-            IntPtr statePtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarVisemes)));
-            Marshal.StructureToPtr(visemes, statePtr, false);
-            ovrAvatar_SetVisemes_Native(avatar, statePtr);
-            Marshal.FreeHGlobal(statePtr);
+            Marshal.WriteInt32(nativeVisemeData, (Int32)visemes.visemeParamCount);
+            Marshal.Copy(visemes.visemeParams, 0, new IntPtr(nativeVisemeData.ToInt64() + ovrAvatarVisemes_Offsets.visemeParams), (int)visemes.visemeParamCount);
+
+            ovrAvatar_SetVisemes_Native(avatar, nativeVisemeData);
         }
+
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_SetVisemes")]
         private static extern void ovrAvatar_SetVisemes_Native(IntPtr avatar, IntPtr visemes);
 
@@ -1265,32 +1435,170 @@ namespace Oculus.Avatar
 
         public static void ovrAvatar_UpdateGazeTargets(ovrAvatarGazeTargets targets)
         {
-            IntPtr targetsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarGazeTargets)));
-            Marshal.StructureToPtr(targets, targetsPtr, false);
-            ovrAvatar_UpdateGazeTargets_Native(targetsPtr);
-            Marshal.FreeHGlobal(targetsPtr);
+            Marshal.WriteInt32(nativeGazeTargetsData, (Int32)targets.targetCount);
+
+            var targetOffset = ovrAvatarGazeTargets_Offsets.targets;
+            for (uint index = 0; index < targets.targetCount; index++)
+            {
+                var baseOffset = targetOffset + index * Marshal.SizeOf(typeof(ovrAvatarGazeTarget));
+
+                Marshal.WriteInt32(new IntPtr(nativeGazeTargetsData.ToInt64() + baseOffset + ovrAvatarGazeTarget_Offsets.id), (int)targets.targets[index].id);
+
+                scratchBufferFloat[0] = targets.targets[index].worldPosition.x;
+                scratchBufferFloat[1] = targets.targets[index].worldPosition.y;
+                scratchBufferFloat[2] = targets.targets[index].worldPosition.z;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeGazeTargetsData.ToInt64() + baseOffset + ovrAvatarGazeTarget_Offsets.worldPosition), 3);
+
+                Marshal.WriteInt32(new IntPtr(nativeGazeTargetsData.ToInt64() + baseOffset + ovrAvatarGazeTarget_Offsets.type), (int)targets.targets[index].type);
+            }
+
+            ovrAvatar_UpdateGazeTargets_Native(nativeGazeTargetsData);
         }
+
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_UpdateGazeTargets")]
         private static extern void ovrAvatar_UpdateGazeTargets_Native(IntPtr targets);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_RemoveGazeTargets(UInt32 targetCount, UInt32[] ids);
 
-
         public static void ovrAvatar_UpdateLights(ovrAvatarLights lights)
         {
-            IntPtr lightsPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(ovrAvatarLights)));
-            Marshal.StructureToPtr(lights, lightsPtr, false);
-            ovrAvatar_UpdateLights_Native(lightsPtr);
-            Marshal.FreeHGlobal(lightsPtr);
+            scratchBufferFloat[0] = lights.ambientIntensity;
+            Marshal.Copy(scratchBufferFloat, 0, nativeAvatarLightsData, 1);
+
+            Marshal.WriteInt32(new IntPtr(nativeAvatarLightsData.ToInt64() + Marshal.OffsetOf(typeof(ovrAvatarLights), "lightCount").ToInt64()), (int)lights.lightCount);
+
+            var lightsOffset = Marshal.OffsetOf(typeof(ovrAvatarLights), "lights").ToInt64();
+            for (uint index = 0; index < lights.lightCount; index++)
+            {
+                var baseOffset = lightsOffset + index * Marshal.SizeOf(typeof(ovrAvatarLight));
+
+                Marshal.WriteInt32(new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "id").ToInt64()), (int)lights.lights[index].id);
+                Marshal.WriteInt32(new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "type").ToInt64()), (int)lights.lights[index].type);
+
+                scratchBufferFloat[0] = lights.lights[index].intensity;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "intensity").ToInt64()), 1);
+
+                scratchBufferFloat[0] = lights.lights[index].worldDirection.x;
+                scratchBufferFloat[1] = lights.lights[index].worldDirection.y;
+                scratchBufferFloat[2] = lights.lights[index].worldDirection.z;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "worldDirection").ToInt64()), 3);
+
+                scratchBufferFloat[0] = lights.lights[index].worldPosition.x;
+                scratchBufferFloat[1] = lights.lights[index].worldPosition.y;
+                scratchBufferFloat[2] = lights.lights[index].worldPosition.z;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "worldPosition").ToInt64()), 3);
+
+                scratchBufferFloat[0] = lights.lights[index].range;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "range").ToInt64()), 1);
+
+                scratchBufferFloat[0] = lights.lights[index].spotAngleDeg;
+                Marshal.Copy(scratchBufferFloat, 0, new IntPtr(nativeAvatarLightsData.ToInt64() + baseOffset + Marshal.OffsetOf(typeof(ovrAvatarLight), "spotAngleDeg").ToInt64()), 1);
+            }
+
+            ovrAvatar_UpdateLights_Native(nativeAvatarLightsData);
         }
+
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_UpdateLights")]
         private static extern void ovrAvatar_UpdateLights_Native(IntPtr lights);
 
         [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
         public static extern void ovrAvatar_RemoveLights(UInt32 lightCount, UInt32[] ids);
 
+        private static string SDKRuntimePrefix = "[RUNTIME] - ";
+        public delegate void LoggingDelegate(IntPtr str);
 
+        [MonoPInvokeCallback(typeof(LoggingDelegate))]
+        public static void LoggingCallback(IntPtr str)
+        {
+            string csharpStr = Marshal.PtrToStringAnsi(str);
+            AvatarLogger.Log(SDKRuntimePrefix + csharpStr);
+        }
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_RegisterLoggingCallback(LoggingDelegate callback);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_SetLoggingLevel(ovrAvatarLogLevel level);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_GetDebugTransforms")]
+        public static extern IntPtr ovrAvatar_GetDebugTransforms_Native(IntPtr count);
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ovrAvatar_GetDebugLines")]
+        public static extern IntPtr ovrAvatar_GetDebugLines_Native(IntPtr count);
+
+        public static void ovrAvatar_DrawDebugLines()
+        {
+            IntPtr debugLinePtr = ovrAvatar_GetDebugLines_Native(DebugLineCountData);
+            int lineCount = Marshal.ReadInt32(DebugLineCountData);
+
+            ovrAvatarDebugLine tempLine = new ovrAvatarDebugLine();
+            for (int i = 0; i < lineCount; i++)
+            {
+                var offset = i * Marshal.SizeOf(typeof(ovrAvatarDebugLine));
+                Marshal.Copy(new IntPtr(debugLinePtr.ToInt64() + offset), scratchBufferFloat, 0, 9);
+                tempLine.startPoint.x = scratchBufferFloat[0];
+                tempLine.startPoint.y = scratchBufferFloat[1];
+                tempLine.startPoint.z = -scratchBufferFloat[2];
+
+                tempLine.endPoint.x = scratchBufferFloat[3];
+                tempLine.endPoint.y = scratchBufferFloat[4];
+                tempLine.endPoint.z = -scratchBufferFloat[5];
+
+                tempLine.color.x = scratchBufferFloat[6];
+                tempLine.color.y = scratchBufferFloat[7];
+                tempLine.color.z = scratchBufferFloat[8];
+
+                tempLine.context = (ovrAvatarDebugContext)Marshal.ReadInt32(new IntPtr(debugLinePtr.ToInt64() + offset + Marshal.OffsetOf(typeof(ovrAvatarDebugLine), "context").ToInt64()));
+                tempLine.text = Marshal.ReadIntPtr(new IntPtr(debugLinePtr.ToInt64() + offset + Marshal.OffsetOf(typeof(ovrAvatarDebugLine), "text").ToInt64()));
+
+                Debug.DrawLine(tempLine.startPoint, tempLine.endPoint, new Color(tempLine.color.x, tempLine.color.y, tempLine.color.z));
+
+                // TODO: Decide what to do with the text. Can only debug render in OnGUI()
+                //if (tempLine.text != IntPtr.Zero)
+                //{
+                //    string text = Marshal.PtrToStringAnsi(tempLine.text);
+                //    AvatarLogger.Log(text);
+                //}
+            }
+
+            debugLinePtr = ovrAvatar_GetDebugTransforms_Native(DebugLineCountData);
+            lineCount = Marshal.ReadInt32(DebugLineCountData);
+
+            ovrAvatarDebugTransform tempTrans = new ovrAvatarDebugTransform();
+            for (int i = 0; i < lineCount; i++)
+            {
+                var offset = i * Marshal.SizeOf(typeof(ovrAvatarDebugTransform));
+                Marshal.Copy(new IntPtr(debugLinePtr.ToInt64() + offset), scratchBufferFloat, 0, 10);
+
+                OvrAvatar.ConvertTransform(scratchBufferFloat, ref tempTrans.transform);
+                OvrAvatar.ConvertTransform(tempTrans.transform, debugLineGo.transform);
+
+                tempTrans.context = (ovrAvatarDebugContext)Marshal.ReadInt32(new IntPtr(debugLinePtr.ToInt64() + offset + Marshal.OffsetOf(typeof(ovrAvatarDebugTransform), "context").ToInt64()));
+                tempTrans.text = Marshal.ReadIntPtr(new IntPtr(debugLinePtr.ToInt64() + offset + Marshal.OffsetOf(typeof(ovrAvatarDebugTransform), "text").ToInt64()));
+
+                const float SCALE_FACTOR = 0.1f;
+                Vector3 transUp = SCALE_FACTOR * debugLineGo.transform.TransformVector(Vector3.up);
+                Vector3 transRight = SCALE_FACTOR * debugLineGo.transform.TransformVector(Vector3.right);
+                Vector3 transFwd = SCALE_FACTOR * debugLineGo.transform.TransformVector(Vector3.forward);
+
+                Debug.DrawLine(debugLineGo.transform.position, debugLineGo.transform.position + transUp, Color.green);
+                Debug.DrawLine(debugLineGo.transform.position, debugLineGo.transform.position + transRight, Color.red);
+                Debug.DrawLine(debugLineGo.transform.position, debugLineGo.transform.position + transFwd, Color.blue);
+
+                // TODO: Decide what to do with the text. Can only debug render in OnGUI()
+                //if (tempTrans.text != IntPtr.Zero)
+                //{
+                //    string text = Marshal.PtrToStringAnsi(tempTrans.text);
+                //    AvatarLogger.Log(text);
+                //}
+            }
+        }
+
+        [DllImport(LibFile, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void ovrAvatar_SetDebugDrawContext(UInt32 context);
+
+        //OvrPlugin Hooks
         private const string ovrPluginDLL = "OVRPlugin";
         private static System.Version ovrPluginVersion;
 

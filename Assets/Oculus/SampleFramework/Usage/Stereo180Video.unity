@@ -239,6 +239,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   MovieName: oculus_3d180_sample_3840_ambix.mp4
+  DrmLicenseUrl: 
+  LoopVideo: 1
+  Shape: 1
+  Stereo: 2
 --- !u!23 &595028499
 MeshRenderer:
   m_ObjectHideFlags: 0

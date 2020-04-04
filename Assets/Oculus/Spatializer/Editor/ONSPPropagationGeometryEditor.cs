@@ -19,16 +19,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ************************************************************************************/
+//#define ENABLE_DEBUG_EXPORT_OBJ
+
 using UnityEngine;
 using UnityEditor;
 
 [CustomEditor(typeof(ONSPPropagationGeometry))] 
 public class ONSPPropagationGeometryEditor : Editor
 {
-	void OnEnable()
-    { 
-	}
-
 	public override void OnInspectorGUI()
 	{
         ONSPPropagationGeometry mesh = (ONSPPropagationGeometry)target;
@@ -56,8 +54,19 @@ public class ONSPPropagationGeometryEditor : Editor
             {
                 System.IO.Directory.CreateDirectory(Application.streamingAssetsPath);
             }
+
+            string directory = Application.streamingAssetsPath;
+            string fileName = mesh.gameObject.name + "." + ONSPPropagationGeometry.GEOMETRY_FILE_EXTENSION;
+
+            if (newFilePath != "")
+            {
+                directory = System.IO.Path.GetDirectoryName(newFilePath);
+                fileName = System.IO.Path.GetFileName(newFilePath);
+            }
+
 			newFilePath = EditorUtility.SaveFilePanel(
-			"Save baked mesh to file", Application.streamingAssetsPath, mesh.gameObject.name + ".ovramesh", "ovramesh");
+                "Save baked mesh to file", directory, fileName,
+                ONSPPropagationGeometry.GEOMETRY_FILE_EXTENSION);
 			
 			// If the user canceled, use the old path.
 			if ( newFilePath == null || newFilePath.Length == 0 )
@@ -65,10 +74,19 @@ public class ONSPPropagationGeometryEditor : Editor
 			else
 				editedPath = true;
 		}
+
 		if ( GUILayout.Button("Bake Mesh to File") )
-				writeMesh = true;
+			writeMesh = true;
 		
 		EditorGUILayout.EndHorizontal();
+
+#if ENABLE_DEBUG_EXPORT_OBJ
+        // this allows you to export the geometry to a .obj for viewing
+        // in an external model viewer for debugging/validation
+        if ( GUILayout.Button("Write to .obj (debug)") )
+            mesh.WriteToObj();
+#endif
+
 		EditorGUI.EndDisabledGroup();
 		
         #endif

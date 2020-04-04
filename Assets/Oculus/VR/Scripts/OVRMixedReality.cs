@@ -14,13 +14,17 @@ ANY KIND, either express or implied. See the License for the specific language g
 permissions and limitations under the License.
 ************************************************************************************/
 
+#if UNITY_ANDROID && !UNITY_EDITOR
+#define OVR_ANDROID_MRC
+#endif
+
 using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN || UNITY_ANDROID
 
 /// <summary>
 /// Manages mix-reality elements
@@ -28,16 +32,12 @@ using UnityEngine;
 internal static class OVRMixedReality
 {
 	/// <summary>
-	/// Configurable parameters
-	/// </summary>
-	public static Color chromaKeyColor = Color.green;
-
-	/// <summary>
 	/// For Debugging purpose, we can use preset parameters to fake a camera when external camera is not available
 	/// </summary>
 	public static bool useFakeExternalCamera = false;
-	public static Vector3 fakeCameraPositon = new Vector3(3.0f, 0.0f, 3.0f);
-	public static Quaternion fakeCameraRotation = Quaternion.LookRotation((new Vector3(0.0f, 1.0f, 0.0f) - fakeCameraPositon).normalized, Vector3.up);
+	public static Vector3 fakeCameraFloorLevelPosition = new Vector3(0.0f, 2.0f, -0.5f);
+	public static Vector3 fakeCameraEyeLevelPosition = fakeCameraFloorLevelPosition - new Vector3(0.0f, 1.8f, 0.0f);
+	public static Quaternion fakeCameraRotation = Quaternion.LookRotation((new Vector3(0.0f, fakeCameraFloorLevelPosition.y, 0.0f) - fakeCameraFloorLevelPosition).normalized, Vector3.up);
 	public static float fakeCameraFov = 60.0f;
 	public static float fakeCameraAspect = 16.0f / 9.0f;
 
@@ -59,16 +59,32 @@ internal static class OVRMixedReality
 		}
 
 		if (!OVRPlugin.IsMixedRealityInitialized())
+		{
 			OVRPlugin.InitializeMixedReality();
+			if (OVRPlugin.IsMixedRealityInitialized())
+			{
+				Debug.Log("OVRPlugin_MixedReality initialized");
+			}
+			else
+			{
+				Debug.LogError("Unable to initialize OVRPlugin_MixedReality");
+				return;
+			}
+		}
 
 		if (!OVRPlugin.IsMixedRealityInitialized())
 		{
-			Debug.LogError("Unable to initialize MixedReality");
 			return;
 		}
 
 		OVRPlugin.UpdateExternalCamera();
+#if !OVR_ANDROID_MRC
 		OVRPlugin.UpdateCameraDevices();
+#endif
+
+#if OVR_ANDROID_MRC
+		useFakeExternalCamera = OVRPlugin.Media.UseMrcDebugCamera();
+#endif
 
 		if (currentComposition != null && currentComposition.CompositionMethod() != compositionMethod)
 		{
@@ -83,6 +99,7 @@ internal static class OVRMixedReality
 				currentComposition = new OVRExternalComposition(parentObject, mainCamera);
 			}
 		}
+#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
 		else if (compositionMethod == OVRManager.CompositionMethod.Direct)
 		{
 			if (currentComposition == null)
@@ -90,19 +107,13 @@ internal static class OVRMixedReality
 				currentComposition = new OVRDirectComposition(parentObject, mainCamera, cameraDevice, useDynamicLighting, depthQuality);
 			}
 		}
-		else if (compositionMethod == OVRManager.CompositionMethod.Sandwich)
-		{
-			if (currentComposition == null)
-			{
-				currentComposition = new OVRSandwichComposition(parentObject, mainCamera, cameraDevice, useDynamicLighting, depthQuality);
-			}
-		}
+#endif
 		else
 		{
 			Debug.LogError("Unknown CompositionMethod : " + compositionMethod);
 			return;
 		}
-		currentComposition.Update(mainCamera);
+		currentComposition.Update(parentObject, mainCamera);
 	}
 
 	public static void Cleanup()
@@ -125,6 +136,7 @@ internal static class OVRMixedReality
 			currentComposition.RecenterPose();
 		}
 	}
+
 }
 
 #endif

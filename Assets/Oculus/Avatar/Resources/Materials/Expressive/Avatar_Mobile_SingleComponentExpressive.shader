@@ -51,6 +51,7 @@ Shader "OvrAvatar/Avatar_Mobile_SingleComponentExpressive"
 
     SubShader
     {
+        Tags { "LightMode" = "ForwardBase" "IgnoreProjector" = "True"}
         Pass
         {
             Blend [_SrcBlend] [_DstBlend]

@@ -51,6 +51,7 @@ Shader "OvrAvatar/Avatar_Mobile_CombinedMeshExpressive"
 
     SubShader
     {
+        Tags { "LightMode" = "ForwardBase" "IgnoreProjector" = "True"}
         Pass
         {
             Blend [_SrcBlend] [_DstBlend]
@@ -234,8 +235,8 @@ Shader "OvrAvatar/Avatar_Mobile_CombinedMeshExpressive"
                 // Add in diffuseIntensity and main lighting to base color
                 baseColor.rgb += diffuseIntensity * NdotL * _LightColor0;
 
-                // Add in color mask to base color
-                baseColor.rgb += colorMask;               
+                // Add in color mask to base color if this is the head component (index == 0)
+                baseColor.rgb += clamp(ONE - componentIndex, 0, ONE) * colorMask;
 
                 // Multiply texture with base color with special case for lips
                 albedoColor.rgb = lerp(albedoColor.rgb * baseColor.rgb, _MaskColorLips.rgb, lipsScalar * _MaskColorLips.a);

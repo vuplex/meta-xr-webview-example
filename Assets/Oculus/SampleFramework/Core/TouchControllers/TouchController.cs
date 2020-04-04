@@ -11,13 +11,11 @@ namespace OVRTouchSample
     public class TouchController : MonoBehaviour
     {
         [SerializeField]
-        private OVRInput.Controller m_controller;
+        private OVRInput.Controller m_controller = OVRInput.Controller.None;
         [SerializeField]
         private Animator m_animator = null;
 
         private bool m_restoreOnInputAcquired = false;
-        private bool m_prevControllerConnected = false;
-        private bool m_prevControllerConnectedCached = false;
 
         private void Update()
         {
@@ -30,16 +28,6 @@ namespace OVRTouchSample
 
             OVRManager.InputFocusAcquired += OnInputFocusAcquired;
             OVRManager.InputFocusLost += OnInputFocusLost;
-
-            // Hide / show the controller model based on whether it's connected.
-            bool controllerConnected = OVRInput.IsControllerConnected(m_controller);
-
-            if ((controllerConnected != m_prevControllerConnected) || !m_prevControllerConnectedCached)
-            {
-                transform.GetChild(0).gameObject.SetActive(controllerConnected);
-                m_prevControllerConnected = controllerConnected;
-                m_prevControllerConnectedCached = true;
-            }
         }
 
         private void OnInputFocusLost()
