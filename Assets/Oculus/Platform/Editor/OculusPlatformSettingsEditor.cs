@@ -1,3 +1,7 @@
+#if USING_XR_MANAGEMENT && USING_XR_SDK_OCULUS
+#define USING_XR_SDK
+#endif
+
 namespace Oculus.Platform
 {
   using System;
@@ -98,7 +102,12 @@ namespace Oculus.Platform
 
           var useStandaloneLabel = "Use Standalone Platform [?]";
           var useStandaloneHint = "If this is checked your app will use a debug platform with the User info below.  "
-            + "Otherwise your app will connect to the Oculus Platform.  This setting only applies to the Unity Editor";
+            + "Otherwise your app will connect to the Oculus Platform.  This setting only applies to the Unity Editor on Windows";
+
+#if !UNITY_STANDALONE_WIN
+          PlatformSettings.UseStandalonePlatform = false;
+          GUI.enabled = false;
+#endif
           PlatformSettings.UseStandalonePlatform =
             MakeToggle(new GUIContent(useStandaloneLabel, useStandaloneHint), PlatformSettings.UseStandalonePlatform);
 
@@ -161,16 +170,19 @@ namespace Oculus.Platform
       if (isBuildSettingsExpanded)
       {
         GUIHelper.HInset(6, () => {
+#if !USING_XR_SDK
+#if UNITY_2020_1_OR_NEWER
+          EditorGUILayout.HelpBox("The Oculus XR Plugin isn't enabled from XR Plugin Management in Project Settings", MessageType.Warning);
+#else
           if (!PlayerSettings.virtualRealitySupported)
           {
             EditorGUILayout.HelpBox("VR Support isn't enabled in the Player Settings", MessageType.Warning);
           }
-          else
-          {
-            EditorGUILayout.HelpBox("VR Support is enabled", MessageType.Info);
-          }
 
           PlayerSettings.virtualRealitySupported = MakeToggle(new GUIContent("Virtual Reality Support"), PlayerSettings.virtualRealitySupported);
+#endif
+#endif
+
           PlayerSettings.bundleVersion = MakeTextBox(new GUIContent("Bundle Version"), PlayerSettings.bundleVersion);
 #if UNITY_5_3 || UNITY_5_4 || UNITY_5_5
           PlayerSettings.bundleIdentifier = MakeTextBox(new GUIContent("Bundle Identifier"), PlayerSettings.bundleIdentifier);
@@ -276,8 +288,8 @@ namespace Oculus.Platform
 
     public enum PluginPlatform
     {
-        Android32,
-        Android64
+      Android32,
+      Android64
     }
 
     private static string GetCurrentProjectPath()
@@ -318,8 +330,8 @@ namespace Oculus.Platform
     //[UnityEditor.MenuItem("Oculus/Platform/EnforcePluginPlatformSettings")]
     public static void EnforcePluginPlatformSettings()
     {
-        EnforcePluginPlatformSettings(PluginPlatform.Android32);
-        EnforcePluginPlatformSettings(PluginPlatform.Android64);
+      EnforcePluginPlatformSettings(PluginPlatform.Android32);
+      EnforcePluginPlatformSettings(PluginPlatform.Android64);
     }
 
     public static void EnforcePluginPlatformSettings(PluginPlatform platform)

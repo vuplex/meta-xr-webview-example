@@ -1,8 +1,33 @@
+/************************************************************************************
+
+Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.  
+
+************************************************************************************/
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class NativeVideoPlayer {
+public static class NativeVideoPlayer
+{
+
+    public enum PlabackState
+    {
+        Idle = 1,
+        Preparing = 2,
+        Buffering = 3,
+        Ready = 4,
+        Ended = 5
+    }
+
+    public enum StereoMode
+    {
+        Unknown = -1,
+        Mono = 0,
+        TopBottom = 1,
+        LeftRight = 2,
+        Mesh = 3
+    }
 
     private static System.IntPtr? _Activity;
     private static System.IntPtr? _VideoPlayerClass;
@@ -10,6 +35,14 @@ public static class NativeVideoPlayer {
     private static readonly jvalue[] EmptyParams = new jvalue[0];
 
     private static System.IntPtr getIsPlayingMethodId;
+    private static System.IntPtr getCurrentPlaybackStateMethodId;
+    private static System.IntPtr getDurationMethodId;
+    private static System.IntPtr getStereoModeMethodId;
+    private static System.IntPtr getWidthMethodId;
+    private static System.IntPtr getHeightMethodId;
+    private static System.IntPtr getPlaybackPositionMethodId;
+    private static System.IntPtr setPlaybackPositionMethodId;
+    private static jvalue[] setPlaybackPositionParams;
     private static System.IntPtr playVideoMethodId;
     private static jvalue[] playVideoParams;
     private static System.IntPtr stopMethodId;
@@ -28,7 +61,7 @@ public static class NativeVideoPlayer {
         {
             if (!_VideoPlayerClass.HasValue)
             {
-                try 
+                try
                 {
                     System.IntPtr myVideoPlayerClass = AndroidJNI.FindClass("com/oculus/videoplayer/NativeVideoPlayer");
 
@@ -44,7 +77,7 @@ public static class NativeVideoPlayer {
                         _VideoPlayerClass = System.IntPtr.Zero;
                     }
                 }
-                catch(System.Exception ex)
+                catch (System.Exception ex)
                 {
                     Debug.LogError("Failed to find NativeVideoPlayer class");
                     Debug.LogException(ex);
@@ -72,7 +105,7 @@ public static class NativeVideoPlayer {
                     AndroidJNI.DeleteLocalRef(activity);
                     AndroidJNI.DeleteLocalRef(unityPlayerClass);
                 }
-                catch(System.Exception ex)
+                catch (System.Exception ex)
                 {
                     Debug.LogException(ex);
                     _Activity = System.IntPtr.Zero;
@@ -104,6 +137,94 @@ public static class NativeVideoPlayer {
             }
 
             return AndroidJNI.CallStaticBooleanMethod(VideoPlayerClass, getIsPlayingMethodId, EmptyParams);
+        }
+    }
+
+    public static PlabackState CurrentPlaybackState {
+        get {
+            if (getCurrentPlaybackStateMethodId == System.IntPtr.Zero)
+            {
+                getCurrentPlaybackStateMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getCurrentPlaybackState", "()I");
+            }
+
+            return (PlabackState)AndroidJNI.CallStaticIntMethod(VideoPlayerClass, getCurrentPlaybackStateMethodId, EmptyParams);
+        }
+    }
+
+    public static long Duration
+    {
+        get
+        {
+            if (getDurationMethodId == System.IntPtr.Zero)
+            {
+                getDurationMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getDuration", "()J");
+            }
+
+            return AndroidJNI.CallStaticLongMethod(VideoPlayerClass, getDurationMethodId, EmptyParams);
+        }
+    }
+
+    public static StereoMode VideoStereoMode
+    {
+        get
+        {
+            if (getStereoModeMethodId == System.IntPtr.Zero)
+            {
+                getStereoModeMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getStereoMode", "()I");
+            }
+
+            return (StereoMode)AndroidJNI.CallStaticIntMethod(VideoPlayerClass, getStereoModeMethodId, EmptyParams);
+        }
+    }
+
+    public static int VideoWidth
+    {
+        get
+        {
+            if (getWidthMethodId == System.IntPtr.Zero)
+            {
+                getWidthMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getWidth", "()I");
+            }
+
+            return AndroidJNI.CallStaticIntMethod(VideoPlayerClass, getWidthMethodId, EmptyParams);
+        }
+    }
+
+    public static int VideoHeight
+    {
+        get
+        {
+            if (getHeightMethodId == System.IntPtr.Zero)
+            {
+                getHeightMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getHeight", "()I");
+            }
+
+            return AndroidJNI.CallStaticIntMethod(VideoPlayerClass, getHeightMethodId, EmptyParams);
+        }
+    }
+
+    public static long PlaybackPosition
+    {
+        get
+        {
+            if (getPlaybackPositionMethodId == System.IntPtr.Zero)
+            {
+                getPlaybackPositionMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "getPlaybackPosition", "()J");
+            }
+
+            return AndroidJNI.CallStaticLongMethod(VideoPlayerClass, getPlaybackPositionMethodId, EmptyParams);
+        }
+        set
+        {
+            if (setPlaybackPositionMethodId == System.IntPtr.Zero)
+            {
+                setPlaybackPositionMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "setPlaybackPosition", "(J)V");
+                setPlaybackPositionParams = new jvalue[1];
+            }
+
+            setPlaybackPositionParams[0].j = value;
+
+            AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, setPlaybackPositionMethodId, setPlaybackPositionParams);
         }
     }
 
@@ -145,7 +266,7 @@ public static class NativeVideoPlayer {
             resumeMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "resume", "()V");
         }
 
-        AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, resumeMethodId, EmptyParams);        
+        AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, resumeMethodId, EmptyParams);
     }
 
     public static void Pause()
@@ -155,7 +276,7 @@ public static class NativeVideoPlayer {
             pauseMethodId = AndroidJNI.GetStaticMethodID(VideoPlayerClass, "pause", "()V");
         }
 
-        AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, pauseMethodId, EmptyParams);        
+        AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, pauseMethodId, EmptyParams);
     }
 
     public static void SetPlaybackSpeed(float speed)
@@ -181,7 +302,7 @@ public static class NativeVideoPlayer {
         AndroidJNI.CallStaticVoidMethod(VideoPlayerClass, setLoopingMethodId, setLoopingParams);
     }
 
-    public static void SetListenerRotation(Quaternion rotation)
+  public static void SetListenerRotation(Quaternion rotation)
     {
         if (setListenerRotationQuaternionMethodId == System.IntPtr.Zero)
         {

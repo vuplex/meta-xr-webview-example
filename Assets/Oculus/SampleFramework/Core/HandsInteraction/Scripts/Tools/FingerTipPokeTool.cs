@@ -49,6 +49,7 @@ namespace OculusSampleFramework
 				return false;
 			}
 		}
+
 		public override bool EnableState
 		{
 			get
@@ -98,7 +99,7 @@ namespace OculusSampleFramework
 			switch (_fingerToFollow)
 			{
 				case OVRPlugin.HandFinger.Thumb:
-					boneToTestCollisions = OVRSkeleton.BoneId.Hand_Index3;
+					boneToTestCollisions = OVRSkeleton.BoneId.Hand_Thumb3;
 					break;
 				case OVRPlugin.HandFinger.Index:
 					boneToTestCollisions = OVRSkeleton.BoneId.Hand_Index3;
@@ -145,16 +146,17 @@ namespace OculusSampleFramework
 			float currentScale = hand.HandScale;
 			// push tool into the tip based on how wide it is. so negate the direction
 			Transform capsuleTransform = _capsuleToTrack.CapsuleCollider.transform;
+			// NOTE: use time settings 0.0111111/0.02 to make collisions work correctly!
 			Vector3 capsuleDirection = capsuleTransform.right;
-			Vector3 trackedPosition = capsuleTransform.position + _capsuleToTrack.CapsuleCollider.height * 0.5f
+			Vector3 capsuleTipPosition = capsuleTransform.position + _capsuleToTrack.CapsuleCollider.height * 0.5f
 			  * capsuleDirection;
-			Vector3 sphereRadiusOffset = currentScale * _fingerTipPokeToolView.SphereRadius *
+			Vector3 toolSphereRadiusOffsetFromTip = currentScale * _fingerTipPokeToolView.SphereRadius *
 			  capsuleDirection;
 			// push tool back so that it's centered on transform/bone
-			Vector3 toolPosition = trackedPosition + sphereRadiusOffset;
+			Vector3 toolPosition = capsuleTipPosition + toolSphereRadiusOffsetFromTip;
 			transform.position = toolPosition;
 			transform.rotation = capsuleTransform.rotation;
-			InteractionPosition = trackedPosition;
+			InteractionPosition = capsuleTipPosition;
 
 			UpdateAverageVelocity();
 
