@@ -251,6 +251,50 @@ public static class OVRExtensions
 		}
 		return null;
 	}
+
+	public static bool Equals(this Gradient gradient, Gradient otherGradient)
+	{
+		if (gradient.colorKeys.Length != otherGradient.colorKeys.Length || gradient.alphaKeys.Length != otherGradient.alphaKeys.Length)
+			return false;
+
+		for (int i = 0; i < gradient.colorKeys.Length; i++)
+		{
+			GradientColorKey key = gradient.colorKeys[i];
+			GradientColorKey otherKey = otherGradient.colorKeys[i];
+			if (key.color != otherKey.color || key.time != otherKey.time)
+				return false;
+		}
+
+		for (int i = 0; i < gradient.alphaKeys.Length; i++)
+		{
+			GradientAlphaKey key = gradient.alphaKeys[i];
+			GradientAlphaKey otherKey = otherGradient.alphaKeys[i];
+			if (key.alpha != otherKey.alpha || key.time != otherKey.time)
+				return false;
+		}
+
+		return true;
+	}
+
+	public static void CopyFrom(this Gradient gradient, Gradient otherGradient)
+	{
+		GradientColorKey[] colorKeys = new GradientColorKey[otherGradient.colorKeys.Length];
+		for (int i = 0; i < colorKeys.Length; i++)
+		{
+			Color col = otherGradient.colorKeys[i].color;
+			colorKeys[i].color = new Color(col.r, col.g, col.b, col.a);
+			colorKeys[i].time = otherGradient.colorKeys[i].time;
+		}
+		
+		GradientAlphaKey[] alphaKeys = new GradientAlphaKey[otherGradient.alphaKeys.Length];
+		for (int i = 0; i < alphaKeys.Length; i++)
+		{
+			alphaKeys[i].alpha = otherGradient.alphaKeys[i].alpha;
+			alphaKeys[i].time = otherGradient.alphaKeys[i].time;
+		}
+
+		gradient.SetKeys(colorKeys, alphaKeys);
+	}
 }
 
 //4 types of node state properties that can be queried with UnityEngine.XR

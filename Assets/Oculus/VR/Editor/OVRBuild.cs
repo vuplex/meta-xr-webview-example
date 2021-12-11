@@ -44,6 +44,7 @@ using System.Threading;
 /// <summary>
 /// Allows Oculus to build apps from the command line.
 /// </summary>
+[InitializeOnLoadAttribute]
 partial class OculusBuildApp : EditorWindow
 {
     static void SetPCTarget()
@@ -89,6 +90,17 @@ partial class OculusBuildApp : EditorWindow
     const int NUM_BUILD_AND_RUN_STEPS = 9;
     const int BYTES_TO_MEGABYTES = 1048576;
 
+    // Build window variables (not saved)
+    GUIStyle windowStyle;
+    GUIStyle calloutStyle;
+    string currConnectedDevice;
+    Vector2 scrollViewPos;
+
+    // Build window variables (saved)
+    static bool saveKeystorePasswords;
+    static bool isRunOnDevice;
+    static string outputApkPath;
+
     // Progress bar variables
     static int totalBuildSteps;
     static int currentStep;
@@ -99,15 +111,14 @@ partial class OculusBuildApp : EditorWindow
     static string jdkPath;
     static string androidSdkPath;
     static string applicationIdentifier;
+    static bool isDevelopmentBuild;
     static string productName;
     static string dataPath;
 
     static string gradleTempExport;
     static string gradleExport;
     static bool showCancel;
-    static bool buildFailed;
-
-    static double totalBuildTime;
+    static bool buildInProgress;
 
     static DirectorySyncer.CancellationTokenSource syncCancelToken;
     static Process gradleBuildProcess;
@@ -115,36 +126,192 @@ partial class OculusBuildApp : EditorWindow
 
     static bool? apkOutputSuccessful;
 
+    [MenuItem("Oculus/OVR Build/OVR Build APK... %#k", false, 20)]
+    static void Init()
+    {
+        EditorWindow.GetWindow<OculusBuildApp>(false, "OVR Build APK", true);
+        OnBuildComplete();
+    }
+
+    [MenuItem("Oculus/OVR Build/OVR Build APK And Run %k", false, 21)]
+    static void InitAndRun()
+    {
+        var window = EditorWindow.GetWindow<OculusBuildApp>(false, "OVR Build APK", true);
+        isRunOnDevice = true; // make sure the "And Run" part of the menu name is true
+        window.StartBuild();
+    }
+
+    private void OnEnable()
+    {
+        isRunOnDevice = EditorPrefs.GetBool("OVRBuild_RunOnDevice", false);
+        saveKeystorePasswords = EditorPrefs.GetBool("OVRBuild_SaveKeystorePasswords", false);
+        if (saveKeystorePasswords)
+        {
+            if (EditorPrefs.HasKey("OVRBuild_KeystorePassword"))
+                PlayerSettings.Android.keystorePass = EditorPrefs.GetString("OVRBuild_KeystorePassword");
+            if (EditorPrefs.HasKey("OVRBuild_KeyAliasPassword"))
+                PlayerSettings.Android.keyaliasPass = EditorPrefs.GetString("OVRBuild_KeyAliasPassword");
+        }
+        outputApkPath = EditorPrefs.GetString("OVRBuild_BuiltAPKPath", "");
+
+        CheckADBDevices(out currConnectedDevice);
+    }
+
+    private void OnDisable()
+    {
+        EditorPrefs.SetBool("OVRBuild_RunOnDevice", isRunOnDevice);
+        EditorPrefs.SetBool("OVRBuild_SaveKeystorePasswords", saveKeystorePasswords);
+        if (saveKeystorePasswords)
+        {
+            EditorPrefs.SetString("OVRBuild_KeystorePassword", PlayerSettings.Android.keystorePass);
+            EditorPrefs.SetString("OVRBuild_KeyAliasPassword", PlayerSettings.Android.keyaliasPass);
+        }
+        else
+        {
+            EditorPrefs.DeleteKey("OVRBuild_KeystorePassword");
+            EditorPrefs.DeleteKey("OVRBuild_KeyAliasPassword");
+        }
+        EditorPrefs.SetString("OVRBuild_BuiltAPKPath", outputApkPath);
+    }
+
     private void OnGUI()
     {
+        if (windowStyle == null)
+        {
+            windowStyle = new GUIStyle();
+            windowStyle.margin = new RectOffset(10, 10, 10, 10);
+        }
+
+        if (calloutStyle == null)
+        {
+            calloutStyle = new GUIStyle(EditorStyles.label);
+            calloutStyle.richText = true;
+            calloutStyle.wordWrap = true;
+        }
+
         // Fix progress bar window size
-        minSize = new Vector2(500, 170);
-        maxSize = new Vector2(500, 170);
+        minSize = new Vector2(500, 305);
+
+        float oldLabelWidth = EditorGUIUtility.labelWidth;
+        EditorGUIUtility.labelWidth = 160;
+
+        EditorGUILayout.BeginVertical(windowStyle);
+
+        GUILayout.BeginHorizontal(EditorStyles.helpBox);
+        GUILayout.BeginVertical();
+        EditorGUILayout.LabelField("Builds created in the <b>OVR Build APK</b> window are identical to Unity-built APKs, but use the Gradle cache to only touch changed files, resulting in shorter build times.",
+            calloutStyle);
+
+#if UNITY_2021_1_OR_NEWER
+        if (EditorGUILayout.LinkButton("Documentation"))
+#else
+        if (GUILayout.Button("Documentation", GUILayout.ExpandWidth(false)))
+#endif
+        {
+            Application.OpenURL("https://developer.oculus.com/documentation/unity/unity-build-android-tools/");
+        }
+        GUILayout.EndVertical();
+        GUILayout.EndHorizontal();
+        EditorGUILayout.Space(15f);
+
+        scrollViewPos = EditorGUILayout.BeginScrollView(scrollViewPos, GUIStyle.none, GUI.skin.verticalScrollbar);
+        using (new EditorGUI.DisabledScope(buildInProgress))
+        {
+            EditorGUILayout.BeginHorizontal();
+            outputApkPath = EditorGUILayout.TextField("Built APK Path", outputApkPath);
+            if (GUILayout.Button("Browse...", GUILayout.Width(80)))
+                DisplayAPKPathDialog();
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.BeginHorizontal();
+
+            PlayerSettings.Android.bundleVersionCode = EditorGUILayout.IntField(new GUIContent("Version Number",
+                "Builds uploaded to the Oculus storefront are required to have incrementing version numbers.\nThis value is exposed to players."),
+                PlayerSettings.Android.bundleVersionCode, GUILayout.Width(220));
+
+            EditorGUI.BeginChangeCheck();
+            bool isAutoIncrement = PlayerPrefs.GetInt(OVRGradleGeneration.prefName, 0) != 0;
+            isAutoIncrement = EditorGUILayout.ToggleLeft(new GUIContent("Auto-Increment?",
+                "If true, version number will be automatically incremented after every successful build."),
+                isAutoIncrement, EditorStyles.miniLabel, GUILayout.Width(120));
+            if (EditorGUI.EndChangeCheck())
+                OVRGradleGeneration.ToggleUtilities();
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(15f);
+
+            EditorGUILayout.BeginHorizontal();
+            using (new EditorGUI.DisabledScope(string.IsNullOrEmpty(currConnectedDevice)))
+            {
+                isRunOnDevice = EditorGUILayout.Toggle("Install & Run on Device?", isRunOnDevice);
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.LabelField(string.IsNullOrEmpty(currConnectedDevice) ? "No device connected" : $"Device: {currConnectedDevice}");
+            }
+            if (GUILayout.Button("Refresh", GUILayout.Width(80)))
+                CheckADBDevices(out currConnectedDevice);
+            EditorGUILayout.EndHorizontal();
+
+            EditorUserBuildSettings.development = EditorGUILayout.Toggle(new GUIContent("Development Build?",
+                "Development builds allow you to debug scripts. However, they're slightly slower, and they're not allowed on the Oculus storefront."),
+                EditorUserBuildSettings.development);
+
+            EditorGUILayout.Space(15f);
+
+            EditorGUILayout.BeginHorizontal();
+            saveKeystorePasswords = EditorGUILayout.Toggle(new GUIContent("Save Keystore Passwords?",
+                "These values are also found in Project Settings > Player > [Android] > Publishing Settings > Project Keystore.\nStoring passwords is convenient, but reduces security."),
+                saveKeystorePasswords);
+            if (GUILayout.Button("Select Keystore...", GUILayout.Width(150)))
+                SettingsService.OpenProjectSettings("Project/Player");
+            EditorGUILayout.EndHorizontal();
+
+            if (saveKeystorePasswords)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.LabelField("Keystore Path", PlayerSettings.Android.keystoreName);
+                PlayerSettings.Android.keystorePass = EditorGUILayout.PasswordField("Keystore Password", PlayerSettings.Android.keystorePass);
+
+                EditorGUILayout.LabelField("Key Alias Name", PlayerSettings.Android.keyaliasName);
+                PlayerSettings.Android.keyaliasPass = EditorGUILayout.PasswordField("Alias Password", PlayerSettings.Android.keyaliasPass);
+
+                EditorGUI.indentLevel--;
+            }
+        }
+        EditorGUILayout.EndScrollView();
+        EditorGUILayout.Space(10);
+
+        EditorGUILayout.BeginHorizontal();
+        GUILayout.FlexibleSpace();
+
+        //better to perform these at end of GUI
+        bool shouldCancel = false;
+        bool shouldBuild = false;
+        if (showCancel)
+            shouldCancel = GUILayout.Button("Cancel", GUILayout.Height(30), GUILayout.Width(100));
+        else
+        {
+            using (new EditorGUI.DisabledScope(buildInProgress))
+            {
+                shouldBuild = GUILayout.Button("Build", GUILayout.Height(30), GUILayout.Width(100));
+            }
+        }
+        GUILayout.FlexibleSpace();
+        EditorGUILayout.EndHorizontal();
+        EditorGUILayout.Space(10);
 
         // Show progress bar
-        Rect progressRect = EditorGUILayout.BeginVertical();
-        progressRect.height = 25.0f;
+        Rect progressRect = EditorGUILayout.GetControlRect(GUILayout.Height(25));
         float progress = currentStep / (float)totalBuildSteps;
         EditorGUI.ProgressBar(progressRect, progress, progressMessage);
 
-        // Show cancel button only after Unity export has finished.
-        if (showCancel)
-        {
-            GUIContent btnTxt = new GUIContent("Cancel");
-            var rt = GUILayoutUtility.GetRect(btnTxt, GUI.skin.button, GUILayout.ExpandWidth(false));
-            rt.center = new Vector2(EditorGUIUtility.currentViewWidth / 2, progressRect.height * 2);
-            if (GUI.Button(rt, btnTxt, GUI.skin.button))
-            {
-                CancelBuild();
-            }
-        }
+        EditorGUIUtility.labelWidth = oldLabelWidth;
         EditorGUILayout.EndVertical();
 
-        // Close window if progress has completed or Unity export failed
-        if (progress >= 1.0f || buildFailed)
-        {
-            Close();
-        }
+        if (shouldBuild)
+            StartBuild();
+        else if (shouldCancel)
+            CancelBuild();
     }
 
     void Update()
@@ -155,6 +322,27 @@ partial class OculusBuildApp : EditorWindow
         {
             Repaint();
         }
+    }
+
+    void DisplayAPKPathDialog()
+    {
+        string fileName = "build.apk";
+        string path = "";
+        if (!string.IsNullOrEmpty(outputApkPath))
+        {
+            try
+            {
+                path = Path.GetDirectoryName(outputApkPath);
+                fileName = Path.GetFileName(outputApkPath);
+            }
+            catch (Exception)
+            {
+                //do nothing, we just have a malformed apkPath and should accept defaults
+            }
+        }
+
+        outputApkPath = EditorUtility.SaveFilePanel("APK Path", path, fileName, "apk");
+        Repaint();
     }
 
     void CancelBuild()
@@ -169,7 +357,7 @@ partial class OculusBuildApp : EditorWindow
         if (apkOutputSuccessful.HasValue && apkOutputSuccessful.Value)
         {
             buildThread.Abort();
-            buildFailed = true;
+            OnBuildComplete();
         }
 
         if (gradleBuildProcess != null && !gradleBuildProcess.HasExited)
@@ -218,32 +406,16 @@ partial class OculusBuildApp : EditorWindow
         cancelGradleProcess.BeginOutputReadLine();
         cancelGradleProcess.WaitForExit();
 
-        buildFailed = true;
+        OnBuildComplete();
     }
 
-    [MenuItem("Oculus/OVR Build/OVR Build APK And Run %k", false, 20)]
-    static void StartBuildAndRun()
+    public void StartBuild()
     {
-        EditorWindow.GetWindow(typeof(OculusBuildApp));
-
         showCancel = false;
-        buildFailed = false;
-        totalBuildTime = 0;
+        buildInProgress = true;
 
         InitializeProgressBar(NUM_BUILD_AND_RUN_STEPS);
         IncrementProgressBar("Exporting Unity Project . . .");
-
-        OVRPlugin.SetDeveloperMode(OVRPlugin.Bool.True);
-        OVRPlugin.AddCustomMetadata("build_type", "ovr_build_and_run");
-
-        if (!CheckADBDevices())
-        {
-            buildFailed = true;
-            return;
-        }
-
-        // Record OVR Build and Run start event
-        OVRPlugin.SendEvent("ovr_build_and_run_start", "", "ovrbuild");
 
         apkOutputSuccessful = null;
         syncCancelToken = null;
@@ -258,30 +430,13 @@ partial class OculusBuildApp : EditorWindow
 
         if (buildResult.summary.result == UnityEditor.Build.Reporting.BuildResult.Succeeded)
         {
-            foreach (var step in buildResult.steps)
-            {
-                // Only log top level build steps & specific nested steps to reduce the number of events sent
-                if (step.depth == 1 ||
-                    (step.name.StartsWith("Packaging assets") && step.name.EndsWith(".assets")) ||
-                    step.name.Equals("Managed Stripping: (Mono)") ||
-                    step.name.Equals("Splitting assets") ||
-                    step.name.Equals("IL2CPP") ||
-                    step.name.Equals("Exporting project")
-                    )
-                {
-                    OVRPlugin.SendEvent($"build_step_unity_build_player {step.name}", step.duration.TotalSeconds.ToString(), "ovrbuild");
-                }
-            }
-
-            OVRPlugin.SendEvent("build_step_unity_export", buildResult.summary.totalTime.TotalSeconds.ToString(), "ovrbuild");
-            totalBuildTime += buildResult.summary.totalTime.TotalSeconds;
-
             // Set static variables so build thread has updated data
             showCancel = true;
             gradlePath = OVRConfig.Instance.GetGradlePath();
             jdkPath = OVRConfig.Instance.GetJDKPath();
             androidSdkPath = OVRConfig.Instance.GetAndroidSDKPath();
             applicationIdentifier = PlayerSettings.GetApplicationIdentifier(BuildTargetGroup.Android);
+            isDevelopmentBuild = EditorUserBuildSettings.development;
 #if UNITY_2019_3_OR_NEWER
             productName = "launcher";
 #else
@@ -304,10 +459,10 @@ partial class OculusBuildApp : EditorWindow
         {
             UnityEngine.Debug.Log("Build failed.");
         }
-        buildFailed = true;
+        OnBuildComplete();
     }
 
-    private static UnityEditor.Build.Reporting.BuildReport UnityBuildPlayer()
+    private UnityEditor.Build.Reporting.BuildReport UnityBuildPlayer()
     {
         // Unity introduced a possible bug with Unity 2020.1.10f1 that causes an exception
         // when building with the option 'BuildOptions.AcceptExternalModificationsToPlayer'
@@ -319,16 +474,22 @@ partial class OculusBuildApp : EditorWindow
         try
         {
             var sceneList = GetScenesToBuild();
+
+            var buildOptions = BuildOptions.None;
+            if (isDevelopmentBuild)
+                buildOptions |= (BuildOptions.Development | BuildOptions.AllowDebugging);
+            if (isRunOnDevice)
+                buildOptions |= BuildOptions.AutoRunPlayer;
+#if !DONT_USE_BUILD_OPTIONS_EXTERNAL_MODIFICATIONS_FLAG
+            buildOptions |= BuildOptions.AcceptExternalModificationsToPlayer;
+#endif
+
             var buildPlayerOptions = new BuildPlayerOptions
             {
                 scenes = sceneList.ToArray(),
                 locationPathName = gradleTempExport,
                 target = BuildTarget.Android,
-                options = BuildOptions.Development 
-                    | BuildOptions.AllowDebugging
-#if !DONT_USE_BUILD_OPTIONS_EXTERNAL_MODIFICATIONS_FLAG
-                    | BuildOptions.AcceptExternalModificationsToPlayer
-#endif
+                options = buildOptions
             };
 
             var buildResult = BuildPipeline.BuildPlayer(buildPlayerOptions);
@@ -375,22 +536,26 @@ partial class OculusBuildApp : EditorWindow
             IncrementProgressBar("Starting gradle build . . .");
             if (BuildGradleProject())
             {
-                OVRPlugin.SendEvent("build_complete", totalBuildTime.ToString(), "ovrbuild");
+                CopyAPK();
+
                 // 4. Deploy and run
-                if (DeployAPK())
-                {
-                    return;
-                }
+                if (isRunOnDevice)
+                    DeployAPK();
             }
         }
-        buildFailed = true;
+
+        OnBuildComplete();
     }
 
     private static bool BuildGradleProject()
     {
         gradleBuildProcess = new Process();
-        string arguments = "-Xmx4096m -classpath \"" + gradlePath +
-            "\" org.gradle.launcher.GradleMain assembleDebug -x validateSigningDebug --profile";
+        string arguments = "-Xmx4096m -classpath \"" + gradlePath + "\" org.gradle.launcher.GradleMain --profile ";
+        if (isDevelopmentBuild)
+            arguments += "assembleDebug -x validateSigningDebug";
+        else
+            arguments += "assembleRelease -x verifyReleaseResources";
+
 #if UNITY_2019_3_OR_NEWER
         var gradleProjectPath = gradleExport;
 #else
@@ -433,8 +598,9 @@ partial class OculusBuildApp : EditorWindow
                     UnityEngine.Debug.LogFormat("Gradle: {0}", e.Data);
                     if (e.Data.Contains("SUCCESSFUL"))
                     {
+                        string buildFlavor = isDevelopmentBuild ? "debug" : "release";
                         UnityEngine.Debug.LogFormat("APK Build Completed: {0}",
-                            Path.Combine(Path.Combine(gradleProjectPath, "build\\outputs\\apk\\debug"), productName + "-debug.apk").Replace("/", "\\"));
+                            Path.Combine(gradleExport, $"build\\outputs\\apk\\{buildFlavor}", productName + $"-{buildFlavor}.apk").Replace("/", "\\"));
                         if (!apkOutputSuccessful.HasValue)
                         {
                             apkOutputSuccessful = true;
@@ -480,14 +646,6 @@ partial class OculusBuildApp : EditorWindow
             System.Threading.Thread.Sleep(100);
         }
 
-        // Record time it takes to build gradle project only if we had a successful build
-        double gradleTime = (gradleEndTime - gradleStartTime).TotalSeconds;
-        if (gradleTime > 0)
-        {
-            OVRPlugin.SendEvent("build_step_building_gradle_project", gradleTime.ToString(), "ovrbuild");
-            totalBuildTime += gradleTime;
-        }
-
         return apkOutputSuccessful.HasValue && apkOutputSuccessful.Value;
     }
 
@@ -521,14 +679,6 @@ partial class OculusBuildApp : EditorWindow
             return false;
         }
 
-        // Record time it takes to sync gradle projects only if the sync was successful
-        double syncTime = (syncEndTime - syncStartTime).TotalSeconds;
-        if (syncTime > 0)
-        {
-            OVRPlugin.SendEvent("build_step_sync_gradle_project", syncTime.ToString(), "ovrbuild");
-            totalBuildTime += syncTime;
-        }
-
         return true;
     }
 
@@ -546,6 +696,27 @@ partial class OculusBuildApp : EditorWindow
         return sceneList;
     }
 
+    public static bool CopyAPK()
+    {
+        string buildFlavor = isDevelopmentBuild ? "debug" : "release";
+        string apkPathLocal = Path.Combine(gradleExport, productName, $"build\\outputs\\apk\\{buildFlavor}", productName + $"-{buildFlavor}.apk");
+        if (File.Exists(apkPathLocal))
+        {
+            try
+            {
+                File.Copy(apkPathLocal, outputApkPath, true);
+                UnityEngine.Debug.Log($"OVRBuild: Output APK generated at {outputApkPath}");
+                Process.Start("explorer.exe", Path.GetDirectoryName(outputApkPath));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+
     public static bool DeployAPK()
     {
         // Create new instance of ADB Tool
@@ -554,7 +725,8 @@ partial class OculusBuildApp : EditorWindow
         if (adbTool.isReady)
         {
             string apkPathLocal;
-            string gradleExportFolder = Path.Combine(Path.Combine(gradleExport, productName), "build\\outputs\\apk\\debug");
+            string buildFlavor = isDevelopmentBuild ? "debug" : "release";
+            string gradleExportFolder = Path.Combine(gradleExport, productName, $"build\\outputs\\apk\\{buildFlavor}");
 
             // Check to see if gradle output directory exists
             gradleExportFolder = gradleExportFolder.Replace("/", "\\");
@@ -565,10 +737,10 @@ partial class OculusBuildApp : EditorWindow
             }
 
             // Search for output APK in gradle output directory
-            apkPathLocal = Path.Combine(gradleExportFolder, productName + "-debug.apk");
+            apkPathLocal = Path.Combine(gradleExportFolder, productName + $"-{buildFlavor}.apk");
             if (!System.IO.File.Exists(apkPathLocal))
             {
-                UnityEngine.Debug.LogError(string.Format("Could not find {0} in the gradle project.", productName + "-debug.apk"));
+                UnityEngine.Debug.LogError(string.Format("Could not find {0} in the gradle project.", productName + $"-{buildFlavor}.apk"));
                 return false;
             }
 
@@ -619,14 +791,6 @@ partial class OculusBuildApp : EditorWindow
             if (adbTool.RunCommand(appStartCommand, null, out output, out error) != 0) return false;
             UnityEngine.Debug.Log("OVRADBTool: Application Start Success");
 
-            // Send back metrics on push and install steps
-            if (transferSpeed.HasValue)
-            {
-                OVRPlugin.AddCustomMetadata("transfer_speed", transferSpeed.Value.ToString());
-            }
-            OVRPlugin.SendEvent("build_step_push_apk", pushTime.TotalSeconds.ToString(), "ovrbuild");
-            OVRPlugin.SendEvent("build_step_install_apk", installTime.TotalSeconds.ToString(), "ovrbuild");
-
             IncrementProgressBar("Success!");
 
             // If the user is using a USB 2.0 cable, inform them about improved transfer speeds and estimate time saved
@@ -641,36 +805,47 @@ partial class OculusBuildApp : EditorWindow
         {
             UnityEngine.Debug.LogError("Could not find the ADB executable in the specified Android SDK directory.");
         }
-        return false;
+		return false;
     }
 
-    private static bool CheckADBDevices()
+    private static void OnBuildComplete()
+    {
+        showCancel = false;
+        buildInProgress = false;
+        currentStep = 0;
+        SetProgressBarMessage("Waiting to build . . .", false);
+    }
+
+    private static bool CheckADBDevices(out string connectedDeviceName)
     {
         // Check if there are any ADB devices connected before starting the build process
         var adbTool = new OVRADBTool(OVRConfig.Instance.GetAndroidSDKPath());
+        connectedDeviceName = null;
+
         if (adbTool.isReady)
         {
             List<string> devices = adbTool.GetDevices();
             if (devices.Count == 0)
             {
-                OVRPlugin.SendEvent("no_adb_devices", "", "ovrbuild");
-                UnityEngine.Debug.LogError("No ADB devices connected. Cannot perform OVR Build and Run.");
+                UnityEngine.Debug.LogError("No ADB devices connected. Connect a device to this computer to run APK.");
                 return false;
             }
             else if (devices.Count > 1)
             {
-                OVRPlugin.SendEvent("multiple_adb_devices", "", "ovrbuild");
-                UnityEngine.Debug.LogError("Multiple ADB devices connected. Cannot perform OVR Build and Run.");
+                UnityEngine.Debug.LogError("Multiple ADB devices connected. Disconnect extra devices from this computer to run APK.");
                 return false;
+            }
+            else
+            {
+                connectedDeviceName = devices[0];
+                return true;
             }
         }
         else
         {
-            OVRPlugin.SendEvent("ovr_adbtool_initialize_failure", "", "ovrbuild");
             UnityEngine.Debug.LogError("OVR ADB Tool failed to initialize. Check the Android SDK path in [Edit -> Preferences -> External Tools]");
             return false;
         }
-        return true;
     }
 
     private static void SetupDirectories()
@@ -696,10 +871,11 @@ partial class OculusBuildApp : EditorWindow
         UnityEngine.Debug.Log("OVRBuild: " + message);
     }
 
-    private static void SetProgressBarMessage(string message)
+    private static void SetProgressBarMessage(string message, bool log = true)
     {
         progressMessage = message;
-        UnityEngine.Debug.Log("OVRBuild: " + message);
+        if (log)
+            UnityEngine.Debug.Log("OVRBuild: " + message);
     }
 #endif //UNITY_EDITOR_WIN && UNITY_ANDROID
-            }
+}

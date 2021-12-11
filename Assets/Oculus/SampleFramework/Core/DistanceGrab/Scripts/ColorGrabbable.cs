@@ -1,10 +1,10 @@
 /************************************************************************************
 
-Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.  
+Copyright (c) Facebook Technologies, LLC and its affiliates. All rights reserved.
 
-See SampleFramework license.txt for license terms.  Unless required by applicable law 
-or agreed to in writing, the sample code is provided ìAS ISî WITHOUT WARRANTIES OR 
-CONDITIONS OF ANY KIND, either express or implied.  See the license for specific 
+See SampleFramework license.txt for license terms.  Unless required by applicable law
+or agreed to in writing, the sample code is provided ‚ÄúAS IS‚Äù WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied.  See the license for specific
 language governing permissions and limitations under the license.
 
 ************************************************************************************/
@@ -22,7 +22,7 @@ namespace OculusSampleFramework
         private Color m_color = Color.black;
         private MeshRenderer[] m_meshRenderers = null;
         private bool m_highlight;
-        
+
         public bool Highlight
         {
             get { return m_highlight; }
@@ -63,7 +63,7 @@ namespace OculusSampleFramework
                 {
 				    throw new System.ArgumentException("Grabbables cannot have zero grab points and no collider -- please add a grab point or collider.");
                 }
-    
+
                 // Create a default grab point
                 m_grabPoints = new Collider[1] { collider };
 

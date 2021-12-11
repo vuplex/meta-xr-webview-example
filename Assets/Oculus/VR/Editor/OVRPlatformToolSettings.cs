@@ -359,6 +359,25 @@ namespace Assets.Oculus.VR.Editor
 			set { Instance.runOvrLint = value; }
 		}
 
+		public static bool UploadDebugSymbols
+		{
+			get
+			{
+				if (EditorPrefs.HasKey("OVRPlatformToolSettings_UploadDebugSymbols"))
+				{
+					return EditorPrefs.GetBool("OVRPlatformToolSettings_UploadDebugSymbols");
+				}
+				else
+				{
+					return true;
+				}
+			}
+			set
+			{
+				EditorPrefs.SetBool("OVRPlatformToolSettings_UploadDebugSymbols", value);
+			}
+		}
+
 		public static string DebugSymbolsDirectory
 		{
 			get
@@ -375,6 +394,44 @@ namespace Assets.Oculus.VR.Editor
 			set
 			{
 				EditorPrefs.SetString("OVRPlatformToolSettings_DebugSymbolsDirectory", value);
+			}
+		}
+
+		public static bool UploadDebugSymbolsOnly
+		{
+			get
+			{
+				if (EditorPrefs.HasKey("OVRPlatformToolSettings_UploadDebugSymbolsOnly"))
+				{
+					return EditorPrefs.GetBool("OVRPlatformToolSettings_UploadDebugSymbolsOnly");
+				}
+				else
+				{
+					return false;
+				}
+			}
+			set
+			{
+				EditorPrefs.SetBool("OVRPlatformToolSettings_UploadDebugSymbolsOnly", value);
+			}
+		}
+
+		public static string BuildID
+		{
+			get
+			{
+				if (EditorPrefs.HasKey("OVRPlatformToolSettings_BuildID"))
+				{
+					return EditorPrefs.GetString("OVRPlatformToolSettings_BuildID");
+				}
+				else
+				{
+					return "";
+				}
+			}
+			set
+			{
+				EditorPrefs.SetString("OVRPlatformToolSettings_BuildID", value);
 			}
 		}
 

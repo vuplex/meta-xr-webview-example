@@ -57,6 +57,11 @@ public class OVRControllerHelper : MonoBehaviour
 	/// </summary>
 	private Animator m_animator;
 
+	private GameObject m_activeController;
+
+	private bool m_hasInputFocus = true;
+	private bool m_hasInputFocusPrev = false;
+
 	private enum ControllerType
 	{
 		QuestAndRiftS = 1,
@@ -94,13 +99,16 @@ public class OVRControllerHelper : MonoBehaviour
 		m_modelOculusTouchRiftRightController.SetActive(false);
 		m_modelOculusTouchQuest2LeftController.SetActive(false);
 		m_modelOculusTouchQuest2RightController.SetActive(false);
+
+		OVRManager.InputFocusAcquired += InputFocusAquired;
+		OVRManager.InputFocusLost += InputFocusLost;
 	}
 
 	void Update()
 	{
 		bool controllerConnected = OVRInput.IsControllerConnected(m_controller);
 
-		if ((controllerConnected != m_prevControllerConnected) || !m_prevControllerConnectedCached)
+		if ((controllerConnected != m_prevControllerConnected) || !m_prevControllerConnectedCached || (m_hasInputFocus != m_hasInputFocusPrev))
 		{
 			if (activeControllerType == ControllerType.Rift)
 			{
@@ -113,6 +121,7 @@ public class OVRControllerHelper : MonoBehaviour
 
 				m_animator = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchRiftLeftController.GetComponent<Animator>() :
 					m_modelOculusTouchRiftRightController.GetComponent<Animator>();
+				m_activeController = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchRiftLeftController : m_modelOculusTouchRiftRightController;
 			}
 			else if (activeControllerType == ControllerType.Quest2)
 			{
@@ -125,6 +134,7 @@ public class OVRControllerHelper : MonoBehaviour
 
 				m_animator = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchQuest2LeftController.GetComponent<Animator>() :
 					m_modelOculusTouchQuest2RightController.GetComponent<Animator>();
+				m_activeController = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchQuest2LeftController : m_modelOculusTouchQuest2RightController;
 			}
 			else /*if (activeControllerType == ControllerType.QuestAndRiftS)*/
 			{
@@ -137,10 +147,14 @@ public class OVRControllerHelper : MonoBehaviour
 
 				m_animator = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchQuestAndRiftSLeftController.GetComponent<Animator>() :
 					m_modelOculusTouchQuestAndRiftSRightController.GetComponent<Animator>();
+				m_activeController = m_controller == OVRInput.Controller.LTouch ? m_modelOculusTouchQuestAndRiftSLeftController : m_modelOculusTouchQuestAndRiftSRightController;
 			}
+
+			m_activeController.SetActive(m_hasInputFocus && controllerConnected);
 
 			m_prevControllerConnected = controllerConnected;
 			m_prevControllerConnectedCached = true;
+			m_hasInputFocusPrev = m_hasInputFocus;
 		}
 
 		if (m_animator != null)
@@ -155,5 +169,15 @@ public class OVRControllerHelper : MonoBehaviour
 			m_animator.SetFloat("Trigger", OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger, m_controller));
 			m_animator.SetFloat("Grip", OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, m_controller));
 		}
+	}
+
+	public void InputFocusAquired()
+	{
+		m_hasInputFocus = true;
+	}
+
+	public void InputFocusLost()
+	{
+		m_hasInputFocus = false;
 	}
 }

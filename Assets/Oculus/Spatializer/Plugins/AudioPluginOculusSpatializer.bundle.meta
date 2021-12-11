@@ -1,46 +1,33 @@
 fileFormatVersion: 2
-guid: d839675cadc729049a5d3fb76f4784ab
+guid: 87562a0c6a640774c83a3af02ba02151
 folderAsset: yes
-timeCreated: 1611977727
-licenseType: Store
 PluginImporter:
+  externalObjects: {}
   serializedVersion: 2
   iconMap: {}
   executionOrder: {}
+  defineConstraints: []
   isPreloaded: 1
   isOverridable: 0
+  isExplicitlyReferenced: 0
+  validateReferences: 1
   platformData:
-    data:
-      first:
-        Any: 
-      second:
-        enabled: 0
-        settings: {}
-    data:
-      first:
-        Editor: Editor
-      second:
-        enabled: 1
-        settings:
-          DefaultValueInitialized: true
-    data:
-      first:
-        Standalone: OSXIntel
-      second:
-        enabled: 1
-        settings: {}
-    data:
-      first:
-        Standalone: OSXIntel64
-      second:
-        enabled: 1
-        settings: {}
-    data:
-      first:
-        Standalone: OSXUniversal
-      second:
-        enabled: 1
-        settings: {}
+  - first:
+      Any: 
+    second:
+      enabled: 0
+      settings: {}
+  - first:
+      Editor: Editor
+    second:
+      enabled: 1
+      settings:
+        DefaultValueInitialized: true
+  - first:
+      Standalone: OSXUniversal
+    second:
+      enabled: 1
+      settings: {}
   userData: 
   assetBundleName: 
   assetBundleVariant: 
