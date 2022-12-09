@@ -1112,7 +1112,7 @@ TextureImporter:
       213: -4400672756860501974
     second: icon_workplace_24_Filled
   externalObjects: {}
-  serializedVersion: 10
+  serializedVersion: 12
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -1132,6 +1132,8 @@ TextureImporter:
   isReadable: 1
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMasterTextureLimit: 0
   grayScaleToAlpha: 0
   generateCubemap: 6
   cubemapConvolution: 0
@@ -1140,9 +1142,9 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: -1
-    aniso: -1
-    mipBias: -100
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
     wrapW: 1
@@ -1163,11 +1165,16 @@ TextureImporter:
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
   maxTextureSizeSet: 0
   compressionQualitySet: 0
   textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  cookieLightType: 1
   platformSettings:
-  - serializedVersion: 2
+  - serializedVersion: 3
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
@@ -1178,6 +1185,55 @@ TextureImporter:
     allowsAlphaSplitting: 0
     overridden: 0
     androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Server
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -8940,6 +8996,376 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      icon_lens-adjustment_24_Filled: -6055480360113012203
+      icon_screen-brightness-mid_24_Filled: -8112276315980795691
+      icon_wifi-secure_24_Filled: 2874803066011924359
+      icon_gallery-ready_24_Filled: -8097872661841573156
+      icon_moderate_24_Filled: 4939037179401139525
+      icon_home-edit_24_Filled: 6106392108083379848
+      icon_social_24_Filled: 1067907448920197787
+      icon_check-box_24_Filled: 6394879810596021674
+      icon_wifi-mid_24_Filled: -1337541148798933789
+      icon_chat_24_Filled: 7070462232196623209
+      icon_install_24_Filled: -3671955428223455846
+      icon_headphones_24_Filled: -2025002095625416336
+      icon_destination_24_Filled: -9118115323076545045
+      icon_pin-experience-off_24_Filled: 5414121591951844074
+      icon_power_24_Filled: -2538428024798094578
+      icon_arrow-down_24_Filled: -902118921973858234
+      icon_rotate-right_24_Filled: 57610052332768873
+      icon_friends-kick_24_Filled: -2353043455985556115
+      icon_cloud-syncing_24_Filled: 783815900689891035
+      icon_cell-signal-mid_24_Filled: 2147015806453564349
+      icon_check_24_Filled: -662914578003537950
+      icon_folder_24_Filled: -5445313997155047282
+      icon_bookmark_24_Filled: -8841238050536567526
+      icon_bug_24_Filled: 2775384342256942115
+      icon_battery-alt-midhigh_24_Filled: -4269455760832488848
+      icon_keyboard-on_24_Filled: -62476681337639409
+      icon_filter_24_Filled: 4628576616454084347
+      icon_google-cast-full_24_Filled: 8630025872698633868
+      icon_compose_24_Filled: -2165774098655598454
+      icon_media-2d_24_Filled: 4479761205274181337
+      icon_friends-remove_24_Filled: -7707772743809784898
+      icon_move_24_Filled: 8466701636991653476
+      icon_controller-low_24_Filled: -1374524526294323861
+      icon_high-interactivity_24_Filled: 6548359285279991397
+      icon_concepts_24_Filled: 6819828250122405908
+      icon_early-access_24_Filled: 5104543390196744536
+      icon_settings_24_Filled: 5696706924225268704
+      icon_arrow-left_24_Filled: -493823384402833086
+      icon_zoom_24_Filled: -8566833910505074789
+      icon_see-floor_24_Filled: -4435636720289971407
+      icon_laser-pointer_24_Filled: 8083833574848884602
+      icon_oculus_24_Filled: 1287492103257176582
+      icon_wifi-off_24_Filled: 8318693645457509425
+      icon_list-view_24_Filled: -2379041370020631408
+      icon_chevron-right_24_Filled: 7713716814200241382
+      icon_keyboard-off_24_Filled: -3209946447664816363
+      icon_screen-brightness-on_24_Filled: 4671836762488489830
+      icon_sync_24_Filled: 3193206779583435298
+      icon_file_24_Filled: 6840309733331134654
+      icon_notifications-off_24_Filled: 8363405024593751579
+      icon_environment_24_Filled: 7495918985905161753
+      icon_update_24_Filled: -4717952965719855851
+      icon_time_24_Filled: 1441512811044900165
+      icon_purchase_24_Filled: 4971377483516989532
+      icon_pause-circle_24_Filled: 8194853285315428652
+      icon_store_24_Filled: 7549901935878875878
+      icon_search_24_Filled: 6338432638553648094
+      icon_guardian-off_24_Filled: 4527341719653884531
+      icon_oculus-remote_24_Filled: -7589402062981936895
+      icon_standing_24_Filled: 7454949134030985154
+      icon_video-capture_24_Filled: 4280716520158885396
+      icon_uppercase-arrow_24_Filled: -4282686005434553579
+      icon_party-invite-cancel_24_Filled: 3961880792152693728
+      icon_volume-mid_24_Filled: -4563869462876885445
+      icon_storage-sd_24_Filled: -4964913782469447072
+      icon_pin-experience-on_24_Filled: -4413364837858161139
+      icon_download_24_Filled: -680705542769529923
+      icon_trash_24_Filled: -4895786911196120929
+      icon_google-cast-three_24_Filled: -3162484286153515436
+      icon_gallery-reconnect_24_Filled: 759157470041553951
+      icon_airplane-mode_24_Filled: -7534710504798566327
+      icon_gear-vr-controller_24_Filled: -7098132386162666911
+      icon_voice-assistant_24_Filled: 8934357958956142952
+      icon_image_24_Filled: -3489210899032413267
+      icon_mobile-keyboard_24_Filled: 1038524361926299967
+      icon_pass-through_24_Filled: -6993032067818180076
+      icon_close_24_Filled: -3108347808307121293
+      icon_touch-left_24_Filled: -6858033994039422058
+      icon_linkedin_24_Filled: -1920751817544425415
+      icon_arrow-right_24_Filled: 8422188109611388855
+      icon_roomscale_24_Filled: 2067407574184890316
+      icon_party-invite-send_24_Filled: 8813849422667035987
+      icon_store-cart_24_Filled: -879597423983009946
+      icon_info_24_Filled: -3240253623625127234
+      icon_facebook_24_Filled: -5608837636459173588
+      icon_resize-vertical-up_24_Filled: -4620807887806181163
+      icon_lock-off_24_Filled: -5351223329286999549
+      icon_password_24_Filled: 2846381484806318108
+      icon_sidebar-pin-close_24_Filled: 3398345154514148048
+      icon_check-alt_24_Filled: 6520228563950262366
+      icon_heart-on_24_Filled: -7958221258091255469
+      icon_battery-low_24_Filled: 2952177254375415284
+      icon_battery-mid_24_Filled: 283278690809677408
+      icon_livestream_24_Filled: 4798453082276004660
+      icon_microphone-off_24_Filled: 2905360403968248275
+      icon_chat-text_24_Filled: 1776694385334742840
+      icon_star-full_24_Filled: -3316970327578243330
+      icon_battery-charge_24_Filled: 494159434960187179
+      icon_speed_24_Filled: -169989175343972157
+      icon_media-180_24_Filled: 4720017743171882051
+      icon_vr-object_24_Filled: 3408004135093281422
+      icon_star-half_24_Filled: 6373614956499967797
+      icon_controller-full_24_Filled: 1754503442944760888
+      icon_do-not-disturb-off_24_Filled: 4462629940615348323
+      icon_screenshot_24_Filled: 3048581695783590187
+      icon_color_24_Filled: -88526126890289535
+      icon_chevron-up_24_Filled: -8133290119634698585
+      icon_history_24_Filled: -9088145807107364190
+      icon_view-gallery_24_Filled: 1010781696555630565
+      icon_open-panel_24_Filled: -1551869457123977565
+      icon_password-hidden_24_Filled: 3658611693225472083
+      icon_category-basic_24_Filled: -656231238407608377
+      icon_close-circle_24_Filled: -5749830677736848442
+      icon_google-cast-two_24_Filled: 3822988197736601266
+      icon_full-screen-exit_24_Filled: 8114002426947763871
+      icon_game-launcher_24_Filled: -3832406640504388364
+      icon_my-media_24_Filled: -183071628645767934
+      icon_twitter_24_Filled: 3316266338781618709
+      icon_sensor_24_Filled: 3847378922668934193
+      icon_emoji_24_Filled: 4911345642277909524
+      icon_do-not-disturb-on_24_Filled: 5058579143991222378
+      icon_friends-request-sent_24_Filled: 6024573630758458039
+      icon_bookmark-add_24_Filled: 6937227188226276014
+      icon_wifi-on_24_Filled: -8709937881947311058
+      icon_guardian-floor_24_Filled: -320603866877697686
+      icon_battery-alt-empty_24_Filled: -1664898639791237070
+      icon_flip_24_Filled: 2974019760503237493
+      icon_desktop_24_Filled: 7575310973441602028
+      icon_image-missing_24_Filled: -1373268656327637910
+      icon_play-next_24_Filled: -1203139264044281499
+      icon_move-z-axis_24_Filled: -3778712699158192927
+      icon_scale-down_24_Filled: 1272129996131955861
+      icon_usb-stick_24_Filled: -7996903359491408027
+      icon_battery-alt-full_24_Filled: 8368868897980995176
+      icon_keyboard_24_Filled: 6323599031064087995
+      icon_oculus-voice_24_Filled: 3448915236590844331
+      icon_microphone-on_24_Filled: 3033926376679629024
+      icon_edit_24_Filled: -2907958739317821849
+      icon_headset-casting-off_24_Filled: -1046509843552047302
+      icon_google-cast-off_24_Filled: 2362007950884984116
+      icon_thumbs-up_24_Filled: 5487809786283018963
+      icon_send_24_Filled: -4375416705679505549
+      icon_apps_24_Filled: 1292306900231802415
+      icon_gpu_24_Filled: 3881175187297326243
+      icon_bt-b_24_Filled: 3454290907360376031
+      icon_resize-horizontal_24_Filled: -3741454658406442728
+      icon_clothing_24_Filled: 28602928128512832
+      icon_question_24_Filled: -293917228402888240
+      icon_controller-mid-high_24_Filled: -3703553657351858696
+      icon_phone_24_Filled: -548012798766286797
+      icon_cell-signal-empty_24_Filled: 4037453128129270036
+      icon_open-circle_24_Filled: -3602053948854031680
+      icon_sync-circle_24_Filled: -6556270382011446090
+      icon_list-checked_24_Filled: 4043165011326275102
+      icon_undo_24_Filled: 6420254129535735678
+      icon_battery-empty_24_Filled: 2977112283403354197
+      icon_sign-out_24_Filled: -7049337870623814606
+      icon_play-prev_24_Filled: -8701480699454116378
+      icon_stop-circle_24_Filled: 2085675107433140441
+      icon_pacific-controller_24_Filled: 2344902134053541320
+      icon_screen-brightness-low_24_Filled: -2036684889620811239
+      icon_controller-empty_24_Filled: 4346250981499648338
+      icon_table_24_Filled: 8957852194325186671
+      icon_width-medium_24_Filled: 6214189822940339066
+      icon_set-ceiling_24_Filled: -1058920082160313458
+      icon_gift_24_Filled: -151341207521194955
+      icon_images-360_24_Filled: 5225451966097692291
+      icon_computer_24_Filled: 4652023786671844652
+      icon_bt-y_24_Filled: -2755530517072406904
+      icon_remove-circle_24_Filled: 7044510899877845267
+      icon_controller-mid_24_Filled: 8988702310887321883
+      icon_bluetooth_24_Filled: -510899916120256706
+      icon_health-safety_24_Filled: -777330569992071239
+      icon_chat-off_24_Filled: 3532742375182747834
+      icon_friends_24_Filled: -182648257175585630
+      icon_arrow-up-circle_24_Filled: -9169906510526754261
+      icon_refresh_24_Filled: 653884956426438108
+      icon_replay-circle_24_Filled: -131881517970994037
+      icon_mobile_24_Filled: -6961057920898833646
+      icon_party-invite-sent_24_Filled: -1501503247209389922
+      icon_closed-captioning_24_Filled: -2753874248883825275
+      icon_storage_24_Filled: 987077227325049791
+      icon_battery-alt-low_24_Filled: 7588200573441319582
+      icon_cell-signal-low_24_Filled: -1132290118684631775
+      icon_headset-off_24_Filled: -6480601857800566914
+      icon_whiteboard_24_Filled: 576168264399084827
+      icon_leaderboard_24_Filled: 2005998895039666048
+      icon_three-people_24_Filled: 4468268698081377793
+      icon_move-reposition-alt_24_Filled: 7169071851110315603
+      icon_tips_24_Filled: 923438263119150159
+      icon_compass_24_Filled: -1083684414483102028
+      icon_bt-menu_24_Filled: 5794110472033360255
+      icon_pause_24_Filled: 5685811874231246715
+      icon_check-box-active_24_Filled: -5482114419278944634
+      icon_multi-browser_24_Filled: 1560369324691517139
+      icon_link_24_Filled: 3752723512776700839
+      icon_category-all_24_Filled: 1444864754923434933
+      icon_distance_24_Filled: -2694777445296474183
+      icon_library_24_Filled: 1214175795624551498
+      icon_parties_24_Filled: -1853702639010761903
+      icon_molokini_24_Filled: -3113893288257993923
+      icon_unknown-headset_24_Filled: -6367916087552110254
+      icon_touchpad_24_Filled: -2813810287571564150
+      icon_credit-card_24_Filled: -1144734690235836110
+      icon_touch-2-right_24_Filled: 8281395798581183100
+      icon_to-top_24_Filled: 6619764305974812373
+      icon_remove_24_Filled: -3859721741372743784
+      icon_more-vertical_24_Filled: -7209056260851253096
+      icon_13-plus_24_Filled: -610570556923815801
+      icon_comfortable_24_Filled: -5242821725405266065
+      icon_couch_24_Filled: 7922299977306301202
+      icon_play-circle_24_Filled: 5764360844435468411
+      icon_gear-vr_24_Filled: -2144957238777237363
+      icon_chat-ellipses_24_Filled: 8486433142677093765
+      icon_resize-vertical-down_24_Filled: -2540927106773270588
+      icon_rotate-left_24_Filled: 95336605539270128
+      icon_minimize_24_Filled: 8000370407808699324
+      icon_vibration_24_Filled: -7089763704189111795
+      icon_command-center_24_Filled: 7696124510082532437
+      icon_scale-panel-up_24_Filled: -5551533918761043703
+      icon_keyboard-enter_24_Filled: -8872131579931039725
+      icon_hand-cursor_24_Filled: -5845762946607932882
+      icon_closed-captioning-off_24_Filled: -2468358950625300081
+      icon_replay_24_Filled: -9177276456361166489
+      icon_full-screen_24_Filled: -8980179022873470853
+      icon_10s-forward_24_Filled: -6030255997278813133
+      icon_warning_24_Filled: 2752130559719437709
+      icon_error_24_Filled: -1896153323553663829
+      icon_heart-off_24_Filled: -3421314051420917571
+      icon_unknown-sources_24_Filled: 933488079284010271
+      icon_chevron-left_24_Filled: 3702294370651344875
+      icon_profile_24_Filled: 3654685204680627867
+      icon_frequency_24_Filled: -3401448225695309546
+      icon_add_24_Filled: -2903126047679904512
+      icon_internet_24_Filled: -4099575891550535329
+      icon_guardian-intrusion-detection_24_Filled: -2310320011027897144
+      icon_horizon_24_Filled: 2007702404983559707
+      icon_unlock-pattern_24_Filled: -7057588259504243343
+      icon_guardian_24_Filled: 2849611149230594225
+      icon_hand-right_24_Filled: -4450835109011963224
+      icon_oculus-voice-off_24_Filled: -7732562270933293166
+      icon_bluetooth-active_24_Filled: -4513711104118788692
+      icon_bt-x_24_Filled: -3074599546811088007
+      icon_thumbs-down_24_Filled: -4023268479250262366
+      icon_music_24_Filled: -7550713685352905977
+      icon_gallery-phone_24_Filled: 6686112460385765743
+      icon_gamepad_24_Filled: 1261567186147853258
+      icon_home_24_Filled: 4461990959355958481
+      icon_sitting_24_Filled: 8215783534682377282
+      icon_more-horizontal_24_Filled: -6798909078851180730
+      icon_workplace_24_Filled: -4400672756860501974
+      icon_camera_24_Filled: -6640858976124669667
+      icon_wifi-alt-off_24_Filled: 8729421643525533312
+      icon_hand-left_24_Filled: -1116453817928170302
+      icon_google-photos_24_Filled: -8247882679643966219
+      icon_desktop-off_24_Filled: -4466227595904336518
+      icon_battery-full_24_Filled: 4017685548120811552
+      icon_open-tab_24_Filled: 2836668952888680742
+      icon_star_24_Filled: -6684754571684368141
+      icon_leave-places_24_Filled: 8874873148761455665
+      icon_events_24_Filled: 5524032412510402659
+      icon_reward-packs_24_Filled: 6105257534426424277
+      icon_screen-brightness-off_24_Filled: 2694246316357982285
+      icon_arrow-up-down_24_Filled: 1894116184697778833
+      icon_width-wide_24_Filled: -7437453459914994245
+      icon_touch-2-left_24_Filled: 2500531405038108630
+      icon_arrow-right-circle_24_Filled: 1240995730935866164
+      icon_media-180-3d_24_Filled: 5929816683856946024
+      icon_privacy_24_Filled: -7825952099826583014
+      icon_friends-add_24_Filled: -2639534598560993826
+      icon_media-immersive-video_24_Filled: 8872295890945156201
+      icon_scale-panel-down_24_Filled: -1992137896953999919
+      icon_wifi-low_24_Filled: 4850859327449489484
+      icon_volume-off_24_Filled: -6889066786459429632
+      icon_party-add_24_Filled: -562019049002356955
+      icon_visit-home_24_Filled: 2310660746109020007
+      icon_list-sort_24_Filled: -3603255986690925611
+      icon_redo_24_Filled: -3987300447320793352
+      icon_pair-headset_24_Filled: 4275343244392223525
+      icon_gallery-folder_24_Filled: -1804466652726070856
+      icon_recently-played_24_Filled: -4920602353055063488
+      icon_share_24_Filled: 8562248459948876173
+      icon_volume-on_24_Filled: -407061764320403237
+      icon_refund_24_Filled: 5635485125992405609
+      icon_bt-oculus_24_Filled: -7832089570639028811
+      icon_check-circle_24_Filled: 4116624135268486000
+      icon_low-interactivity_24_Filled: -168845811775739753
+      icon_volume-low_24_Filled: -5188821558574952256
+      icon_badge-check_24_Filled: -2888665655777509800
+      icon_upload_24_Filled: 7544148309547453453
+      icon_chevron-down_24_Filled: -4225235479564634476
+      icon_camera-roll_24_Filled: -7062350188180275213
+      icon_media-immersive-photo_24_Filled: -3515798692133918128
+      icon_headset_24_Filled: -778734266794397235
+      icon_party-leave_24_Filled: -6572631479341548384
+      icon_messenger_24_Filled: -1138100442025564846
+      icon_events-add_24_Filled: -867973764602594257
+      icon_media-360_24_Filled: -5759892157247961810
+      icon_ibeam-cursor_24_Filled: -1890682548199269940
+      icon_friends-block_24_Filled: -4085045655351302999
+      icon_sidebar-pin_24_Filled: 1686711606198951127
+      icon_15s-forward_24_Filled: 7418383080822257327
+      icon_wallet_24_Filled: -2202858244712695688
+      icon_profile-circle_24_Filled: -3551570387717270221
+      icon_width-extrawide_24_Filled: -3023154764962883165
+      icon_sync-off_24_Filled: 4077736285814494761
+      icon_google-cast-connected_24_Filled: -2994387884488884055
+      icon_hand-tracking_24_Filled: -1846593167967636393
+      icon_cell-signal-mid-high_24_Filled: 4385288693161165885
+      icon_add-circle_24_Filled: 3825772016911383916
+      icon_refresh-circle_24_Filled: -8746855838061577996
+      icon_universal-menu_24_Filled: -2464496202756735196
+      icon_stop_24_Filled: 3858451377826309927
+      icon_experiments_24_Filled: 3177992372267016577
+      icon_play-prev-circle_24_Filled: 2286886611267512991
+      icon_battery-midhigh_24_Filled: -8481036361815451122
+      icon_10s-backward_24_Filled: -4625811343706649983
+      icon_15s-backward_24_Filled: 411536106407866130
+      icon_set-floor_24_Filled: 4678432950633163012
+      icon_trophy_24_Filled: -2236071222647441582
+      icon_arrow-down-circle_24_Filled: -2980677933518486422
+      icon_rescan_24_Filled: 7781837157368653948
+      icon_headset-casting_24_Filled: -4249139810748981324
+      icon_email_24_Filled: 889206100452342178
+      icon_google-cast-one_24_Filled: 8067105794626459936
+      icon_unknown-controller_24_Filled: 4696544637600193522
+      icon_play-next-circle_24_Filled: 6926759831577550321
+      icon_lock_24_Filled: -1117739728465955824
+      icon_battery-alt-charge_24_Filled: 7233657520953559174
+      icon_physicalfeatures_24_Filled: 153058122297662584
+      icon_media-360-3d_24_Filled: -5339237105343141203
+      icon_resize-horizontal-down_24_Filled: -1296525972987437459
+      icon_keyboard-space_24_Filled: -8154806901523153331
+      icon_password-visible_24_Filled: 2270602585990739000
+      icon_touch-right_24_Filled: -5101196053355964227
+      icon_cell-signal-full_24_Filled: 7939628449728119683
+      icon_scale_24_Filled: -1907052891545936663
+      icon_party-join_24_Filled: -7660285189254580949
+      icon_list-lock_24_Filled: 6629679131353654793
+      icon_microphone-unavailable_24_Filled: -3440322705351358156
+      icon_arrow-left-circle_24_Filled: -8558906062913445724
+      icon_intense_24_Filled: -5648271496625672370
+      icon_co-op_24_Filled: 698760304620719278
+      icon_night-mode_24_Filled: 6361478891070591140
+      icon_arrow-left-right_24_Filled: 1049201376497761011
+      icon_battery-alt-mid_24_Filled: -755537529947882692
+      icon_dropbox_24_Filled: 2453645986938504383
+      icon_private-mode_24_Filled: -1182068423282902472
+      icon_play_24_Filled: -2000962494228882322
+      icon_reset_24_Filled: -4941258867180594594
+      icon_reorient_24_Filled: -5343497269163582080
+      icon_keyboard-back_24_Filled: -6019727146715234360
+      icon_friends-report_24_Filled: 6532425160059687831
+      icon_gallery-connect_24_Filled: -5436376598270841391
+      icon_tv_24_Filled: -3959677322035769700
+      icon_arrow-up_24_Filled: -9161077761368379178
+      icon_notifications_24_Filled: -8196881713844184462
+      icon_instagram_24_Filled: -7790329950764190128
+      icon_bt-a_24_Filled: 7783077765795377176
+      icon_check-box-circle_24_Filled: 7456325119316076576
+      icon_legal_24_Filled: -3708958217392052864
+      icon_unrated_24_Filled: -2499004141810913530
+      icon_media-3d-vert_24_Filled: 4239327437542518840
+      icon_tag_24_Filled: -2307267141721199592
+      icon_google_24_Filled: -4618028992598392453
+      icon_world_24_Filled: 3904447742588508155
+      icon_stationary_24_Filled: 7758978049315558287
+      icon_width-small_24_Filled: 2032243015142518445
+      icon_media-3d-horiz_24_Filled: 6282625095791222668
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
