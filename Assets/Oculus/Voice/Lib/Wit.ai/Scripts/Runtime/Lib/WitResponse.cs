@@ -53,6 +53,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Facebook.WitAi.Data.Entities;
+using Facebook.WitAi.Data.Intents;
+using UnityEngine;
 
 
 namespace Facebook.WitAi.Lib
@@ -152,8 +155,7 @@ namespace Facebook.WitAi.Lib
         {
             get
             {
-                int v = 0;
-                if (int.TryParse(Value, out v))
+                if (int.TryParse(Value, out int v))
                     return v;
                 return 0;
             }
@@ -164,8 +166,7 @@ namespace Facebook.WitAi.Lib
         {
             get
             {
-                float v = 0.0f;
-                if (float.TryParse(Value, out v))
+                if (float.TryParse(Value, out float v))
                     return v;
                 return 0.0f;
             }
@@ -176,8 +177,7 @@ namespace Facebook.WitAi.Lib
         {
             get
             {
-                double v = 0.0;
-                if (double.TryParse(Value, out v))
+                if (double.TryParse(Value, out double v))
                     return v;
                 return 0.0;
             }
@@ -188,8 +188,7 @@ namespace Facebook.WitAi.Lib
         {
             get
             {
-                bool v = false;
-                if (bool.TryParse(Value, out v))
+                if (bool.TryParse(Value, out bool v))
                     return v;
                 return !string.IsNullOrEmpty(Value);
             }
@@ -225,6 +224,59 @@ namespace Facebook.WitAi.Lib
             get { return this as WitResponseClass; }
         }
 
+        public virtual T Cast<T>(T defaultValue = default(T))
+        {
+            // Default value
+            object result = defaultValue;
+
+            // Cast each node
+            string typeName = typeof(T).ToString();
+            if (string.Equals(typeName, typeof(string).ToString()))
+            {
+                result = this.Value;
+            }
+            else if (string.Equals(typeName, typeof(int).ToString()))
+            {
+                result = this.AsInt;
+            }
+            else if (string.Equals(typeName, typeof(float).ToString()))
+            {
+                result = this.AsFloat;
+            }
+            else if (string.Equals(typeName, typeof(double).ToString()))
+            {
+                result = this.AsDouble;
+            }
+            else if (string.Equals(typeName, typeof(bool).ToString()))
+            {
+                result = this.AsBool;
+            }
+            else if (string.Equals(typeName, typeof(string[]).ToString()))
+            {
+                result = this.AsStringArray;
+            }
+            else if (string.Equals(typeName, typeof(WitResponseArray).ToString()))
+            {
+                result = this.AsArray;
+            }
+            else if (string.Equals(typeName, typeof(WitResponseClass).ToString()))
+            {
+                result = this.AsObject;
+            }
+            else
+            {
+                Debug.LogWarning($"WitResponseNode - Cast to {typeName} not supported");
+            }
+
+            // Return result
+            return (T)result;
+        }
+
+        public virtual WitEntityData AsWitEntity => new WitEntityData(this);
+        public virtual WitEntityFloatData AsWitFloatEntity => new WitEntityFloatData(this);
+        public virtual WitEntityIntData AsWitIntEntity => new WitEntityIntData(this);
+
+        public virtual WitIntentData AsWitIntent => new WitIntentData(this);
 
         #endregion typecasting properties
 
@@ -237,7 +289,7 @@ namespace Facebook.WitAi.Lib
 
         public static implicit operator string(WitResponseNode d)
         {
-            return (d == null) ? null : d.Value;
+            return d?.Value;
         }
 
         public static bool operator ==(WitResponseNode a, object b)
@@ -691,8 +743,10 @@ namespace Facebook.WitAi.Lib
         public static WitResponseNode LoadFromBase64(string aBase64)
         {
             var tmp = System.Convert.FromBase64String(aBase64);
-            var stream = new System.IO.MemoryStream(tmp);
-            stream.Position = 0;
+            var stream = new System.IO.MemoryStream(tmp)
+            {
+                Position = 0
+            };
             return LoadFromStream(stream);
         }
     } // End of JSONNode
@@ -810,6 +864,8 @@ namespace Facebook.WitAi.Lib
 
         public string[] ChildNodeNames => m_Dict.Keys.ToArray();
 
+        public bool HasChild(string child) => m_Dict.ContainsKey(child);
+
         public override WitResponseNode this[string aKey]
         {
             get
@@ -849,7 +905,6 @@ namespace Facebook.WitAi.Lib
         {
             get { return m_Dict.Count; }
         }
-
 
         public override void Add(string aKey, WitResponseNode aItem)
         {
@@ -909,6 +964,19 @@ namespace Facebook.WitAi.Lib
         {
             foreach (KeyValuePair<string, WitResponseNode> N in m_Dict)
                 yield return N;
+        }
+
+        public T GetChild<T>(string aKey, T defaultValue = default(T))
+        {
+            // Return default immediately
+            if (!HasChild(aKey))
+            {
+                return defaultValue;
+            }
+
+            // Get response node
+            WitResponseNode node = this[aKey];
+            return node.Cast<T>(defaultValue);
         }
 
         public override string ToString()
@@ -999,9 +1067,10 @@ namespace Facebook.WitAi.Lib
 
         public override void Serialize(System.IO.BinaryWriter aWriter)
         {
-            var tmp = new WitResponseData("");
-
-            tmp.AsInt = AsInt;
+            var tmp = new WitResponseData("")
+            {
+                AsInt = AsInt
+            };
             if (tmp.m_Data == this.m_Data)
             {
                 aWriter.Write((byte) JSONBinaryTag.IntValue);
@@ -1065,7 +1134,6 @@ namespace Facebook.WitAi.Lib
             {
                 m_Node.Add(m_Key, aVal);
             }
-
             m_Node = null; // Be GC friendly.
         }
 
@@ -1074,8 +1142,10 @@ namespace Facebook.WitAi.Lib
             get { return new WitResponseLazyCreator(this); }
             set
             {
-                var tmp = new WitResponseArray();
-                tmp.Add(value);
+                var tmp = new WitResponseArray
+                {
+                    value
+                };
                 Set(tmp);
             }
         }
@@ -1085,23 +1155,29 @@ namespace Facebook.WitAi.Lib
             get { return new WitResponseLazyCreator(this, aKey); }
             set
             {
-                var tmp = new WitResponseClass();
-                tmp.Add(aKey, value);
+                var tmp = new WitResponseClass
+                {
+                    { aKey, value }
+                };
                 Set(tmp);
             }
         }
 
         public override void Add(WitResponseNode aItem)
         {
-            var tmp = new WitResponseArray();
-            tmp.Add(aItem);
+            var tmp = new WitResponseArray
+            {
+                aItem
+            };
             Set(tmp);
         }
 
         public override void Add(string aKey, WitResponseNode aItem)
         {
-            var tmp = new WitResponseClass();
-            tmp.Add(aKey, aItem);
+            var tmp = new WitResponseClass
+            {
+                { aKey, aItem }
+            };
             Set(tmp);
         }
 

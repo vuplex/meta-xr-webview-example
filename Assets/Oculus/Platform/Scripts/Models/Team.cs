@@ -8,11 +8,16 @@ namespace Oculus.Platform.Models
   using System.Collections.Generic;
   using UnityEngine;
 
+  /// DEPRECATED. Will be removed from headers at version v49.
   public class Team
   {
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly UserList AssignedUsers;
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly int MaxUsers;
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly int MinUsers;
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly string Name;
 
 

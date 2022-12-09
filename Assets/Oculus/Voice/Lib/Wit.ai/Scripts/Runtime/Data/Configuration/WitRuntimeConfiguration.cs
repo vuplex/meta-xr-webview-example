@@ -1,5 +1,6 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
@@ -8,6 +9,7 @@
 using System;
 using Facebook.WitAi.Data.Configuration;
 using Facebook.WitAi.Interfaces;
+using Facebook.WitAi.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -38,9 +40,11 @@ namespace Facebook.WitAi.Configuration
         public float minTranscriptionKeepAliveTimeInSeconds = 1f;
 
         [Tooltip("The maximum amount of time in seconds the mic will stay active")]
-        [Range(0, 20f)]
+        [DynamicRange("RecordingTimeRange")]
         [SerializeField]
         public float maxRecordingTime = 20;
+
+        protected virtual Vector2 RecordingTimeRange => new Vector2(0, 20);
 
         [Header("Sound Activation")]
         [Tooltip("The minimum volume level needed to be heard to start collecting data from the audio source.")]
@@ -48,9 +52,12 @@ namespace Facebook.WitAi.Configuration
 
         [Tooltip("The length of the individual samples read from the audio source")]
         [Range(10, 500)] [SerializeField] public int sampleLengthInMs = 10;
-        
+
         [Tooltip("The total audio data that should be buffered for lookback purposes on sound based activations.")]
         [SerializeField] public float micBufferLengthInSeconds = 1;
+
+        [Tooltip("The maximum amount of concurrent requests that can occur")]
+        [Range(1, 10)] [SerializeField] public int maxConcurrentRequests = 5;
 
         [Header("Custom Transcription")]
         [Tooltip(
@@ -60,5 +67,11 @@ namespace Facebook.WitAi.Configuration
 
         [Tooltip("A custom provider that returns text to be used for nlu processing on activation instead of sending audio.")]
         [SerializeField] public CustomTranscriptionProvider customTranscriptionProvider;
+
+        [Tooltip("If always record is set the mic will fill the mic data buffer as long as the component is enabled in the scene.")]
+        public bool alwaysRecord;
+
+        [Tooltip("The preferred number of seconds to offset from the time the activation happens. A negative value here could help to catch any words that may have been cut off at the beginning of an activation (assuming input is already being read into the buffer)")]
+        public float preferredActivationOffset = -.5f;
     }
 }

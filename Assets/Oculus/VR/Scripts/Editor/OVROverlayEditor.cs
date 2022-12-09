@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
+ *
+ * Licensed under the Oculus SDK License Agreement (the "License");
+ * you may not use the Oculus SDK except in compliance with the License,
+ * which is provided at the time of installation or download, or which
+ * otherwise accompanies this software in either electronic or hard copy form.
+ *
+ * You may obtain a copy of the License at
+ *
+ * https://developer.oculus.com/licenses/oculussdk/
+ *
+ * Unless required by applicable law or agreed to in writing, the Oculus SDK
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -125,29 +145,41 @@ public class OVROverlayEditor : Editor
 		}
 
 		EditorGUILayout.LabelField("Display Order", EditorStyles.boldLabel);
-		overlay.currentOverlayType = (OVROverlay.OverlayType)EditorGUILayout.EnumPopup(new GUIContent("Current Overlay Type", "Whether this overlay should layer behind the scene or in front of it"), overlay.currentOverlayType);
+		overlay.currentOverlayType = (OVROverlay.OverlayType)EditorGUILayout.EnumPopup(new GUIContent("Overlay Type", "Whether this overlay should layer behind the scene or in front of it"), overlay.currentOverlayType);
 		overlay.compositionDepth = EditorGUILayout.IntField(new GUIContent("Composition Depth", "Depth value used to sort OVROverlays in the scene, smaller value appears in front"), overlay.compositionDepth);
-		overlay.noDepthBufferTesting = EditorGUILayout.Toggle(new GUIContent("No Depth Buffer Testing", "The noDepthBufferTesting will stop layer's depth buffer compositing even if the engine has \"Shared Depth Buffer\" enabled"), overlay.noDepthBufferTesting);
-		EditorGUILayout.Space();
+		overlay.noDepthBufferTesting = EditorGUILayout.Toggle(new GUIContent("No Depth Buffer Testing", "If true, will stop layer's depth buffer compositing even if the engine has \"Shared Depth Buffer\" enabled"), overlay.noDepthBufferTesting);
 
+		EditorGUILayout.Space();
 		EditorGUILayout.LabelField(new GUIContent("Overlay Shape", "The shape of this overlay"), EditorStyles.boldLabel);
-		int currentShapeIndex = Array.IndexOf(selectableShapeValues, overlay.currentOverlayShape);
-		if (currentShapeIndex == -1) {
-			Debug.LogError("Invalid shape encountered");
-			currentShapeIndex = 0;
+		// If the overlay shape has been set to a passthrough shape (via scripting), do not allow to change it.
+		if (!OVROverlay.IsPassthroughShape(overlay.currentOverlayShape))
+		{
+			int currentShapeIndex = Array.IndexOf(selectableShapeValues, overlay.currentOverlayShape);
+			if (currentShapeIndex == -1)
+			{
+				Debug.LogError("Invalid shape encountered");
+				currentShapeIndex = 0;
+			}
+			currentShapeIndex = EditorGUILayout.Popup(new GUIContent("Overlay Shape", "The shape of this overlay"), currentShapeIndex, selectableShapeNames);
+			overlay.currentOverlayShape = selectableShapeValues[currentShapeIndex];
 		}
-		currentShapeIndex = EditorGUILayout.Popup(new GUIContent("Overlay Shape", "The shape of this overlay"), currentShapeIndex, selectableShapeNames);
-		overlay.currentOverlayShape = selectableShapeValues[currentShapeIndex];
+
+		if (overlay.currentOverlayShape == OVROverlay.OverlayShape.Cubemap)
+		{
+			overlay.useLegacyCubemapRotation = EditorGUILayout.Toggle(new GUIContent("Use Legacy Cubemap Rotation",
+				"Whether the cubemap should use the legacy rotation which was rotated 180 degrees around the Y axis comapred to Unity's definition of cubemaps. This setting will be deprecated in the near future, therefore it is recommended to fix the cubemap texture instead."), overlay.useLegacyCubemapRotation);
+		}
 
 		EditorGUILayout.Space();
-
 		EditorGUILayout.LabelField("Layer Properties", EditorStyles.boldLabel);
 		overlay.useBicubicFiltering = EditorGUILayout.Toggle(new GUIContent("Bicubic Filtering",
 			"Whether this layer should use bicubic filtering. This can increase quality for small details on text and icons being viewed at farther distances."), overlay.useBicubicFiltering);
+		overlay.useEfficientSupersample = EditorGUILayout.Toggle(new GUIContent("Super Sample",
+			"Whether this layer should use an efficient super sample filter. This can help reduce flicker artifacts."), overlay.useEfficientSupersample);
+		overlay.useEfficientSharpen = EditorGUILayout.Toggle(new GUIContent("Sharpen",
+			"Whether this layer should use a sharpen filter. This amplifies contrast and fine details"), overlay.useEfficientSharpen);
 
 		EditorGUILayout.Space();
-
-		EditorGUILayout.Separator();
 		EditorGUILayout.LabelField("Textures", EditorStyles.boldLabel);
 
 #if UNITY_ANDROID
@@ -177,23 +209,25 @@ public class OVROverlayEditor : Editor
 				overlay.textures = tmp;
 			}
 
-			var labelControlRect = EditorGUILayout.GetControlRect();
-			EditorGUI.LabelField(new Rect(labelControlRect.x, labelControlRect.y, labelControlRect.width / 2, labelControlRect.height), new GUIContent("Left Texture", "Texture used for the left eye"));
-			EditorGUI.LabelField(new Rect(labelControlRect.x + labelControlRect.width / 2, labelControlRect.y, labelControlRect.width / 2, labelControlRect.height), new GUIContent("Right Texture", "Texture used for the right eye"));
+			EditorGUILayout.BeginHorizontal();
 
+			EditorGUILayout.BeginVertical();
+			EditorGUILayout.LabelField(new GUIContent("Left Eye Texture", "Texture used for the left eye"), GUILayout.Width(120));
+			overlay.textures[0] = (Texture)EditorGUILayout.ObjectField(overlay.textures[0], typeof(Texture), true, GUILayout.Width(64), GUILayout.Height(64));
+			EditorGUILayout.EndVertical();
+			EditorGUILayout.BeginVertical();
+			EditorGUILayout.LabelField(new GUIContent("Right Eye Texture", "Texture used for the right eye"), GUILayout.Width(120));
+			Texture right = (Texture)EditorGUILayout.ObjectField(overlay.textures[1] != null ? overlay.textures[1] : overlay.textures[0], typeof(Texture), true, GUILayout.Width(64), GUILayout.Height(64));
+			EditorGUILayout.EndVertical();
+			
+			overlay.textures[1] = (right == overlay.textures[0]) ? null : right;
 
-			var textureControlRect = EditorGUILayout.GetControlRect(GUILayout.Height(64));
-
-			overlay.textures[0] = (Texture)EditorGUI.ObjectField(new Rect(textureControlRect.x, textureControlRect.y, 64, textureControlRect.height), overlay.textures[0], typeof(Texture), true);
-			Texture right = (Texture)EditorGUI.ObjectField(new Rect(textureControlRect.x + textureControlRect.width / 2, textureControlRect.y, 64, textureControlRect.height), overlay.textures[1] != null ? overlay.textures[1] : overlay.textures[0], typeof(Texture), true);
-			if (right == overlay.textures[0])
+			if (overlay.textures[1] == null)
 			{
-				overlay.textures[1] = null;
+				EditorGUILayout.LabelField("Right Eye Texture is null, so Left Eye Texture will be used for both eyes.", EditorStyles.wordWrappedLabel);
 			}
-			else
-			{
-				overlay.textures[1] = right;
-			}
+			
+			EditorGUILayout.EndHorizontal();
 
 			overlay.isDynamic = EditorGUILayout.Toggle(new GUIContent("Dynamic Texture", "This texture will be updated dynamically at runtime (e.g., Video)"), overlay.isDynamic);
 #if !UNITY_ANDROID
@@ -203,7 +237,6 @@ public class OVROverlayEditor : Editor
 		if (overlay.currentOverlayShape == OVROverlay.OverlayShape.Cylinder || overlay.currentOverlayShape == OVROverlay.OverlayShape.Equirect || overlay.currentOverlayShape == OVROverlay.OverlayShape.Quad || overlay.currentOverlayShape == OVROverlay.OverlayShape.Fisheye)
 		{
 
-			EditorGUILayout.Separator();
 			EditorGUILayout.Space();
 			EditorGUILayout.LabelField("Texture Rects", EditorStyles.boldLabel);
 
@@ -354,9 +387,8 @@ public class OVROverlayEditor : Editor
 			}
 		}
 
-		EditorGUILayout.Separator();
-		EditorGUILayout.LabelField("Color Scale", EditorStyles.boldLabel);
 		EditorGUILayout.Space();
+		EditorGUILayout.LabelField("Color Scale", EditorStyles.boldLabel);
 		overlay.overridePerLayerColorScaleAndOffset = EditorGUILayout.Toggle(new GUIContent("Override Color Scale", "Manually set color scale and offset of this layer, regardless of what the global values are from OVRManager.SetColorScaleAndOffset()."), overlay.overridePerLayerColorScaleAndOffset);
 		if (overlay.overridePerLayerColorScaleAndOffset)
 		{
@@ -365,7 +397,7 @@ public class OVROverlayEditor : Editor
 			overlay.SetPerLayerColorScaleAndOffset(colorScale, colorOffset);
 		}
 
-		EditorGUILayout.Separator();
+		EditorGUILayout.Space();
 		EditorGUILayout.LabelField("Preview", EditorStyles.boldLabel);
 		overlay.previewInEditor = EditorGUILayout.Toggle(new GUIContent("Preview in Editor (Experimental)", "Preview the overlay in the editor using a mesh renderer."), overlay.previewInEditor);
 

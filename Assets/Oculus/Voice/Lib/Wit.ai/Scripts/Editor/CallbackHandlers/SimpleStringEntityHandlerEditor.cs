@@ -1,5 +1,6 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
@@ -14,6 +15,7 @@ using UnityEngine;
 
 namespace Facebook.WitAi.CallbackHandlers
 {
+    [CustomEditor(typeof(SimpleStringEntityHandler))]
     public class SimpleStringEntityHandlerEditor : Editor
     {
         private SimpleStringEntityHandler handler;
@@ -31,7 +33,7 @@ namespace Facebook.WitAi.CallbackHandlers
                     null != provider.RuntimeConfiguration &&
                     provider.RuntimeConfiguration.witConfiguration)
                 {
-                    provider.RuntimeConfiguration.witConfiguration.UpdateData();
+                    provider.RuntimeConfiguration.witConfiguration.RefreshData();
                     intentNames = provider.RuntimeConfiguration.witConfiguration.intents.Select(i => i.name).ToArray();
                     intentIndex = Array.IndexOf(intentNames, handler.intent);
                 }
@@ -47,7 +49,7 @@ namespace Facebook.WitAi.CallbackHandlers
                 GUILayout.Label("Wit component is not present in the scene. Add wit to scene to get intent and entity suggestions.", EditorStyles.helpBox);
             }
 
-            var intentChanged = WitEditorUI.FallbackPopup(serializedObject,"intent", intentNames, ref intentIndex);
+            var intentChanged = WitEditorUI.LayoutSerializedObjectPopup(serializedObject,"intent", intentNames, ref intentIndex);
             if (intentChanged ||
                 null != intentNames && intentNames.Length > 0 && null == entityNames)
             {
@@ -67,7 +69,7 @@ namespace Facebook.WitAi.CallbackHandlers
                 }
             }
 
-            WitEditorUI.FallbackPopup(serializedObject, "entity", entityNames, ref entityIndex);
+            WitEditorUI.LayoutSerializedObjectPopup(serializedObject, "entity", entityNames, ref entityIndex);
 
             var confidenceProperty = serializedObject.FindProperty("confidence");
             EditorGUILayout.PropertyField(confidenceProperty);

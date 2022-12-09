@@ -1,52 +1,81 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
+using System;
 using System.Collections.Generic;
 using Facebook.WitAi.Interfaces;
 using Facebook.WitAi.Lib;
 
 namespace Facebook.WitAi.Data.Entities
 {
+    [Serializable]
     public class WitDynamicEntity : IDynamicEntitiesProvider
     {
         public string entity;
-        public Dictionary<string, List<string>> keywordsToSynonyms;
+        public List<WitEntityKeyword> keywords = new List<WitEntityKeyword>();
+
+        public WitDynamicEntity()
+        {
+        }
+
+        public WitDynamicEntity(string entity, WitEntityKeyword keyword)
+        {
+            this.entity = entity;
+            this.keywords.Add(keyword);
+        }
+
+        public WitDynamicEntity(string entity, params string[] keywords)
+        {
+            this.entity = entity;
+            foreach (var keyword in keywords)
+            {
+                this.keywords.Add(new WitEntityKeyword(keyword));
+            }
+        }
 
         public WitDynamicEntity(string entity, Dictionary<string, List<string>> keywordsToSynonyms)
         {
             this.entity = entity;
-            this.keywordsToSynonyms = keywordsToSynonyms;
+
+            foreach (var synonym in keywordsToSynonyms)
+            {
+                keywords.Add(new WitEntityKeyword()
+                {
+                    keyword = synonym.Key,
+                    synonyms = synonym.Value
+                });
+
+            }
         }
 
-        public KeyValuePair<string, WitResponseArray> GetEntityPair() {
-            var keywordEntries = new WitResponseArray();
-            foreach (var keywordToSynonyms in keywordsToSynonyms)
+        public WitResponseArray AsJson
+        {
+            get
             {
-                var synonyms = new WitResponseArray();
-                foreach (string synonym in keywordToSynonyms.Value)
+                WitResponseArray synonymArray = new WitResponseArray();
+                foreach (var keyword in keywords)
                 {
-                    synonyms.Add(new WitResponseData(synonym));
+                    synonymArray.Add(keyword.AsJson);
                 }
 
-                var keywordEntry = new WitResponseClass();
-                keywordEntry.Add("keyword", new WitResponseData(keywordToSynonyms.Key));
-                keywordEntry.Add("synonyms", synonyms);
-
-                keywordEntries.Add(keywordEntry);
+                return synonymArray;
             }
-            return new KeyValuePair<string, WitResponseArray>(entity, keywordEntries);
         }
 
-        public string ToJSON()
+        public WitDynamicEntities GetDynamicEntities()
         {
-            KeyValuePair<string, WitResponseArray> pair = this.GetEntityPair();
-            var root = new WitResponseClass();
-            root.Add(pair.Key, pair.Value);
-            return root.ToString();
+            return new WitDynamicEntities()
+            {
+                entities = new List<WitDynamicEntity>
+                {
+                    this
+                }
+            };
         }
     }
 }

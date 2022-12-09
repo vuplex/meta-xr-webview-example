@@ -1,17 +1,18 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 using System;
+using System.IO;
 using Facebook.WitAi.Configuration;
 using Facebook.WitAi.Data.Entities;
 using Facebook.WitAi.Data.Intents;
 using Facebook.WitAi.Data.Traits;
 using UnityEngine;
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -43,6 +44,75 @@ namespace Facebook.WitAi.Data.Configuration
         [SerializeField] public WitIntent[] intents;
         [SerializeField] public WitTrait[] traits;
 
+        [SerializeField] public bool isDemoOnly;
+
+        /// <summary>
+        /// When set to true, will use Conduit to dispatch voice commands.
+        /// </summary>
+        [Tooltip("Conduit enables manifest-based dispatching to invoke callbacks with native types directly without requiring manual parsing.")]
+        [SerializeField] public bool useConduit;
+
+        /// <summary>
+        /// The path to the Conduit manifest.
+        /// </summary>
+        [SerializeField] public string manifestLocalPath;
+
+        public string WitApplicationId
+        {
+            get
+            {
+                if (String.IsNullOrEmpty(application?.id))
+                {
+                    // NOTE: If a dev only provides a client token we may not have the application id.
+                    if (!string.IsNullOrEmpty(clientAccessToken))
+                    {
+                        return INVALID_APP_ID_WITH_CLIENT_TOKEN;
+                    }
+
+                    return INVALID_APP_ID_NO_CLIENT_TOKEN;
+                }
+
+                return application.id;
+            }
+        }
+
+
+        #if UNITY_EDITOR
+        // Manifest editor path
+        public string ManifestEditorPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_manifestFullPath) || !File.Exists(_manifestFullPath))
+                {
+                    string lookup = Path.GetFileNameWithoutExtension(manifestLocalPath);
+                    string[] guids = UnityEditor.AssetDatabase.FindAssets(lookup);
+                    if (guids != null && guids.Length > 0)
+                    {
+                        _manifestFullPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+                    }
+                }
+                return _manifestFullPath;
+            }
+        }
+        private string _manifestFullPath;
+        #endif
+
+        /// <summary>
+        /// When true, Conduit will automatically generate manifests each time code changes.
+        /// </summary>
+        [SerializeField] public bool autoGenerateManifest = false;
+
+        /// <summary>
+        /// When true, will open Conduit manifests when they are manually generated.
+        /// </summary>
+        [SerializeField] public bool openManifestOnGeneration = false;
+
+        public const string INVALID_APP_ID_NO_CLIENT_TOKEN = "App Info Not Set - No Client Token";
+
+        public const string INVALID_APP_ID_WITH_CLIENT_TOKEN =
+            "App Info Not Set - Has Client Token";
+
         public WitApplication Application => application;
 
         private void OnEnable()
@@ -53,7 +123,23 @@ namespace Facebook.WitAi.Data.Configuration
                 configId = GUID.Generate().ToString();
                 EditorUtility.SetDirty(this);
             }
+
+            if (string.IsNullOrEmpty(manifestLocalPath))
+            {
+                manifestLocalPath = $"ConduitManifest-{Guid.NewGuid()}.json";
+                EditorUtility.SetDirty(this);
+            }
+
             #endif
+        }
+
+        public void ResetData()
+        {
+            application = null;
+            clientAccessToken = null;
+            entities = null;
+            intents = null;
+            traits = null;
         }
     }
 }

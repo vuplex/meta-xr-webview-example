@@ -1,5 +1,6 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
@@ -16,6 +17,7 @@ using UnityEngine.Serialization;
 
 namespace Facebook.WitAi.CallbackHandlers
 {
+    [AddComponentMenu("Wit.ai/Response Matchers/Response Matcher")]
     public class WitResponseMatcher : WitResponseHandler
     {
         [Header("Intent")]
@@ -31,9 +33,7 @@ namespace Facebook.WitAi.CallbackHandlers
         [SerializeField] private FormattedValueEvents[] formattedValueEvents;
         [SerializeField] private MultiValueEvent onMultiValueEvent = new MultiValueEvent();
 
-
         private static Regex valueRegex = new Regex(Regex.Escape("{value}"), RegexOptions.Compiled);
-
 
         protected override void OnHandleResponse(WitResponseNode response)
         {
@@ -116,10 +116,9 @@ namespace Facebook.WitAi.CallbackHandlers
 
         private bool CompareDouble(string value, ValuePathMatcher matcher)
         {
-            double dValue;
 
             // This one is freeform based on the input so we will retrun false if it is not parsable
-            if (!double.TryParse(value, out dValue)) return false;
+            if (!double.TryParse(value, out double dValue)) return false;
 
             // We will throw an exception if match value is not a numeric value. This is a developer
             // error.
@@ -146,10 +145,9 @@ namespace Facebook.WitAi.CallbackHandlers
 
         private bool CompareFloat(string value, ValuePathMatcher matcher)
         {
-            float dValue;
 
             // This one is freeform based on the input so we will retrun false if it is not parsable
-            if (!float.TryParse(value, out dValue)) return false;
+            if (!float.TryParse(value, out float dValue)) return false;
 
             // We will throw an exception if match value is not a numeric value. This is a developer
             // error.
@@ -178,10 +176,9 @@ namespace Facebook.WitAi.CallbackHandlers
 
         private bool CompareInt(string value, ValuePathMatcher matcher)
         {
-            int dValue;
 
             // This one is freeform based on the input so we will retrun false if it is not parsable
-            if (!int.TryParse(value, out dValue)) return false;
+            if (!int.TryParse(value, out int dValue)) return false;
 
             // We will throw an exception if match value is not a numeric value. This is a developer
             // error.
@@ -265,7 +262,29 @@ namespace Facebook.WitAi.CallbackHandlers
         [Tooltip("The variance allowed when comparing two floating point values for equality")]
         public double floatingPointComparisonTolerance = .0001f;
 
+        [Tooltip("The confidence levels to handle for this value.\nNOTE: The selected node must have a confidence sibling node.")]
+        public ConfidenceRange[] confidenceRanges;
+
         private WitResponseReference pathReference;
+        private WitResponseReference confidencePathReference;
+
+        public WitResponseReference ConfidenceReference
+        {
+            get
+            {
+                if (null != confidencePathReference) return confidencePathReference;
+
+                var confidencePath = Reference?.path;
+                if (!string.IsNullOrEmpty(confidencePath))
+                {
+                    confidencePath = confidencePath.Substring(0, confidencePath.LastIndexOf("."));
+                    confidencePath += ".confidence";
+                    confidencePathReference = WitResultUtilities.GetWitResponseReference(confidencePath);
+                }
+
+                return confidencePathReference;
+            }
+        }
         public WitResponseReference Reference
         {
             get

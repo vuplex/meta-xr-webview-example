@@ -1,79 +1,114 @@
-// Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
+// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
 
+using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// Specific functionality for spawned anchors
 /// </summary>
+[RequireComponent(typeof(OVRSpatialAnchor))]
 public class Anchor : MonoBehaviour
 {
-    /// <summary>
-    /// Anchor handle, gives the id of the anchor
-    /// </summary>
-    public ulong anchorHandle { get { return anchorHandle_; } }
+    public const string NumUuidsPlayerPref = "numUuids";
 
-    private ulong anchorHandle_;
+    [SerializeField, FormerlySerializedAs("canvas_")]
+    private Canvas _canvas;
 
-    [SerializeField]
-    private Canvas canvas_;
-    [SerializeField]
-    private Transform pivot_;
-    [SerializeField]
-    private GameObject anchorMenu_;
-    private bool isSelected_;
-    private bool isHovered_;
-    [SerializeField]
-    private TextMeshProUGUI anchorName_;
-    [SerializeField]
-    private GameObject saveIcon_;
+    [SerializeField, FormerlySerializedAs("pivot_")]
+    private Transform _pivot;
 
-    [SerializeField]
-    private Image labelImage_;
-    [SerializeField]
-    private Color labelBaseColor_;
-    [SerializeField]
-    private Color labelHighlightColor_;
-    [SerializeField]
-    private Color labelSelectedColor_;
+    [SerializeField, FormerlySerializedAs("anchorMenu_")]
+    private GameObject _anchorMenu;
 
-    [SerializeField]
-    private AnchorUIManager uiManager_;
+    private bool _isSelected;
 
-    [SerializeField]
-    private MeshRenderer[] renderers_;
+    private bool _isHovered;
 
-    private int menuIndex_ = 0;
-    [SerializeField]
-    private List<Button> buttonList_;
-    private Button selectedButton_;
+    [SerializeField, FormerlySerializedAs("anchorName_")]
+    private TextMeshProUGUI _anchorName;
 
+    [SerializeField, FormerlySerializedAs("saveIcon_")]
+    private GameObject _saveIcon;
+
+    [SerializeField, FormerlySerializedAs("labelImage_")]
+    private Image _labelImage;
+
+    [SerializeField, FormerlySerializedAs("labelBaseColor_")]
+    private Color _labelBaseColor;
+
+    [SerializeField, FormerlySerializedAs("labelHighlightColor_")]
+    private Color _labelHighlightColor;
+
+    [SerializeField, FormerlySerializedAs("labelSelectedColor_")]
+    private Color _labelSelectedColor;
+
+    [SerializeField, FormerlySerializedAs("uiManager_")]
+    private AnchorUIManager _uiManager;
+
+    [SerializeField, FormerlySerializedAs("renderers_")]
+    private MeshRenderer[] _renderers;
+
+    private int _menuIndex = 0;
+
+    [SerializeField, FormerlySerializedAs("buttonList_")]
+    private List<Button> _buttonList;
+
+    private Button _selectedButton;
+
+    private OVRSpatialAnchor _spatialAnchor;
+
+    private GameObject _icon;
 
     #region Monobehaviour Methods
 
     private void Awake()
     {
-        anchorMenu_.SetActive(false);
-        renderers_ = GetComponentsInChildren<MeshRenderer>();
-        canvas_.worldCamera = Camera.main;
-        selectedButton_ = buttonList_[0];
-        selectedButton_.OnSelect(null);
+        _anchorMenu.SetActive(false);
+        _renderers = GetComponentsInChildren<MeshRenderer>();
+        _canvas.worldCamera = Camera.main;
+        _selectedButton = _buttonList[0];
+        _selectedButton.OnSelect(null);
+        _spatialAnchor = GetComponent<OVRSpatialAnchor>();
+        _icon = GetComponent<Transform>().FindChildRecursive("Sphere").gameObject;
+    }
+
+    private IEnumerator Start()
+    {
+        while (_spatialAnchor && !_spatialAnchor.Created)
+        {
+            yield return null;
+        }
+
+        if (_spatialAnchor)
+        {
+            _anchorName.text = _spatialAnchor.Uuid.ToString("D");
+        }
+        else
+        {
+            // Creation must have failed
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
     {
         // Billboard the boundary
-        BillboardPanel(canvas_.transform);
+        BillboardPanel(_canvas.transform);
+
         // Billboard the menu
-        BillboardPanel(pivot_);
+        BillboardPanel(_pivot);
 
         HandleMenuNavigation();
+
+        //Billboard the icon
+        BillboardPanel(_icon.transform);
     }
 
-    #endregion // Monobehaviour Methods
-
+    #endregion // MonoBehaviour Methods
 
     #region UI Event Listeners
 
@@ -82,7 +117,25 @@ public class Anchor : MonoBehaviour
     /// </summary>
     public void OnSaveLocalButtonPressed()
     {
-        AnchorSession.Instance.SaveAnchor(anchorHandle, AnchorSession.StorageLocation.LOCAL);
+        if (!_spatialAnchor) return;
+
+        _spatialAnchor.Save((anchor, success) =>
+        {
+            if (!success) return;
+
+            // Enables save icon on the menu
+            ShowSaveIcon = true;
+
+            // Write uuid of saved anchor to file
+            if (!PlayerPrefs.HasKey(NumUuidsPlayerPref))
+            {
+                PlayerPrefs.SetInt(NumUuidsPlayerPref, 0);
+            }
+
+            int playerNumUuids = PlayerPrefs.GetInt(NumUuidsPlayerPref);
+            PlayerPrefs.SetString("uuid" + playerNumUuids, anchor.Uuid.ToString());
+            PlayerPrefs.SetInt(NumUuidsPlayerPref, ++playerNumUuids);
+        });
     }
 
     /// <summary>
@@ -90,7 +143,7 @@ public class Anchor : MonoBehaviour
     /// </summary>
     public void OnHideButtonPressed()
     {
-        AnchorSession.Instance.DestroyAnchor(anchorHandle);
+        Destroy(gameObject);
     }
 
     /// <summary>
@@ -98,31 +151,43 @@ public class Anchor : MonoBehaviour
     /// </summary>
     public void OnEraseButtonPressed()
     {
-        AnchorSession.Instance.EraseAnchor(anchorHandle);
+        if (!_spatialAnchor) return;
+
+        _spatialAnchor.Erase((anchor, success) =>
+        {
+            if (success)
+            {
+                _saveIcon.SetActive(false);
+            }
+        });
     }
 
     #endregion // UI Event Listeners
 
-
     #region Public Methods
+
+    public bool ShowSaveIcon
+    {
+        set => _saveIcon.SetActive(value);
+    }
 
     /// <summary>
     /// Handles interaction when anchor is hovered
     /// </summary>
     public void OnHoverStart()
     {
-        if (isHovered_)
+        if (_isHovered)
         {
             return;
         }
-        isHovered_ = true;
+        _isHovered = true;
 
         // Yellow highlight
-        foreach (MeshRenderer renderer in renderers_)
+        foreach (MeshRenderer renderer in _renderers)
         {
             renderer.material.SetColor("_EmissionColor", Color.yellow);
         }
-        labelImage_.color = labelHighlightColor_;
+        _labelImage.color = _labelHighlightColor;
     }
 
     /// <summary>
@@ -130,25 +195,25 @@ public class Anchor : MonoBehaviour
     /// </summary>
     public void OnHoverEnd()
     {
-        if (!isHovered_)
+        if (!_isHovered)
         {
             return;
         }
-        isHovered_ = false;
+        _isHovered = false;
 
         // Go back to normal
-        foreach (MeshRenderer renderer in renderers_)
+        foreach (MeshRenderer renderer in _renderers)
         {
             renderer.material.SetColor("_EmissionColor", Color.clear);
         }
 
-        if (isSelected_)
+        if (_isSelected)
         {
-            labelImage_.color = labelSelectedColor_;
+            _labelImage.color = _labelSelectedColor;
         }
         else
         {
-            labelImage_.color = labelBaseColor_;
+            _labelImage.color = _labelBaseColor;
         }
     }
 
@@ -157,59 +222,40 @@ public class Anchor : MonoBehaviour
     /// </summary>
     public void OnSelect()
     {
-        if (isSelected_)
+        if (_isSelected)
         {
             // Hide Anchor menu on deselect
-            anchorMenu_.SetActive(false);
-            isSelected_ = false;
-            selectedButton_ = null;
-            if (isHovered_)
+            _anchorMenu.SetActive(false);
+            _isSelected = false;
+            _selectedButton = null;
+            if (_isHovered)
             {
-                labelImage_.color = labelHighlightColor_;
+                _labelImage.color = _labelHighlightColor;
             }
             else
             {
-                labelImage_.color = labelBaseColor_;
+                _labelImage.color = _labelBaseColor;
             }
         }
         else
         {
             // Show Anchor Menu on select
-            anchorMenu_.SetActive(true);
-            isSelected_ = true;
-            selectedButton_ = buttonList_[0];
-            selectedButton_.OnSelect(null);
-            if (isHovered_)
+            _anchorMenu.SetActive(true);
+            _isSelected = true;
+            _menuIndex = -1;
+            NavigateToIndexInMenu(true);
+            if (_isHovered)
             {
-                labelImage_.color = labelHighlightColor_;
+                _labelImage.color = _labelHighlightColor;
             }
             else
             {
-                labelImage_.color = labelSelectedColor_;
+                _labelImage.color = _labelSelectedColor;
             }
         }
     }
 
-    /// <summary>
-    /// Sets this anchor's handle
-    /// </summary>
-    /// <param name="handle"></param>
-    public void SetAnchorHandle(ulong handle)
-    {
-        anchorHandle_ = handle;
-        anchorName_.text = "ID: " + anchorHandle_;
-    }
-
-    /// <summary>
-    /// Enables the save icon on the anchor menu
-    /// </summary>
-    public void ShowSaveIcon()
-    {
-        saveIcon_.SetActive(true);
-    }
-
     #endregion // Public Methods
-
 
     #region Private Methods
 
@@ -221,7 +267,7 @@ public class Anchor : MonoBehaviour
 
     private void HandleMenuNavigation()
     {
-        if (!isSelected_)
+        if (!_isSelected)
         {
             return;
         }
@@ -235,7 +281,7 @@ public class Anchor : MonoBehaviour
         }
         if (OVRInput.GetDown(OVRInput.RawButton.RIndexTrigger))
         {
-            selectedButton_.OnSubmit(null);
+            _selectedButton.OnSubmit(null);
         }
     }
 
@@ -243,25 +289,27 @@ public class Anchor : MonoBehaviour
     {
         if (moveNext)
         {
-            menuIndex_++;
-            if (menuIndex_ > buttonList_.Count - 1)
+            _menuIndex++;
+            if (_menuIndex > _buttonList.Count - 1)
             {
-                menuIndex_ = 0;
+                _menuIndex = 0;
             }
         }
         else
         {
-            menuIndex_--;
-            if (menuIndex_ < 0)
+            _menuIndex--;
+            if (_menuIndex < 0)
             {
-                menuIndex_ = buttonList_.Count - 1;
+                _menuIndex = _buttonList.Count - 1;
             }
         }
-        selectedButton_.OnDeselect(null);
-        selectedButton_ = buttonList_[menuIndex_];
-        selectedButton_.OnSelect(null);
+        if (_selectedButton)
+        {
+            _selectedButton.OnDeselect(null);
+        }
+        _selectedButton = _buttonList[_menuIndex];
+        _selectedButton.OnSelect(null);
     }
 
     #endregion // Private Methods
-
 }

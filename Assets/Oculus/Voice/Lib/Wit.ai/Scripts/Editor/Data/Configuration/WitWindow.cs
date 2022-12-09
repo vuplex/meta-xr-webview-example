@@ -1,222 +1,114 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-using System;
 using UnityEditor;
 using UnityEngine;
+using Facebook.WitAi.Data.Configuration;
 
-namespace Facebook.WitAi.Data.Configuration
+namespace Facebook.WitAi.Windows
 {
-    public class WitWindow : BaseWitWindow
+    public class WitWindow : WitConfigurationWindow
     {
-        public static void ShowWindow()
-        {
-            if (WitAuthUtility.IsServerTokenValid())
-            {
-                GetWindow<WitWindow>("Wit Settings");
-            }
-            else
-            {
-                WitWelcomeWizard.ShowWizard(ShowWindow);
-            }
-        }
-
-        protected override string HeaderLink
-        {
-            get
-            {
-                if (null != witConfiguration && null != witConfiguration.application &&
-                    !string.IsNullOrEmpty(witConfiguration.application.id))
-                {
-                    return $"https://wit.ai/apps/{witConfiguration.application.id}/settings";
-                }
-
-                return null;
-            }
-        }
-
-        private Texture2D tex;
-        private bool manualToken;
-        protected Vector2 scroll;
-        protected WitConfigurationEditor witEditor;
+        protected WitConfigurationEditor witInspector;
         protected string serverToken;
-        protected bool welcomeSizeSet;
+        protected override GUIContent Title => WitTexts.SettingsTitleContent;
+        protected override string HeaderUrl => witInspector ? witInspector.HeaderUrl : base.HeaderUrl;
 
-        protected override void OnDrawContent()
+        protected override void OnEnable()
         {
-            if (!WitAuthUtility.IsServerTokenValid())
+            base.OnEnable();
+            if (string.IsNullOrEmpty(serverToken))
             {
-                DrawWelcome();
+                serverToken = WitAuthUtility.ServerToken;
             }
-            else
-            {
-                DrawWit();
-            }
+            SetWitEditor();
         }
 
         protected virtual void SetWitEditor()
         {
             if (witConfiguration)
             {
-                witEditor = (WitConfigurationEditor) Editor.CreateEditor(witConfiguration);
-                witEditor.drawHeader = false;
-                witEditor.Initialize();
+                witInspector = (WitConfigurationEditor)Editor.CreateEditor(witConfiguration);
+                witInspector.drawHeader = false;
+                witInspector.Initialize();
             }
-        }
-
-        protected override void OnEnable()
-        {
-            WitAuthUtility.InitEditorTokens();
-            SetWitEditor();
-            RefreshConfigList();
-        }
-
-        protected virtual void DrawWit()
-        {
-            // Recommended max size based on EditorWindow.maxSize doc for resizable window.
-            if (welcomeSizeSet)
+            else if (witInspector != null)
             {
-                welcomeSizeSet = false;
-                maxSize = new Vector2(4000, 4000);
+                DestroyImmediate(witInspector);
+                witInspector = null;
             }
+        }
 
-            titleContent = new GUIContent("Wit Configuration");
-
-            GUILayout.BeginVertical(EditorStyles.helpBox);
+        protected override void LayoutContent()
+        {
+            // Server access token
             GUILayout.BeginHorizontal();
-            if (null == serverToken)
+            bool updated = false;
+            WitEditorUI.LayoutPasswordField(WitTexts.SettingsServerTokenContent, ref serverToken, ref updated);
+            if (updated)
             {
-                serverToken = WitAuthUtility.ServerToken;
+                RelinkServerToken(false);
             }
-            serverToken = EditorGUILayout.PasswordField("Server Access Token", serverToken);
-            if (GUILayout.Button(WitStyles.PasteIcon, WitStyles.ImageIcon))
+            if (WitEditorUI.LayoutTextButton(WitTexts.Texts.SettingsRelinkButtonLabel))
             {
-                serverToken = EditorGUIUtility.systemCopyBuffer;
-                WitAuthUtility.ServerToken = serverToken;
-                RefreshContent();
+                RelinkServerToken(true);
             }
-            if (GUILayout.Button("Relink", GUILayout.Width(75)))
+            if (WitEditorUI.LayoutTextButton(WitTexts.Texts.SettingsAddButtonLabel))
             {
-                if (WitAuthUtility.IsServerTokenValid(serverToken))
+                int newIndex = WitConfigurationUtility.CreateConfiguration(serverToken);
+                if (newIndex != -1)
                 {
-                    WitConfigurationEditor.UpdateTokenData(serverToken, RefreshContent);
+                    SetConfiguration(newIndex);
                 }
-
-                WitAuthUtility.ServerToken = serverToken;
-                RefreshContent();
             }
             GUILayout.EndHorizontal();
+            GUILayout.Space(WitStyles.ButtonMargin);
 
-            GUILayout.BeginHorizontal();
-            var configChanged = DrawWitConfigurationPopup();
-            if (GUILayout.Button("Create", GUILayout.Width(75)))
+            // Configuration select
+            base.LayoutContent();
+            // Update inspector if needed
+            if (witInspector == null || witConfiguration == null || witInspector.configuration != witConfiguration)
             {
-                CreateConfiguration();
-            }
-            GUILayout.EndHorizontal();
-
-            if (witConfiguration && (configChanged || !witEditor))
-            {
-                WitConfiguration config = (WitConfiguration) witConfiguration;
                 SetWitEditor();
             }
 
-            if(witConfiguration && witEditor) witEditor.OnInspectorGUI();
-
-            GUILayout.EndVertical();
-        }
-
-        protected virtual void CreateConfiguration()
-        {
-            var asset = WitConfigurationEditor.CreateWitConfiguration(serverToken, Repaint);
-            if (asset)
+            // Layout configuration inspector
+            if (witConfiguration && witInspector)
             {
-                RefreshConfigList();
-                witConfigIndex = Array.IndexOf(witConfigs, asset);
-                witConfiguration = asset;
-                SetWitEditor();
+                witInspector.OnInspectorGUI();
             }
         }
-
-        protected virtual void DrawWelcome()
+        // Apply server token
+        private void RelinkServerToken(bool closeIfInvalid)
         {
-            titleContent = WitStyles.welcomeTitleContent;
-
-            if (!welcomeSizeSet)
+            // Open Setup if Invalid
+            bool invalid = !WitConfigurationUtility.IsServerTokenValid(serverToken);
+            if (invalid)
             {
-                minSize = new Vector2(450, 686);
-                maxSize = new Vector2(450, 686);
-                welcomeSizeSet = true;
-            }
-
-            scroll = GUILayout.BeginScrollView(scroll);
-
-            GUILayout.Label("Build Natural Language Experiences", WitStyles.LabelHeader);
-            GUILayout.Label(
-                "Enable people to interact with your products using voice and text.",
-                WitStyles.LabelHeader2);
-            GUILayout.Space(32);
-
-
-            BeginCenter(296);
-
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Paste your Server Access Token here", WitStyles.Label);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(WitStyles.PasteIcon, WitStyles.Label))
-            {
-                serverToken = EditorGUIUtility.systemCopyBuffer;
-                WitAuthUtility.ServerToken = serverToken;
-                if (WitAuthUtility.IsServerTokenValid())
+                // Clear if desired
+                if (string.IsNullOrEmpty(serverToken))
                 {
-                    RefreshContent();
+                    WitAuthUtility.ServerToken = serverToken;
                 }
-            }
-            GUILayout.EndHorizontal();
-            if (null == serverToken)
-            {
-                serverToken = WitAuthUtility.ServerToken;
-            }
-            GUILayout.BeginHorizontal();
-            serverToken = EditorGUILayout.PasswordField(serverToken, WitStyles.TextField);
-            if (GUILayout.Button("Link", GUILayout.Width(75)))
-            {
-                WitAuthUtility.ServerToken = serverToken;
-                if (WitAuthUtility.IsServerTokenValid())
+                // Close if desired
+                if (closeIfInvalid)
                 {
-                    RefreshContent();
+                    // Open Setup
+                    WitWindowUtility.OpenSetupWindow(WitWindowUtility.OpenConfigurationWindow);
+                    // Close this Window
+                    Close();
                 }
-            }
-            GUILayout.EndHorizontal();
-            EndCenter();
-
-            BeginCenter();
-            GUILayout.Label("or", WitStyles.Label);
-            EndCenter();
-
-            BeginCenter();
-
-            if (GUILayout.Button(WitStyles.ContinueButton, WitStyles.Label, GUILayout.Height(50),
-                GUILayout.Width(296)))
-            {
-                Application.OpenURL("https://wit.ai");
+                return;
             }
 
-            GUILayout.Label(
-                "Please connect with Facebook login to continue using Wit.ai by clicking on the “Continue with Github Login” and following the instructions provided.",
-                WitStyles.Label,
-                GUILayout.Width(296));
-            EndCenter();
-
-            BeginCenter();
-            GUILayout.Space(16);
-
-            EndCenter();
-            GUILayout.EndScrollView();
+            // Set valid server token
+            WitAuthUtility.ServerToken = serverToken;
+            WitConfigurationUtility.SetServerToken(serverToken);
         }
     }
 }

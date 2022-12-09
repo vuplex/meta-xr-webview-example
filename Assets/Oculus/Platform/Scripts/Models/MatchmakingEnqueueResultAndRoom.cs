@@ -8,9 +8,12 @@ namespace Oculus.Platform.Models
   using System.Collections.Generic;
   using UnityEngine;
 
+  /// DEPRECATED. Will be removed from headers at version v49.
   public class MatchmakingEnqueueResultAndRoom
   {
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly MatchmakingEnqueueResult MatchmakingEnqueueResult;
+    /// DEPRECATED. Will be removed from headers at version v49.
     public readonly Room Room;
 
 

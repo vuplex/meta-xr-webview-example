@@ -1,102 +1,72 @@
 ﻿/*
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ * All rights reserved.
  *
  * This source code is licensed under the license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 using UnityEditor;
-using UnityEngine;
+using System.Reflection;
 
-namespace Facebook.WitAi.Configuration
+namespace Facebook.WitAi.Windows
 {
-
-    [CustomPropertyDrawer(typeof(WitEndpointConfig))]
-    public class WitEndpointConfigDrawer : PropertyDrawer
+    public class WitEndpointConfigDrawer : WitPropertyDrawer
     {
-        private string editing;
-        private Vector2 scroll;
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        // Allow edit with lock
+        protected override WitPropertyEditType EditType => WitPropertyEditType.LockEdit;
+        // Determine if should layout field
+        protected override bool ShouldLayoutField(SerializedProperty property, FieldInfo subfield)
         {
-            return 0;
-        }
-
-        private void DrawProperty(SerializedProperty propery, string name,
-            string label, string defaultValue)
-        {
-            var propValue = propery.FindPropertyRelative(name);
-            GUILayout.BeginHorizontal();
-            if (editing == name)
+            switch (subfield.Name)
             {
-
-                EditorGUILayout.PropertyField(propValue, new GUIContent(label));
-
-                WitStyles.ResetIcon.tooltip = $"Reset to default values ({defaultValue})";
-                if (GUILayout.Button(WitStyles.ResetIcon, WitStyles.ImageIcon))
-                {
-                    editing = string.Empty;
-
-                    switch (propValue.type)
-                    {
-                        case "string":
-                            propValue.stringValue = defaultValue;
-                            break;
-                        case "int":
-                            propValue.intValue = int.Parse(defaultValue);
-                            break;
-                    }
-                }
-
-                if (GUILayout.Button(WitStyles.AcceptIcon, WitStyles.ImageIcon))
-                {
-                    editing = string.Empty;
-                }
+                case "message":
+                    return false;
             }
-            else
+            return base.ShouldLayoutField(property, subfield);
+        }
+        // Get default fields
+        protected override string GetDefaultFieldValue(SerializedProperty property, FieldInfo subfield)
+        {
+            // Iterate options
+            switch (subfield.Name)
             {
-                switch (propValue.type)
-                {
-                    case "string":
-                        defaultValue = string.IsNullOrEmpty(propValue.stringValue)
-                            ? defaultValue
-                            : propValue.stringValue;
-                        break;
-                    case "int":
-                        defaultValue = propValue.intValue.ToString();
-                        break;
-                }
-
-                EditorGUI.BeginDisabledGroup(editing != name);
-                EditorGUILayout.TextField(label, defaultValue);
-                EditorGUI.EndDisabledGroup();
-
-                if (GUILayout.Button(WitStyles.EditIcon, WitStyles.ImageIcon))
-                {
-                    if (editing == name)
-                    {
-                        editing = string.Empty;
-                    }
-                    else
-                    {
-                        editing = name;
-                    }
-                }
+                case "uriScheme":
+                    return WitRequest.URI_SCHEME;
+                case "authority":
+                    return WitRequest.URI_AUTHORITY;
+                case "port":
+                    return WitRequest.URI_DEFAULT_PORT.ToString();
+                case "witApiVersion":
+                    return WitRequest.WIT_API_VERSION;
+                case "speech":
+                    return WitRequest.WIT_ENDPOINT_SPEECH;
             }
 
-            GUILayout.EndHorizontal();
+            // Return base
+            return base.GetDefaultFieldValue(property, subfield);
         }
-
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        // Use name value for title if possible
+        protected override string GetLocalizedText(SerializedProperty property, string key)
         {
-            scroll = GUILayout.BeginScrollView(scroll, GUILayout.Height(100));
-            DrawProperty(property, "uriScheme", "Uri Scheme", WitRequest.URI_SCHEME);
-            DrawProperty(property, "authority", "Host", WitRequest.URI_AUTHORITY);
-            DrawProperty(property, "port", "Port", "80");
-            DrawProperty(property, "witApiVersion", "Wit Api Version", WitRequest.WIT_API_VERSION);
-            DrawProperty(property, "speech", "Speech", WitRequest.WIT_ENDPOINT_SPEECH);
-            DrawProperty(property, "message", "Message", WitRequest.WIT_ENDPOINT_MESSAGE);
-            GUILayout.EndScrollView();
+            // Iterate options
+            switch (key)
+            {
+                case LocalizedTitleKey:
+                    return WitTexts.Texts.ConfigurationEndpointTitleLabel;
+                case "uriScheme":
+                    return WitTexts.Texts.ConfigurationEndpointUriLabel;
+                case "authority":
+                    return WitTexts.Texts.ConfigurationEndpointAuthLabel;
+                case "port":
+                    return WitTexts.Texts.ConfigurationEndpointPortLabel;
+                case "witApiVersion":
+                    return WitTexts.Texts.ConfigurationEndpointApiLabel;
+                case "speech":
+                    return WitTexts.Texts.ConfigurationEndpointSpeechLabel;
+            }
+            // Default to base
+            return base.GetLocalizedText(property, key);
         }
     }
 }
