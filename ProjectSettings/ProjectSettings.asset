@@ -136,8 +136,8 @@ PlayerSettings:
     Others: 1
   bundleVersion: 1.3
   preloadedAssets:
-  - {fileID: 11400000, guid: 5b8a532c379444321875730d816f15bc, type: 2}
   - {fileID: 3044810127972389842, guid: 96c57db60064c4b90a72d60dcd2db0e6, type: 2}
+  - {fileID: 11400000, guid: 5b8a532c379444321875730d816f15bc, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -793,7 +793,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
-    Android: VUPLEX_CCU;VUPLEX_OCULUS;VUPLEX_STANDALONE;VUPLEX_OCULUS_PROJECT_CONFIG
+    Android: VUPLEX_CCU;VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OCULUS
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
