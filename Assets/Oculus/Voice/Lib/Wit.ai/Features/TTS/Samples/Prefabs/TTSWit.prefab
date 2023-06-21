@@ -60,6 +60,12 @@ MonoBehaviour:
       OnStreamReady:
         m_PersistentCalls:
           m_Calls: []
+      OnStreamClipUpdate:
+        m_PersistentCalls:
+          m_Calls: []
+      OnStreamComplete:
+        m_PersistentCalls:
+          m_Calls: []
       OnStreamCancel:
         m_PersistentCalls:
           m_Calls: []
@@ -79,8 +85,13 @@ MonoBehaviour:
       OnDownloadError:
         m_PersistentCalls:
           m_Calls: []
-  _settings:
-    configuration: {fileID: 0}
+  RequestSettings:
+    configuration: {fileID: 11400000, guid: 8ca721df475c92e4ca9167b74de4b2f6, type: 2}
+    audioType: 0
+    audioStream: 1
+    audioStreamReadyDuration: 0.1
+    audioStreamChunkLength: 5
+    audioStreamPreloadCount: 3
   _presetVoiceSettings:
   - settingsID: CHARLIE
     voice: Charlie
@@ -90,6 +101,24 @@ MonoBehaviour:
     gain: 50
   - settingsID: REBECCA
     voice: Rebecca
+    style: default
+    speed: 100
+    pitch: 100
+    gain: 50
+  - settingsID: COOPER
+    voice: Cooper
+    style: default
+    speed: 100
+    pitch: 100
+    gain: 50
+  - settingsID: VAMPIRE
+    voice: Vampire
+    style: default
+    speed: 100
+    pitch: 100
+    gain: 50
+  - settingsID: PROSPECTOR
+    voice: Prospector
     style: default
     speed: 100
     pitch: 100
@@ -106,10 +135,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d60dcb6d02034b4b96284db469db5e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _clipLimit: 1
-  _clipCapacity: 100
-  _ramLimit: 1
-  _ramCapacity: 2000
+  ClipLimit: 1
+  ClipCapacity: 100
+  RamLimit: 0
+  RamCapacity: 20000
 --- !u!114 &4852061571279439022
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -130,6 +159,12 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     OnStreamReady:
+      m_PersistentCalls:
+        m_Calls: []
+    OnStreamClipUpdate:
+      m_PersistentCalls:
+        m_Calls: []
+    OnStreamComplete:
       m_PersistentCalls:
         m_Calls: []
     OnStreamCancel:

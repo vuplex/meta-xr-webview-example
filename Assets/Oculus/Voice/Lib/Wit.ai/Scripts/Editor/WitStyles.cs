@@ -9,7 +9,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Facebook.WitAi
+namespace Meta.WitAi
 {
     public static class WitStyles
     {
@@ -56,9 +56,14 @@ namespace Facebook.WitAi
         private const float TabButtonHeight = 40f;
         public static GUIStyle HeaderButton;
         public static Color HeaderTextColor = new Color(0.09f, 0.47f, 0.95f); // FB
-        // Wit link color
-        public static string WitLinkColor = "#ccccff"; // "blue" if not pro
+        // Wit error color (Red if in light non-pro editor mode)
+        public static string ErrorColor = "#cc7777";
+        // Wit link color (Blue if in light non-pro editor mode)
+        public static string WitLinkColor = "#ccccff";
         public const string WitLinkKey = "[COLOR]";
+        
+        // Indentation
+        public const float IndentationSpaces = 15f;
 
         // Text Field Styles
         public static GUIStyle TextField;
@@ -84,6 +89,13 @@ namespace Facebook.WitAi
             ObjectPickerIcon = EditorGUIUtility.IconContent("d_Record Off");
             HelpIcon = EditorGUIUtility.IconContent("_Help");
 
+            // Adjust colors to be more visible on light background
+            if (!EditorGUIUtility.isProSkin)
+            {
+                ErrorColor = "red";
+                WitLinkColor = "blue";
+            }
+
             // Label Styles
             Label = new GUIStyle();
             Label.fontSize = 11;
@@ -107,7 +119,9 @@ namespace Facebook.WitAi
             LabelHeader.wordWrap = true;
             LabelError = new GUIStyle(Label);
             LabelError.wordWrap = true;
-            LabelError.normal.textColor = Color.red;
+            Color errorColor = Color.red;
+            ColorUtility.TryParseHtmlString(ErrorColor, out errorColor);
+            LabelError.normal.textColor = errorColor;
             LabelStatus = new GUIStyle(Label);
             TextureBlack25P = new Texture2D(1, 1);
             TextureBlack25P.SetPixel(0, 0, new Color(0, 0, 0, .25f));
@@ -121,11 +135,6 @@ namespace Facebook.WitAi
             LabelStatus.margin = new RectOffset(0, 0, 0, 0);
             LabelStatus.wordWrap = false;
             LabelStatus.fontSize = 10;
-            // Set to blue if not pro
-            if (!EditorGUIUtility.isProSkin)
-            {
-                WitLinkColor = "blue";
-            }
 
             // Button Styles
             TextButton = new GUIStyle(EditorStyles.miniButton);

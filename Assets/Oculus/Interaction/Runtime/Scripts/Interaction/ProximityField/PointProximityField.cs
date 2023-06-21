@@ -18,38 +18,8 @@
  * limitations under the License.
  */
 
-using UnityEngine;
-using UnityEngine.Assertions;
-
-namespace Oculus.Interaction
+namespace Oculus.Interaction.Deprecated
 {
-    public class PointProximityField : MonoBehaviour, IProximityField
-    {
-        [SerializeField]
-        private Transform _centerPoint;
-
-        protected virtual void Start()
-        {
-            Assert.IsNotNull(_centerPoint);
-        }
-
-        public Vector3 ComputeClosestPoint(Vector3 point)
-        {
-            return _centerPoint.position;
-        }
-
-        #region Inject
-
-        public void InjectAllPointProximityField(Transform centerPoint)
-        {
-            InjectCenterPoint(centerPoint);
-        }
-
-        public void InjectCenterPoint(Transform centerPoint)
-        {
-            _centerPoint = centerPoint;
-        }
-
-        #endregion
-    }
+    [System.Obsolete]
+    public class PointProximityField { }
 }

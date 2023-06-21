@@ -10,7 +10,7 @@ using System;
 using System.Net;
 using System.IO;
 
-namespace Facebook.WitAi
+namespace Meta.WitAi
 {
     public interface IRequest
     {

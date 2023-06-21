@@ -62,9 +62,9 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(_impactAudioEvents.SoftCollisionSound, "AudioPhysics component has no audio soft collision audio trigger assigned");
-            Assert.IsNotNull(_impactAudioEvents.HardCollisionSound, "AudioPhysics component has no audio hard collision audio trigger assigned");
-            Assert.IsNotNull(_rigidbody, "AudioPhysics component has no rigidbody assigned");
+            this.AssertField(_impactAudioEvents.SoftCollisionSound, nameof(_impactAudioEvents.SoftCollisionSound));
+            this.AssertField(_impactAudioEvents.HardCollisionSound, nameof(_impactAudioEvents.HardCollisionSound));
+            this.AssertField(_rigidbody, nameof(_rigidbody));
             _collisionEvents = _rigidbody.gameObject.AddComponent<CollisionEvents>();
             this.EndStart(ref _started);
         }

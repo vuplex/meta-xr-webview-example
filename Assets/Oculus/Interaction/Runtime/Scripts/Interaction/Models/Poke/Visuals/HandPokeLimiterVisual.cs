@@ -19,9 +19,7 @@
  */
 
 using UnityEngine;
-using UnityEngine.Assertions;
 using Oculus.Interaction.Input;
-using UnityEngine.Serialization;
 
 namespace Oculus.Interaction
 {
@@ -33,7 +31,7 @@ namespace Oculus.Interaction
     public class HandPokeLimiterVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         private IHand Hand;
 
         [SerializeField]
@@ -54,9 +52,9 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(_pokeInteractor);
-            Assert.IsNotNull(_syntheticHand);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(_pokeInteractor, nameof(_pokeInteractor));
+            this.AssertField(_syntheticHand, nameof(_syntheticHand));
             this.EndStart(ref _started);
         }
 
@@ -64,8 +62,8 @@ namespace Oculus.Interaction
         {
             if (_started)
             {
-                _pokeInteractor.WhenInteractableSelected.Action += HandleLock;
-                _pokeInteractor.WhenInteractableUnselected.Action += HandleUnlock;
+                _pokeInteractor.WhenStateChanged += HandleStateChanged;
+                _pokeInteractor.WhenPassedSurfaceChanged += HandlePassedSurfaceChanged;
             }
         }
 
@@ -75,11 +73,33 @@ namespace Oculus.Interaction
             {
                 if (_isTouching)
                 {
-                    HandleUnlock(_pokeInteractor.SelectedInteractable);
+                    UnlockWrist();
                 }
 
-                _pokeInteractor.WhenInteractableSelected.Action -= HandleLock;
-                _pokeInteractor.WhenInteractableUnselected.Action -= HandleUnlock;
+                _pokeInteractor.WhenStateChanged -= HandleStateChanged;
+                _pokeInteractor.WhenPassedSurfaceChanged -= HandlePassedSurfaceChanged;
+            }
+        }
+
+        private void HandlePassedSurfaceChanged(bool passed)
+        {
+            CheckPassedSurface();
+        }
+
+        private void HandleStateChanged(InteractorStateChangeArgs args)
+        {
+            CheckPassedSurface();
+        }
+
+        private void CheckPassedSurface()
+        {
+            if (_pokeInteractor.IsPassedSurface)
+            {
+                LockWrist();
+            }
+            else
+            {
+                UnlockWrist();
             }
         }
 
@@ -88,12 +108,21 @@ namespace Oculus.Interaction
             UpdateWrist();
         }
 
-        private void HandleLock(PokeInteractable pokeInteractable)
+        private void LockWrist()
         {
+            bool wasTouching = _isTouching;
+
             _isTouching = true;
+
+            if (!wasTouching && _isTouching)
+            {
+                // Activate native component
+                int result = NativeMethods.isdk_NativeComponent_Activate(0x506f6b654c696d74);
+                this.AssertIsTrue(result == NativeMethods.IsdkSuccess, "Unable to Activate native poke limit!");
+            }
         }
 
-        private void HandleUnlock(PokeInteractable pokeInteractable)
+        private void UnlockWrist()
         {
             _syntheticHand.FreeWrist();
             _isTouching = false;
@@ -130,7 +159,7 @@ namespace Oculus.Interaction
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
 

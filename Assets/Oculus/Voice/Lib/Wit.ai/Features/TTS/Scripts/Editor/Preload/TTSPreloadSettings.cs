@@ -9,7 +9,7 @@
 using System;
 using UnityEngine;
 
-namespace Facebook.WitAi.TTS.Editor.Preload
+namespace Meta.WitAi.TTS.Editor.Preload
 {
     [Serializable]
     public class TTSPreloadPhraseData

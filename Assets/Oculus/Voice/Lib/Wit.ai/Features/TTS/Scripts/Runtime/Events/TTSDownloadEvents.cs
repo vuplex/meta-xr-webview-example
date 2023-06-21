@@ -7,11 +7,11 @@
  */
 
 using System;
-using Facebook.WitAi.TTS.Data;
+using Meta.WitAi.TTS.Data;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.TTS.Events
+namespace Meta.WitAi.TTS.Events
 {
     [Serializable]
     public class TTSClipDownloadEvent : UnityEvent<TTSClipData, string>

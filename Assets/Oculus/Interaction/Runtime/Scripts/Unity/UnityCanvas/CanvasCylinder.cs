@@ -19,14 +19,14 @@
  */
 
 using System;
-using UnityEngine.Assertions;
+using Oculus.Interaction.Surfaces;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace Oculus.Interaction.UnityCanvas
 {
-    public class CanvasCylinder : CanvasMesh, ICurvedPlane
+    public class CanvasCylinder : CanvasMesh, ICurvedPlane, ICylinderClipper
     {
         [Serializable]
         public struct MeshGenerationSettings
@@ -69,10 +69,16 @@ namespace Oculus.Interaction.UnityCanvas
 
         private float CylinderRelativeScale => _cylinder.transform.lossyScale.x / transform.lossyScale.x;
 
+        public bool GetCylinderSegment(out CylinderSegment segment)
+        {
+            segment = new CylinderSegment(Rotation, ArcDegrees, Bottom, Top);
+            return _started && isActiveAndEnabled;
+        }
+
         protected override void Start()
         {
             this.BeginStart(ref _started, () => base.Start());
-            Assert.IsNotNull(_cylinder);
+            this.AssertField(_cylinder, nameof(_cylinder));
             this.EndStart(ref _started);
         }
 
@@ -287,10 +293,11 @@ namespace Oculus.Interaction.UnityCanvas
         #region Inject
 
         public void InjectAllCanvasCylinder(CanvasRenderTexture canvasRenderTexture,
+                                            MeshFilter meshFilter,
                                             Cylinder cylinder,
                                             CylinderOrientation orientation)
         {
-            InjectAllCanvasMesh(canvasRenderTexture);
+            InjectAllCanvasMesh(canvasRenderTexture, meshFilter);
             InjectCylinder(cylinder);
             InjectOrientation(orientation);
         }

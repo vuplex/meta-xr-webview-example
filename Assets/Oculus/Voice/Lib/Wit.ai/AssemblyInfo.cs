@@ -9,3 +9,4 @@
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("witai.tests")]
+[assembly: InternalsVisibleTo("Meta.WitAi.Tests.Editor")]

@@ -7,8 +7,9 @@
  */
 
 using UnityEngine;
+using Meta.WitAi.Data.Info;
 
-namespace Facebook.WitAi.Data.Entities
+namespace Meta.WitAi.Data.Entities
 {
     /// <summary>
     /// A configured dynamic entity meant to be placed on dynamic objects.
@@ -18,11 +19,11 @@ namespace Facebook.WitAi.Data.Entities
     public class RegisteredDynamicEntityKeyword : MonoBehaviour
     {
         [SerializeField] private string entity;
-        [SerializeField] private WitEntityKeyword keyword;
+        [SerializeField] private WitEntityKeywordInfo keyword;
 
         private void OnEnable()
         {
-            if (null == keyword) return;
+            if (string.IsNullOrEmpty(keyword.keyword)) return;
             if (string.IsNullOrEmpty(entity)) return;
 
             if (DynamicEntityKeywordRegistry.HasDynamicEntityRegistry)
@@ -31,16 +32,17 @@ namespace Facebook.WitAi.Data.Entities
             }
             else
             {
-                Debug.LogWarning($"No dynamic entity registry in the scene. Cannot register {name}.");
+                VLog.W($"Cannot register {name}: No dynamic entity registry present in the scene." +
+                                 $"Please add one and try again.");
             }
         }
 
         private void OnDisable()
         {
-            if (null == keyword) return;
+            if (string.IsNullOrEmpty(keyword.keyword)) return;
             if (string.IsNullOrEmpty(entity)) return;
 
-            if (DynamicEntityKeywordRegistry.HasDynamicEntityRegistry && null != keyword)
+            if (DynamicEntityKeywordRegistry.HasDynamicEntityRegistry)
             {
                 DynamicEntityKeywordRegistry.Instance.UnregisterDynamicEntity(entity, keyword);
             }

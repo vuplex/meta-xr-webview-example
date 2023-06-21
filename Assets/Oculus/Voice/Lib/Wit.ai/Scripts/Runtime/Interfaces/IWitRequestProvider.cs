@@ -6,13 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Configuration;
-using Facebook.WitAi.Data.Configuration;
+using Meta.WitAi.Configuration;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Requests;
 
-namespace Facebook.WitAi.Interfaces
+namespace Meta.WitAi.Interfaces
 {
     public interface IWitRequestProvider
     {
-        WitRequest CreateWitRequest(WitConfiguration config, WitRequestOptions requestOptions, IDynamicEntitiesProvider[] additionalEntityProviders = null);
+        WitRequest CreateWitRequest(WitConfiguration config, WitRequestOptions requestOptions, VoiceServiceRequestEvents requestEvents, IDynamicEntitiesProvider[] additionalEntityProviders = null);
     }
 }

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
@@ -26,7 +26,7 @@ namespace Oculus.Interaction.DistanceReticles
     public class ReticleIconDrawer : InteractorReticle<ReticleDataIcon>
     {
         [SerializeField, Interface(typeof(IDistanceInteractor))]
-        private MonoBehaviour _distanceInteractor;
+        private UnityEngine.Object _distanceInteractor;
         private IDistanceInteractor DistanceInteractor { get; set; }
 
         [SerializeField]
@@ -87,8 +87,8 @@ namespace Oculus.Interaction.DistanceReticles
         protected override void Start()
         {
             this.BeginStart(ref _started, () => base.Start());
-            Assert.IsNotNull(_renderer);
-            Assert.IsNotNull(_centerEye);
+            this.AssertField(_renderer, nameof(_renderer));
+            this.AssertField(_centerEye, nameof(_centerEye));
             _originalScale = this.transform.localScale;
             this.EndStart(ref _started);
         }
@@ -145,7 +145,7 @@ namespace Oculus.Interaction.DistanceReticles
 
         public void InjectDistanceInteractor(IDistanceInteractor distanceInteractor)
         {
-            _distanceInteractor = distanceInteractor as MonoBehaviour;
+            _distanceInteractor = distanceInteractor as UnityEngine.Object;
             DistanceInteractor = distanceInteractor;
             Interactor = distanceInteractor;
         }

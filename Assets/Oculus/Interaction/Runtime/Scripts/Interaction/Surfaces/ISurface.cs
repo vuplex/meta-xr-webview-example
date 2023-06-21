@@ -30,11 +30,6 @@ namespace Oculus.Interaction.Surfaces
         Transform Transform { get; }
 
         /// <summary>
-        /// The world space axis-aligned bounding box of the surface
-        /// </summary>
-        Bounds Bounds { get; }
-
-        /// <summary>
         /// Raycast to the surface with an optional maximum distance value
         /// </summary>
         /// <param name="ray">The ray to cast</param>

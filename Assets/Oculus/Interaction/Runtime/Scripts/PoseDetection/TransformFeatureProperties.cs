@@ -58,5 +58,10 @@ namespace Oculus.Interaction.PoseDetection
             startIndex += 3;
             return desc;
         }
+
+        public const string FeatureStateThresholdMidpointHelpText = "The value at which a state will transition from A > B (or B > A)";
+        public const string FeatureStateThresholdWidthHelpText =
+            "How far the transform value must exceed the midpoint until the transition can occur. " +
+            "This is to prevent rapid flickering at transition edges.";
     }
 }

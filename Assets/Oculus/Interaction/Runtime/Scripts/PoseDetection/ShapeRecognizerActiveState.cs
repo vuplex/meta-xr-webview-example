@@ -22,20 +22,23 @@ using Oculus.Interaction.Input;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 
 namespace Oculus.Interaction.PoseDetection
 {
     public class ShapeRecognizerActiveState : MonoBehaviour, IActiveState
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         public IHand Hand { get; private set; }
+
+        [SerializeField, Interface(typeof(IFingerFeatureStateProvider))]
+        private UnityEngine.Object _fingerFeatureStateProvider;
+
+        protected IFingerFeatureStateProvider FingerFeatureStateProvider;
 
         [SerializeField]
         private ShapeRecognizer[] _shapes;
         public IReadOnlyList<ShapeRecognizer> Shapes => _shapes;
-        private IFingerFeatureStateProvider FingerFeatureStateProvider { get; set; }
         public Handedness Handedness => Hand.Handedness;
 
         struct FingerFeatureStateUsage
@@ -46,28 +49,20 @@ namespace Oculus.Interaction.PoseDetection
 
         private List<FingerFeatureStateUsage> _allFingerStates = new List<FingerFeatureStateUsage>();
 
+        // keeps track of native state
+        private bool _nativeActive = false;
+
         protected virtual void Awake()
         {
             Hand = _hand as IHand;
+            FingerFeatureStateProvider = _fingerFeatureStateProvider as IFingerFeatureStateProvider;
         }
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(_shapes);
-
-            for (var index = 0; index < _shapes.Length; index++)
-            {
-                var sr = _shapes[index];
-                if (sr == null)
-                {
-                    Assert.IsNotNull(sr, "_shapes[" + index + "] != null");
-                }
-            }
-
-            bool foundAspect = Hand.TryGetAspect(out IFingerFeatureStateProvider state);
-            Assert.IsTrue(foundAspect);
-            FingerFeatureStateProvider = state;
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(FingerFeatureStateProvider, nameof(FingerFeatureStateProvider));
+            this.AssertCollectionField(_shapes, nameof(_shapes));
 
             _allFingerStates = FlattenUsedFeatures();
 
@@ -116,7 +111,7 @@ namespace Oculus.Interaction.PoseDetection
             {
                 if (!isActiveAndEnabled || _allFingerStates.Count == 0)
                 {
-                    return false;
+                    return (_nativeActive = false);
                 }
 
                 foreach (FingerFeatureStateUsage stateUsage in _allFingerStates)
@@ -124,25 +119,41 @@ namespace Oculus.Interaction.PoseDetection
                     if (!FingerFeatureStateProvider.IsStateActive(stateUsage.handFinger,
                         stateUsage.config.Feature, stateUsage.config.Mode, stateUsage.config.State))
                     {
-                        return false;
+                        return (_nativeActive = false);
                     }
                 }
 
-                return true;
+                if (!_nativeActive)
+                {
+                    // Activate native component
+                    int result = NativeMethods.isdk_NativeComponent_Activate(0x48506f7365446574);
+                    this.AssertIsTrue(result == NativeMethods.IsdkSuccess, "Unable to Activate native recognizer!");
+                }
+
+                return (_nativeActive = true);
             }
         }
 
         #region Inject
-        public void InjectAllShapeRecognizerActiveState(IHand hand, ShapeRecognizer[] shapes)
+        public void InjectAllShapeRecognizerActiveState(IHand hand,
+            IFingerFeatureStateProvider fingerFeatureStateProvider,
+            ShapeRecognizer[] shapes)
         {
             InjectHand(hand);
+            InjectFingerFeatureStateProvider(fingerFeatureStateProvider);
             InjectShapes(shapes);
         }
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
+        }
+
+        public void InjectFingerFeatureStateProvider(IFingerFeatureStateProvider fingerFeatureStateProvider)
+        {
+            _fingerFeatureStateProvider = fingerFeatureStateProvider as UnityEngine.Object;
+            FingerFeatureStateProvider = fingerFeatureStateProvider;
         }
 
         public void InjectShapes(ShapeRecognizer[] shapes)

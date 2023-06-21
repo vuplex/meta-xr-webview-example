@@ -13,7 +13,7 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-namespace Facebook.WitAi.Utilities
+namespace Meta.WitAi.Utilities
 {
     [Serializable]
     public struct VoiceServiceReference

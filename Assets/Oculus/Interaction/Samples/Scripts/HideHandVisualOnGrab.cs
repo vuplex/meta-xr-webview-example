@@ -19,10 +19,8 @@
  */
 
 using Oculus.Interaction.HandGrab;
-using System;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Serialization;
 
 namespace Oculus.Interaction.Samples
 {
@@ -31,12 +29,19 @@ namespace Oculus.Interaction.Samples
         [SerializeField]
         private HandGrabInteractor _handGrabInteractor;
 
-        [SerializeField]
-        private HandVisual _handVisual;
+        [SerializeField, Interface(typeof(IHandVisual))]
+        private UnityEngine.Object _handVisual;
+
+        private IHandVisual HandVisual;
+
+        protected virtual void Awake()
+        {
+            HandVisual = _handVisual as IHandVisual;
+        }
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_handVisual);
+            this.AssertField(HandVisual, nameof(HandVisual));
         }
 
         protected virtual void Update()
@@ -52,19 +57,19 @@ namespace Oculus.Interaction.Samples
             {
                 if (shouldHideHandComponent.TryGetComponent(out ShouldHideHandOnGrab component))
                 {
-                    _handVisual.ForceOffVisibility = true;
+                    HandVisual.ForceOffVisibility = true;
                 }
             }
             else
             {
-                _handVisual.ForceOffVisibility = false;
+                HandVisual.ForceOffVisibility = false;
             }
         }
 
         #region Inject
 
         public void InjectAll(HandGrabInteractor handGrabInteractor,
-             HandVisual handVisual)
+             IHandVisual handVisual)
         {
             InjectHandGrabInteractor(handGrabInteractor);
             InjectHandVisual(handVisual);
@@ -74,9 +79,10 @@ namespace Oculus.Interaction.Samples
             _handGrabInteractor = handGrabInteractor;
         }
 
-        private void InjectHandVisual(HandVisual handVisual)
+        private void InjectHandVisual(IHandVisual handVisual)
         {
-            _handVisual = handVisual;
+            _handVisual = handVisual as UnityEngine.Object;
+            HandVisual = handVisual;
         }
 
 

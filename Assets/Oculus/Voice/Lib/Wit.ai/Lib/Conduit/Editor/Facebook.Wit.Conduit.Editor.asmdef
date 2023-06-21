@@ -1,9 +1,10 @@
 {
-    "name": "Facebook.Wit.Conduit.Editor",
+    "name": "Meta.WitAi.Conduit.Editor",
     "rootNamespace": "",
     "references": [
-        "Facebook.Wit.Conduit",
-        "LitJson"
+        "Meta.WitAi.Lib",
+        "Meta.WitAi.Conduit",
+        "Meta.WitAI.Lib.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -42,7 +42,7 @@ namespace Oculus.Interaction
         {
             this.BeginStart(ref _started);
 
-            Assert.IsTrue(_slots != null && _slots.Count > 0);
+            this.AssertCollectionField(_slots, nameof(_slots));
             _slotInteractors = new int[_slots.Count];
 
             this.EndStart(ref _started);

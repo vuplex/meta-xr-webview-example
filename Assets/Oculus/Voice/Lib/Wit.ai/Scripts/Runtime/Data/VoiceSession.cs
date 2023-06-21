@@ -7,9 +7,9 @@
  */
 
 using System;
-using Facebook.WitAi.Lib;
+using Meta.WitAi.Json;
 
-namespace Facebook.WitAi.Data
+namespace Meta.WitAi.Data
 {
     [Serializable]
     public class VoiceSession

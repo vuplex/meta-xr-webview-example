@@ -19,24 +19,28 @@
  */
 
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction.PoseDetection
 {
     public class SequenceActiveState : MonoBehaviour, IActiveState
     {
+        [Tooltip("The Sequence that will drive this component.")]
         [SerializeField]
         private Sequence _sequence;
 
+        [Tooltip("If true, this ActiveState will become Active as soon " +
+            "as the first sequence step becomes Active.")]
         [SerializeField]
         private bool _activateIfStepsStarted;
 
+        [Tooltip("If true, this ActiveState will be active when " +
+            "the supplied Sequence is Active.")]
         [SerializeField]
         private bool _activateIfStepsComplete = true;
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_sequence);
+            this.AssertField(_sequence, nameof(_sequence));
         }
 
         public bool Active

@@ -7,26 +7,9 @@
  */
 
 using System;
-using Facebook.WitAi.Lib;
-using UnityEngine;
 
-namespace Facebook.WitAi.Data.Traits
+namespace Oculus.Interaction.Deprecated
 {
-    [Serializable]
-    public class WitTraitValue
-    {
-        [SerializeField] public string id;
-        [SerializeField] public string value;
-
-        #if UNITY_EDITOR
-        public static WitTraitValue FromJson(WitResponseNode traitValueNode)
-        {
-            return new WitTraitValue()
-            {
-                id = traitValueNode["id"],
-                value = traitValueNode["value"]
-            };
-        }
-        #endif
-    }
+    [Obsolete("Replaced by Meta.WitAi.Data.Info.WitTraitValueInfo")]
+    public class WitTraitValue { }
 }

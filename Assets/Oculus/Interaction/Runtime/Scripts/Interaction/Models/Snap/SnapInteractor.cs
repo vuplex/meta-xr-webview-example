@@ -18,9 +18,7 @@
  * limitations under the License.
  */
 
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Serialization;
 
 namespace Oculus.Interaction
@@ -36,6 +34,7 @@ namespace Oculus.Interaction
     {
         [SerializeField]
         private PointableElement _pointableElement;
+        public IPointableElement PointableElement => _pointableElement;
 
         [SerializeField]
         private Rigidbody _rigidbody;
@@ -53,10 +52,22 @@ namespace Oculus.Interaction
         [SerializeField, Optional]
         private SnapInteractable _defaultInteractable = null;
 
+        /// <summary>
+        /// Interactable to automatically snap to
+        /// when the associated Pointable is not being pointed at for Time-Out seconds.
+        /// </summary>
         [SerializeField, Optional]
+        [Tooltip("Interactable to automatically snap to " +
+            "when the associated Pointable is not being pointed at for Time-Out seconds")]
         private SnapInteractable _timeOutInteractable = null;
 
+        /// <summary>
+        /// When the associated Pointable is not being pointed at for Time-Out seconds
+        /// the SnapInteractor will snap to the TimeOutInteractable, unless it is null.
+        /// </summary>
         [SerializeField, Optional]
+        [Tooltip("When the associated Pointable is not being pointed at for Time-Out seconds " +
+            "the SnapInteractor will snap to the TimeOutInteractable, unless it is null.")]
         private float _timeOut = 0f;
 
         private float _idleStarted = -1f;
@@ -92,8 +103,9 @@ namespace Oculus.Interaction
         protected override void Start()
         {
             this.BeginStart(ref _started, () => base.Start());
-            Assert.IsNotNull(_pointableElement);
-            Assert.IsNotNull(Rigidbody);
+            this.AssertField(_pointableElement, nameof(_pointableElement));
+            this.AssertField(Rigidbody, nameof(Rigidbody));
+
             if (_snapPoseTransform == null)
             {
                 _snapPoseTransform = this.transform;
@@ -282,7 +294,8 @@ namespace Oculus.Interaction
 
         private bool TimedOut()
         {
-            return _timeOut >= 0f
+            return _timeOutInteractable != null
+                && _timeOut >= 0f
                 && _idleStarted >= 0f
                 && Time.time - _idleStarted > _timeOut;
         }
@@ -313,7 +326,7 @@ namespace Oculus.Interaction
             float bestPositionDeltaSqr = float.MaxValue;
             float bestAngularDelta = float.MaxValue;
 
-            IEnumerable<SnapInteractable> interactables = SnapInteractable.Registry.List(this);
+            var interactables = SnapInteractable.Registry.List(this);
             foreach (SnapInteractable interactable in interactables)
             {
                 if (!interactable.PoseForInteractor(this, out Pose pose))

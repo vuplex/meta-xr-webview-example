@@ -9,7 +9,7 @@
 using System;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.Events
+namespace Meta.WitAi.Events
 {
     /// <summary>
     /// An error event with two parameters.

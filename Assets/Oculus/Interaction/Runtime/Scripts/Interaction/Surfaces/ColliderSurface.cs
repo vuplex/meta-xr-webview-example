@@ -19,20 +19,18 @@
  */
 
 using UnityEngine;
-using UnityEngine.Assertions;
-using Vector3 = UnityEngine.Vector3;
 
 namespace Oculus.Interaction.Surfaces
 {
-    public class ColliderSurface : MonoBehaviour, ISurface
+    public class ColliderSurface : MonoBehaviour, ISurface, IBounds
     {
-
+        [Tooltip("The Surface will be represented by this collider.")]
         [SerializeField]
         private Collider _collider;
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_collider);
+            this.AssertField(_collider, nameof(_collider));
         }
 
         public Transform Transform => transform;
@@ -44,6 +42,7 @@ namespace Oculus.Interaction.Surfaces
             hit = new SurfaceHit();
 
             RaycastHit hitInfo;
+
             if (_collider.Raycast(ray, out hitInfo, maxDistance))
             {
                 hit.Point = hitInfo.point;
@@ -58,7 +57,16 @@ namespace Oculus.Interaction.Surfaces
         public bool ClosestSurfacePoint(in Vector3 point, out SurfaceHit hit, float maxDistance = 0)
         {
             Vector3 closest = _collider.ClosestPoint(point);
-            return Raycast(new Ray(point, closest - point), out hit, maxDistance);
+
+            Vector3 delta = closest - point;
+            if (delta.x == 0f && delta.y == 0f && delta.z == 0f)
+            {
+                Vector3 direction = _collider.bounds.center - point;
+                return Raycast(new Ray(point - direction,
+                    direction), out hit, float.MaxValue);
+            }
+
+            return Raycast(new Ray(point, delta), out hit, maxDistance);
         }
 
         #region Inject

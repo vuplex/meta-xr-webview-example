@@ -19,7 +19,6 @@
  */
 
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction.Grab.GrabSurfaces
 {
@@ -30,7 +29,7 @@ namespace Oculus.Interaction.Grab.GrabSurfaces
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_collider, "The ColliderSurface needs a collider");
+            this.AssertField(_collider, nameof(_collider));
         }
 
         private Vector3 NearestPointInSurface(Vector3 targetPosition)
@@ -42,26 +41,20 @@ namespace Oculus.Interaction.Grab.GrabSurfaces
             return _collider.ClosestPoint(targetPosition);
         }
 
-        public float CalculateBestPoseAtSurface(in Pose targetPose, in Pose referencePose, out Pose bestPose, in PoseMeasureParameters scoringModifier)
+        public GrabPoseScore CalculateBestPoseAtSurface(in Pose targetPose, out Pose bestPose,
+            in PoseMeasureParameters scoringModifier, Transform relativeTo)
         {
             Vector3 surfacePoint = NearestPointInSurface(targetPose.position);
-
-            float bestScore = 1f;
-            if (scoringModifier.MaxDistance > 0)
-            {
-                bestScore = GrabPoseHelper.PositionalSimilarity(surfacePoint, targetPose.position, scoringModifier.MaxDistance);
-            }
-
             bestPose = new Pose(surfacePoint, targetPose.rotation);
-            return bestScore;
+            return new GrabPoseScore(surfacePoint, targetPose.position);
         }
 
-        public bool CalculateBestPoseAtSurface(Ray targetRay, in Pose recordedPose, out Pose bestPose)
+        public bool CalculateBestPoseAtSurface(Ray targetRay, out Pose bestPose, Transform relativeTo)
         {
             if (_collider.Raycast(targetRay, out RaycastHit hit, Mathf.Infinity))
             {
                 bestPose.position = hit.point;
-                bestPose.rotation = recordedPose.rotation;
+                bestPose.rotation = relativeTo.rotation;
                 return true;
             }
             bestPose = Pose.identity;
@@ -69,7 +62,7 @@ namespace Oculus.Interaction.Grab.GrabSurfaces
         }
 
 
-        public Pose MirrorPose(in Pose gripPose)
+        public Pose MirrorPose(in Pose gripPose, Transform relativeTo)
         {
             return gripPose;
         }
@@ -82,12 +75,12 @@ namespace Oculus.Interaction.Grab.GrabSurfaces
         public IGrabSurface CreateDuplicatedSurface(GameObject gameObject)
         {
             ColliderGrabSurface colliderSurface = gameObject.AddComponent<ColliderGrabSurface>();
-            colliderSurface.InjectAllColliderSurface(_collider);
+            colliderSurface.InjectAllColliderGrabSurface(_collider);
             return colliderSurface;
         }
 
         #region Inject
-        public void InjectAllColliderSurface(Collider collider)
+        public void InjectAllColliderGrabSurface(Collider collider)
         {
             InjectCollider(collider);
         }

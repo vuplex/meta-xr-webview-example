@@ -168,7 +168,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$pause_timer
   confidence: 0.6
   onIntentTriggered:
@@ -270,7 +269,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   logText: {fileID: 903985438}
-  buzzSound: {fileID: 8300000, guid: 33a0d552717ab4c2e87a77c856d9aaf3, type: 3}
+  timesUpSounds:
+  - {fileID: 8300000, guid: ad0a5185ecef964498ee86f08f3694da, type: 3}
+  - {fileID: 8300000, guid: 35471033dbbe17f419f151ad822445e3, type: 3}
 --- !u!1 &294821956
 GameObject:
   m_ObjectHideFlags: 0
@@ -316,7 +317,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$create_timer
   confidence: 0.9
   onIntentTriggered:
@@ -381,7 +381,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$subtract_time_timer
   confidenceThreshold: 0.6
   valueMatchers:
@@ -447,6 +446,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f231c4fb786f3946a6b90b886c48677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SendPointerHoverToParent: 1
   m_HorizontalAxis: Horizontal
   m_VerticalAxis: Vertical
   m_SubmitButton: Submit
@@ -686,7 +686,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$resume_timer
   confidence: 0.6
   onIntentTriggered:
@@ -751,7 +750,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$create_timer
   confidenceThreshold: 0.6
   valueMatchers:
@@ -817,9 +815,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   events:
-    OnPartialResponse:
-      m_PersistentCalls:
-        m_Calls: []
+    _overriddenCallbacks: []
     OnResponse:
       m_PersistentCalls:
         m_Calls:
@@ -835,6 +831,12 @@ MonoBehaviour:
             m_StringArgument: Activate
             m_BoolArgument: 0
           m_CallState: 2
+    OnPartialResponse:
+      m_PersistentCalls:
+        m_Calls: []
+    OnValidatePartialResponse:
+      m_PersistentCalls:
+        m_Calls: []
     OnError:
       m_PersistentCalls:
         m_Calls:
@@ -860,6 +862,9 @@ MonoBehaviour:
       m_PersistentCalls:
         m_Calls: []
     OnMicLevelChanged:
+      m_PersistentCalls:
+        m_Calls: []
+    OnRequestOptionSetup:
       m_PersistentCalls:
         m_Calls: []
     OnRequestCreated:
@@ -1246,7 +1251,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$add_time_timer
   confidenceThreshold: 0.6
   valueMatchers:
@@ -1700,7 +1704,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   wit: {fileID: 737401905}
-  handlePartialResponses: 1
   intent: wit$delete_timer
   confidence: 0.6
   onIntentTriggered:

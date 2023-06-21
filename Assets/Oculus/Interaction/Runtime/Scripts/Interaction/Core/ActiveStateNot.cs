@@ -27,8 +27,9 @@ namespace Oculus.Interaction
 {
     public class ActiveStateNot : MonoBehaviour, IActiveState
     {
+        [Tooltip("The IActiveState that the NOT operation will be applied to.")]
         [SerializeField, Interface(typeof(IActiveState))]
-        private MonoBehaviour _activeState;
+        private UnityEngine.Object _activeState;
 
         private IActiveState ActiveState;
 
@@ -39,7 +40,7 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(ActiveState);
+            this.AssertField(ActiveState, nameof(ActiveState));
         }
 
         public bool Active => !ActiveState.Active;
@@ -53,7 +54,7 @@ namespace Oculus.Interaction
 
         public void InjectActiveState(IActiveState activeState)
         {
-            _activeState = activeState as MonoBehaviour;
+            _activeState = activeState as UnityEngine.Object;
             ActiveState = activeState;
         }
         #endregion

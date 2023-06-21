@@ -26,6 +26,6 @@ namespace Oculus.Interaction
     {
         Pose Origin { get; }
         Vector3 HitPoint { get; }
-        IDistanceInteractable DistanceInteractable { get; }
+        IRelativeToRef DistanceInteractable { get; }
     }
 }

@@ -21,7 +21,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Assertions;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -52,34 +51,40 @@ namespace Oculus.Interaction.UnityCanvas
 
         private static readonly Vector2Int DEFAULT_TEXTURE_RES = new Vector2Int(128, 128);
 
+        [Tooltip("The Unity canvas that will be rendered.")]
         [SerializeField]
         private Canvas _canvas;
 
-        [Tooltip("If you need extra resolution, you can use this as a whole-integer multiplier of the final resolution used to render the texture.")]
+        [Tooltip("If you need extra resolution, you can use this as a whole-integer multiplier " +
+            "of the final resolution used to render the texture.")]
         [Range(1, 3)]
         [Delayed]
         [SerializeField]
         private int _renderScale = 1;
 
+        [Tooltip("If set to auto, texture dimensions will take the size of the attached " +
+            "RectTransform into consideration, in addition to the configured pixel-per-unit ratio.")]
         [SerializeField]
         private DriveMode _dimensionsDriveMode = DriveMode.Auto;
 
-        [Tooltip("The exact pixel resolution of the texture used for interface rendering.  If set to auto this will take the size of the attached " +
-        "RectTransform into consideration, in addition to the configured pixel-to-meter ratio.")]
+        [Tooltip("The exact pixel resolution of the texture used for interface rendering.")]
         [Delayed]
         [SerializeField]
         private Vector2Int _resolution = DEFAULT_TEXTURE_RES;
 
-        [Tooltip("Whether or not mip-maps should be auto-generated for the texture.  Can help aliasing if the texture can be " +
+        [Tooltip("Whether or not mip-maps should be auto-generated for the texture. " +
+            "Can help aliasing if the texture can be " +
         "viewed from many difference distances.")]
         [SerializeField]
         private bool _generateMipMaps = false;
 
+        [Tooltip("Pixels per unit ratio used to drive the texture dimensions.")]
         [SerializeField]
         private int _pixelsPerUnit = 100;
 
         [Header("Rendering Settings")]
-        [Tooltip("The layers to render when the rendering texture is created.  All child renderers should be part of this mask.")]
+        [Tooltip("The layers to render when the rendering texture is created. " +
+            "All child renderers should be part of this mask.")]
         [SerializeField]
         private LayerMask _renderingLayers = DEFAULT_UI_LAYERMASK;
 
@@ -160,10 +165,8 @@ namespace Oculus.Interaction.UnityCanvas
 
         public Vector2Int GetScaledResolutionToUse()
         {
-            return new Vector2Int(
-                Mathf.RoundToInt(GetBaseResolutionToUse().x * (float)_renderScale),
-                Mathf.RoundToInt(GetBaseResolutionToUse().y * (float)_renderScale)
-            );
+            Vector2 resolution = GetBaseResolutionToUse();
+            return Vector2Int.RoundToInt(resolution * _renderScale);
         }
 
         public float PixelsToUnits(float pixels)
@@ -192,7 +195,7 @@ namespace Oculus.Interaction.UnityCanvas
         protected void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(_canvas);
+            this.AssertField(_canvas, nameof(_canvas));
             this.EndStart(ref _started);
         }
 
@@ -283,7 +286,7 @@ namespace Oculus.Interaction.UnityCanvas
                         DestroyImmediate(_tex);
                     }
 
-                    _tex = new RenderTexture(resolutionToUse.x, resolutionToUse.y, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+                    _tex = new RenderTexture(resolutionToUse.x, resolutionToUse.y, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
                     _tex.filterMode = FilterMode.Bilinear;
                     _tex.autoGenerateMips = _generateMipMaps;
                     _camera.targetTexture = _tex;
@@ -338,15 +341,22 @@ namespace Oculus.Interaction.UnityCanvas
 
         #region Inject
 
-        public void InjectAllCanvasRenderTexture(int pixelsPerUnit,
-                                                 int renderScale,
-                                                 LayerMask renderingLayers,
-                                                 bool generateMipMaps)
+        public void InjectAllCanvasRenderTexture(Canvas canvas,
+            int pixelsPerUnit,
+            int renderScale,
+            LayerMask renderingLayers,
+            bool generateMipMaps)
         {
+            InjectCanvas(canvas);
             InjectPixelsPerUnit(pixelsPerUnit);
             InjectRenderScale(renderScale);
             InjectRenderingLayers(renderingLayers);
             InjectGenerateMipMaps(generateMipMaps);
+        }
+
+        public void InjectCanvas(Canvas canvas)
+        {
+            _canvas = canvas;
         }
 
         public void InjectPixelsPerUnit(int pixelsPerUnit)

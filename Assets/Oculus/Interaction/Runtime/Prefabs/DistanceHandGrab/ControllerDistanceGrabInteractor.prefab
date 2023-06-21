@@ -154,11 +154,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _activeState: {fileID: 5979516266493034131}
   _interactableFilters: []
+  _maxIterationsPerFrame: 3
+  _data: {fileID: 0}
   _selector: {fileID: 5021159392599816142}
-  _selectionFrustum: {fileID: 2492800384500457778}
   _grabCenter: {fileID: 1736233816523549768}
   _grabTarget: {fileID: 0}
   _velocityCalculator: {fileID: 0}
+  _distantCandidateComputer:
+    _detectionFrustums:
+      _selectionFrustum: {fileID: 2492800384500457778}
+      _deselectionFrustum: {fileID: 0}
+      _aidFrustum: {fileID: 0}
+      _aidBlending: 0
+    _detectionDelay: 0
 --- !u!114 &4801568212808619093
 MonoBehaviour:
   m_ObjectHideFlags: 0

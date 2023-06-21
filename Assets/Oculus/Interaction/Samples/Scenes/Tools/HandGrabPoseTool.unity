@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.4074815, g: 0.40707275, b: 0.41266513, a: 1}
+  m_IndirectSpecularColor: {r: 0.44202876, g: 0.45022064, b: 0.47379425, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -269,9 +269,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4302184}
+  - component: {fileID: 4302185}
   - component: {fileID: 4302183}
   m_Layer: 0
-  m_Name: ProximityField
+  m_Name: Surface
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -286,10 +287,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4302182}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 901cc0853dbecd74d98375722eb8c7c0, type: 3}
+  m_Script: {fileID: 11500000, guid: e08ab46e8fb05dc46b34e54466dc11e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boxTransform: {fileID: 4302184}
+  _position: {x: 0, y: 0, z: 0}
+  _size: {x: 1, y: 1, z: 1}
 --- !u!4 &4302184
 Transform:
   m_ObjectHideFlags: 0
@@ -304,6 +306,21 @@ Transform:
   m_Father: {fileID: 1097885917}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4302185
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4302182}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efd927768041afd4d90e5d822283f0f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _planeSurface: {fileID: 202126394}
+  _clippers:
+  - {fileID: 4302183}
 --- !u!1 &105911272
 GameObject:
   m_ObjectHideFlags: 0
@@ -1180,8 +1197,7 @@ MonoBehaviour:
   _updateMode: 8
   _updateAfter: {fileID: 187677956}
   _iModifyDataFromSourceMono: {fileID: 187677956}
-  _applyModifier: 1
-  _aspects: []
+  _applyModifier: 0
   _scale: 1
 --- !u!1 &643672248
 GameObject:
@@ -2520,18 +2536,22 @@ MonoBehaviour:
   _interactorFilters: []
   _maxInteractors: -1
   _maxSelectingInteractors: -1
+  _data: {fileID: 0}
   _pointableElement: {fileID: 1097885915}
-  _surface: {fileID: 202126394}
-  _proximityField: {fileID: 4302183}
-  _maxDistance: 0.01
-  _enterHoverDistance: 0
-  _releaseDistance: 0.5
-  _tiebreakerScore: 0
-  _volumeMask: {fileID: 0}
-  _dragThresholding:
+  _surfacePatch: {fileID: 4302185}
+  _enterHoverNormal: 0.01
+  _enterHoverTangent: 0
+  _exitHoverNormal: 0.05
+  _exitHoverTangent: 0
+  _cancelSelectNormal: 0.5
+  _cancelSelectTangent: 0.03
+  _minThresholds:
+    Enabled: 0
+    MinNormal: 0.01
+  _dragThresholds:
     Enabled: 1
-    SurfaceThreshold: 0.01
-    ZThreshold: 0.01
+    DragNormal: 0.01
+    DragTangent: 0.01
     DragEaseCurve:
       _animationCurve:
         serializedVersion: 2
@@ -2561,6 +2581,12 @@ MonoBehaviour:
   _positionPinning:
     Enabled: 0
     MaxPinDistance: 0
+  _recoilAssist:
+    Enabled: 0
+    ExitDistance: 0.02
+    ReEnterDistance: 0.02
+  _closeDistanceThreshold: 0.001
+  _tiebreakerScore: 0
 --- !u!4 &1097885917
 Transform:
   m_ObjectHideFlags: 0
@@ -4674,8 +4700,7 @@ MonoBehaviour:
   _updateMode: 8
   _updateAfter: {fileID: 1434359322}
   _iModifyDataFromSourceMono: {fileID: 1434359322}
-  _applyModifier: 1
-  _aspects: []
+  _applyModifier: 0
   _scale: 1
 --- !u!1 &1752923794
 GameObject:
@@ -6215,6 +6240,7 @@ MonoBehaviour:
   _forwardElement: {fileID: 0}
   _oneGrabTransformer: {fileID: 0}
   _twoGrabTransformer: {fileID: 0}
+  _targetTransform: {fileID: 0}
   _maxGrabPoints: -1
 --- !u!1001 &1955518730969246596
 PrefabInstance:
@@ -7594,6 +7620,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2258758052515309563, guid: ea16c3c8c1688234fa81a4f39339bf1b,
         type: 3}
+      propertyPath: _hmd
+      value: 
+      objectReference: {fileID: 1914069183}
+    - target: {fileID: 2258758052515309563, guid: ea16c3c8c1688234fa81a4f39339bf1b,
+        type: 3}
       propertyPath: _trackingToWorldTransformer
       value: 
       objectReference: {fileID: 1323265277}
@@ -7767,6 +7798,11 @@ PrefabInstance:
       propertyPath: _trackingToWorldTransformer
       value: 
       objectReference: {fileID: 1323265277}
+    - target: {fileID: 8510734927898169623, guid: ea16c3c8c1688234fa81a4f39339bf1b,
+        type: 3}
+      propertyPath: _hmd
+      value: 
+      objectReference: {fileID: 1914069183}
     - target: {fileID: 8510734927898169623, guid: ea16c3c8c1688234fa81a4f39339bf1b,
         type: 3}
       propertyPath: _trackingToWorldTransformer

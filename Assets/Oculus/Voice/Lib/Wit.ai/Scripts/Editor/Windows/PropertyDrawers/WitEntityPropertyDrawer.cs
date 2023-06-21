@@ -8,8 +8,10 @@
 
 using UnityEditor;
 using System.Reflection;
+using Meta.WitAi.Data.Configuration;
+using UnityEngine;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     public class WitEntityPropertyDrawer : WitPropertyDrawer
     {
@@ -32,6 +34,8 @@ namespace Facebook.WitAi.Windows
                         return WitTexts.Texts.ConfigurationEntitiesLookupsLabel;
                     case "roles":
                         return WitTexts.Texts.ConfigurationEntitiesRolesLabel;
+                    case "keywords":
+                        return WitTexts.Texts.ConfigurationEntitiesKeywordsLabel;
             }
 
             // Default to base
@@ -43,10 +47,40 @@ namespace Facebook.WitAi.Windows
             switch (subfield.Name)
             {
                 case "name":
-                case "keywords":
                     return false;
             }
             return base.ShouldLayoutField(property, subfield);
+        }
+
+        protected override void OnDrawLabelInline(SerializedProperty property)
+        {
+            var configuration = property.serializedObject.targetObject as WitConfiguration;
+            if (configuration == null || !configuration.useConduit)
+            {
+                return;
+            }
+            
+            var assemblyWalker = WitConfigurationEditor.AssemblyWalker;
+            if (assemblyWalker == null)
+            {
+                return;
+            }
+
+            var entityName = property.displayName;
+
+            if (WitEditorUI.LayoutIconButton(EditorGUIUtility.IconContent("UxmlScript Icon")))
+            {
+                var manifest = ManifestLoader.LoadManifest(configuration.ManifestLocalPath);
+                var sourceCodeFile = CodeMapper.GetSourceFilePathFromTypeName(entityName, manifest, assemblyWalker);
+
+                if (string.IsNullOrEmpty(sourceCodeFile))
+                {
+                    VLog.W($"Failed to local source code for {entityName}");
+                    return;
+                }
+                
+                UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(sourceCodeFile, 1);
+            }
         }
     }
 }

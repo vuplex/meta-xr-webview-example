@@ -52,8 +52,8 @@ namespace Oculus.Interaction.PoseDetection.Debug
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(_jointVelocity);
-            Assert.IsNotNull(_lineRendererMaterial);
+            this.AssertField(_jointVelocity, nameof(_jointVelocity));
+            this.AssertField(_lineRendererMaterial, nameof(_lineRendererMaterial));
             this.EndStart(ref _started);
         }
 

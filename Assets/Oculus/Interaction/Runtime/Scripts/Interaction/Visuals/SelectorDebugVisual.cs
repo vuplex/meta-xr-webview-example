@@ -27,7 +27,7 @@ namespace Oculus.Interaction
     public class SelectorDebugVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(ISelector))]
-        private MonoBehaviour _selector;
+        private UnityEngine.Object _selector;
 
         [SerializeField]
         private Renderer _renderer;
@@ -76,9 +76,8 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Selector);
-
-            Assert.IsNotNull(_renderer);
+            this.AssertField(Selector, nameof(Selector));
+            this.AssertField(_renderer, nameof(_renderer));
             _material = _renderer.material;
             _material.color = _normalColor;
             this.EndStart(ref _started);
@@ -134,7 +133,7 @@ namespace Oculus.Interaction
 
         public void InjectSelector(ISelector selector)
         {
-            _selector = selector as MonoBehaviour;
+            _selector = selector as UnityEngine.Object;
             Selector = selector;
         }
 

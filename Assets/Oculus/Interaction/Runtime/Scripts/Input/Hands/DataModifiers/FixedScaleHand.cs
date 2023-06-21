@@ -38,10 +38,9 @@ namespace Oculus.Interaction.Input
 
         #region Inject
         public void InjectAllFixedScaleDataModifier(UpdateModeFlags updateMode, IDataSource updateAfter,
-            DataModifier<HandDataAsset> modifyDataFromSource, bool applyModifier,
-            Component[] aspects, float scale)
+            DataModifier<HandDataAsset> modifyDataFromSource, bool applyModifier, float scale)
         {
-            base.InjectAllHand(updateMode, updateAfter, modifyDataFromSource, applyModifier, aspects);
+            base.InjectAllHand(updateMode, updateAfter, modifyDataFromSource, applyModifier);
             InjectScale(scale);
         }
 

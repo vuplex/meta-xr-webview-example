@@ -7,10 +7,10 @@
  */
 
 using System;
-using Facebook.WitAi.Data;
+using Meta.WitAi.Data;
 using UnityEngine;
 
-namespace Facebook.WitAi.Events
+namespace Meta.WitAi.Events
 {
     [Serializable]
     public class AudioBufferEvents

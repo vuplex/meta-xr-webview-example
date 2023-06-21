@@ -20,7 +20,6 @@
 
 using Oculus.Interaction.Input;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction
 {
@@ -30,7 +29,7 @@ namespace Oculus.Interaction
     public class HandWristOffset : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         public IHand Hand { get; private set; }
 
         [SerializeField]
@@ -41,9 +40,9 @@ namespace Oculus.Interaction
         [HideInInspector]
         private Quaternion _rotation = Quaternion.identity;
 
-        [SerializeField, Optional]
-        [HideInInspector]
-        private Transform _relativeTransform;
+        [SerializeField]
+        [Tooltip("Mirrors the rotation offset when the attached Hand is has Left Handedness")]
+        private bool _mirrorLeftRotation = true;
 
         private Pose _cachedPose = Pose.identity;
 
@@ -71,6 +70,18 @@ namespace Oculus.Interaction
             }
         }
 
+        public bool MirrorLeftRotation
+        {
+            get
+            {
+                return _mirrorLeftRotation;
+            }
+            set
+            {
+                _mirrorLeftRotation = value;
+            }
+        }
+
         private static readonly Quaternion LEFT_MIRROR_ROTATION = Quaternion.Euler(180f, 0f, 0f);
 
         protected bool _started = false;
@@ -83,7 +94,7 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
+            this.AssertField(Hand, nameof(Hand));
             this.EndStart(ref _started);
         }
 
@@ -125,7 +136,7 @@ namespace Oculus.Interaction
 
         public void GetOffset(ref Pose pose, Handedness handedness, float scale)
         {
-            if (handedness == Handedness.Left)
+            if (_mirrorLeftRotation && handedness == Handedness.Left)
             {
                 pose.position = -_offset * scale;
                 pose.rotation = _rotation * LEFT_MIRROR_ROTATION;
@@ -146,7 +157,7 @@ namespace Oculus.Interaction
         #region Inject
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
         public void InjectOffset(Vector3 offset)

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace Facebook.WitAi.Data.Configuration
+namespace Meta.WitAi.Data.Configuration
 {
     public interface IApplicationDetailProvider
     {

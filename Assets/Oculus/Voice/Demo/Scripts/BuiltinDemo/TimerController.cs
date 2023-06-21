@@ -21,6 +21,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using Meta.WitAi;
 
 namespace Oculus.Voice.Demo.BuiltInDemo
 {
@@ -36,7 +37,7 @@ namespace Oculus.Voice.Demo.BuiltInDemo
         [Tooltip("The UI text element to show app messages.")]
         public Text logText;
 
-        [Tooltip("The timer ring sound.")] public AudioClip buzzSound;
+        [Tooltip("The timer ring sound.")] public AudioClip[] timesUpSounds;
 
         // Update is called once per frame
         void Update()
@@ -66,8 +67,9 @@ namespace Oculus.Voice.Demo.BuiltInDemo
             _time = 0;
             _timerRunning = false;
             _timerExist = false;
-            Log("Buzz!");
-            AudioSource.PlayClipAtPoint(buzzSound, Vector3.zero);
+            Log("Your timer is complete.");
+            AudioClip timesUpSfx = timesUpSounds[UnityEngine.Random.Range(0, timesUpSounds.Length)];
+            AudioSource.PlayClipAtPoint(timesUpSfx, Vector3.zero);
         }
 
         /// <summary>
@@ -95,7 +97,7 @@ namespace Oculus.Voice.Demo.BuiltInDemo
         {
             if (_timerExist)
             {
-                Debug.LogWarning("A timer already exist.");
+                VLog.W("A timer already exist.");
                 return;
             }
 

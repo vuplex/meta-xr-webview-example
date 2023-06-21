@@ -1,8 +1,8 @@
-using Facebook.WitAi.Interfaces;
+using Meta.WitAi.Interfaces;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.Events.UnityEventListeners
+namespace Meta.WitAi.Events.UnityEventListeners
 {
     [RequireComponent(typeof(IAudioEventProvider))]
     public class AudioEventListener : MonoBehaviour, IAudioInputEvents

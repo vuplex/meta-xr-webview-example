@@ -37,8 +37,8 @@ namespace Oculus.Interaction.PoseDetection.Debug
 
         protected virtual void Awake()
         {
-            Assert.IsNotNull(_shapeRecognizerActiveState);
-            Assert.IsNotNull(_fingerFeatureDebugVisualPrefab);
+            this.AssertField(_shapeRecognizerActiveState, nameof(_shapeRecognizerActiveState));
+            this.AssertField(_fingerFeatureDebugVisualPrefab, nameof(_fingerFeatureDebugVisualPrefab));
         }
 
         protected virtual void Start()

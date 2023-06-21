@@ -48,7 +48,7 @@ namespace Oculus.Interaction.Utils
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_sourceTransform);
+            this.AssertField(_sourceTransform, nameof(_sourceTransform));
             _positionFilter = OneEuroFilter.CreateVector3();
             _rotationFilter = OneEuroFilter.CreateQuaternion();
         }
@@ -60,7 +60,7 @@ namespace Oculus.Interaction.Utils
                 Vector3 position = _sourceTransform.position;
                 _positionFilter.SetProperties(_positionFilterProperties);
                 transform.position =
-                    _positionFilter.Step(_sourceTransform.position, Time.fixedDeltaTime);
+                    _positionFilter.Step(_sourceTransform.position, Time.deltaTime);
             }
             else
             {
@@ -71,7 +71,7 @@ namespace Oculus.Interaction.Utils
             {
                 _rotationFilter.SetProperties(_rotationFilterProperties);
                 transform.rotation =
-                    _rotationFilter.Step(_sourceTransform.rotation, Time.fixedDeltaTime);
+                    _rotationFilter.Step(_sourceTransform.rotation, Time.deltaTime);
             }
             else
             {

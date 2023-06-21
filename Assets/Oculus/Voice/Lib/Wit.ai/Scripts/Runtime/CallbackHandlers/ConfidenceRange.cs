@@ -9,7 +9,7 @@
 using System;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.CallbackHandlers
+namespace Meta.WitAi.CallbackHandlers
 {
     [Serializable]
     public class ConfidenceRange

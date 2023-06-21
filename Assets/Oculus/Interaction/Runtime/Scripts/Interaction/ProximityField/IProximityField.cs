@@ -18,12 +18,8 @@
  * limitations under the License.
  */
 
-using UnityEngine;
-
-namespace Oculus.Interaction
+namespace Oculus.Interaction.Deprecated
 {
-    public interface IProximityField
-    {
-        Vector3 ComputeClosestPoint(Vector3 point);
-    }
+    [System.Obsolete("Replaced by ISurface")]
+    public interface IProximityField { }
 }

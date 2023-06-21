@@ -31,7 +31,7 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_text);
+            this.AssertField(_text, nameof(_text));
             _text.text = "Version: " + Application.version;
         }
 

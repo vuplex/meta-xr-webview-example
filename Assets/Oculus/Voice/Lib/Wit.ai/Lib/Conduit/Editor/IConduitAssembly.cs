@@ -17,10 +17,28 @@ namespace Meta.Conduit.Editor
     /// </summary>
     internal interface IConduitAssembly
     {
+        /// <summary>
+        /// The full assembly name.
+        /// </summary>
         string FullName { get; }
 
+        /// <summary>
+        /// Returns all types in the assembly that are enums.
+        /// </summary>
+        /// <returns>The enum types.</returns>
         IEnumerable<Type> GetEnumTypes();
 
+        /// <summary>
+        /// Returns all the methods in the assembly.
+        /// </summary>
+        /// <returns>The methods.</returns>
         IEnumerable<MethodInfo> GetMethods();
+
+        /// <summary>
+        /// Returns the type of the given name from the assembly.
+        /// </summary>
+        /// <param name="name">The type name.</param>
+        /// <returns>The type.</returns>
+        Type GetType(string name);
     }
 }

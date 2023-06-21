@@ -47,8 +47,8 @@ namespace Oculus.Interaction.Samples
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_viewport);
-            Assert.IsNotNull(_content);
+            this.AssertField(_viewport, nameof(_viewport));
+            this.AssertField(_content, nameof(_content));
         }
 
         public void ScrollRight()

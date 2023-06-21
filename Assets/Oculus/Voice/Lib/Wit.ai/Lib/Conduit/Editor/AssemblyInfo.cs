@@ -8,6 +8,6 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Facebook.Wit.Editor")]
-[assembly:InternalsVisibleTo("Facebook.Wit.Tests.Editor")]
+[assembly:InternalsVisibleTo("Meta.WitAi.Editor")]
+[assembly:InternalsVisibleTo("Meta.WitAi.Tests.Editor")]
 [assembly:InternalsVisibleTo("DynamicProxyGenAssembly2")]

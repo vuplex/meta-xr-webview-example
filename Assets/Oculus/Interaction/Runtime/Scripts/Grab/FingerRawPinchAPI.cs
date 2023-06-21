@@ -46,7 +46,7 @@ namespace Oculus.Interaction.GrabAPI
                 _tipId = HandJointUtils.GetHandFingerTip(fingerId);
             }
 
-            public void UpdateTipPosition(IHand hand)
+            private void UpdateTipPosition(IHand hand)
             {
                 if (hand.GetJointPoseFromWrist(_tipId, out Pose pose))
                 {
@@ -56,6 +56,7 @@ namespace Oculus.Interaction.GrabAPI
 
             public void UpdateIsPinching(IHand hand)
             {
+                UpdateTipPosition(hand);
                 PinchStrength = hand.GetFingerPinchStrength(_finger);
                 bool isPinching = hand.GetFingerIsPinching(_finger);
                 if(isPinching != IsPinching)
@@ -85,7 +86,7 @@ namespace Oculus.Interaction.GrabAPI
             return _fingersPinchData[(int)finger].IsPinching;
         }
 
-        public Vector3 GetCenterOffset()
+        public Vector3 GetWristOffsetLocal()
         {
             float maxStrength = float.NegativeInfinity;
             Vector3 thumbTip = _fingersPinchData[0].TipPosition;

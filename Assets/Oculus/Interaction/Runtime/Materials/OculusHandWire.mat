@@ -91,7 +91,9 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
+    - _IndexGlowValue: 0
     - _Metallic: 0
+    - _MiddleGlowValue: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Opacity: 0.25
@@ -107,13 +109,16 @@ Material:
     - _Parallax: 0.02
     - _PinchIntensity: 0
     - _PinchRange: 0.03
+    - _PinkyGlowValue: 0
+    - _RingGlowValue: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _TextureOpacity: 1
+    - _ThumbGlowValue: 0
     - _UVSec: 0
     - _UseTexture: 0
-    - _WristFade: 1
+    - _WristFade: 0
     - _WristRange: 0.06
     - _ZWrite: 1
     - __dirty: 0

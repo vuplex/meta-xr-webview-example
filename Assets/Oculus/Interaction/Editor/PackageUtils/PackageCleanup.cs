@@ -24,6 +24,9 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using UnityEditor.PackageManager;
+
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace Oculus.Interaction.Editor
 {
@@ -53,7 +56,7 @@ namespace Oculus.Interaction.Editor
             Incomplete,
         }
 
-        public const string PACKAGE_VERSION = "0.46.0";
+        public const string PACKAGE_VERSION = "0.54.0";
         public const string DEPRECATED_TAG = "oculus_interaction_deprecated";
         public const string MOVED_TAG = "oculus_interaction_moved_";
         private const string MENU_NAME = "Oculus/Interaction/Clean Up Package";
@@ -86,6 +89,16 @@ namespace Oculus.Interaction.Editor
             {
                 StartRemovalUserFlow(false);
             }
+        }
+
+        /// <summary>
+        /// Check if there are any assets in the project that require
+        /// cleanup operations.
+        /// </summary>
+        /// <returns>True if package needs cleanup</returns>
+        public static bool CheckPackageNeedsCleanup()
+        {
+            return GetAssetInfos().Count > 0;
         }
 
         /// <summary>
@@ -177,6 +190,16 @@ namespace Oculus.Interaction.Editor
                     });
                 }
             }
+
+            result.RemoveAll((info) =>
+            {
+                // Ignore assets in read-only packages
+                var pSource = PackageInfo.FindForAssetPath(
+                    AssetDatabase.GUIDToAssetPath(info.AssetGuid))?.source;
+                return pSource != null && // In Assets folder
+                       pSource != PackageSource.Embedded &&
+                       pSource != PackageSource.Local;
+            });
 
             return result;
         }

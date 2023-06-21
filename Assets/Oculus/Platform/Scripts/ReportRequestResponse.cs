@@ -16,6 +16,9 @@ namespace Oculus.Platform
     [Description("UNHANDLED")]
     Unhandled,
 
+    [Description("UNAVAILABLE")]
+    Unavailable,
+
   }
 
 }

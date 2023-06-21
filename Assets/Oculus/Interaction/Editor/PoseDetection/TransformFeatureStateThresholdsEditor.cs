@@ -31,5 +31,10 @@ namespace Oculus.Interaction.PoseDetection.Editor
         {
             return TransformFeatureProperties.FeatureDescriptions;
         }
+
+
+        protected override string FeatureMidpointTooltip => TransformFeatureProperties.FeatureStateThresholdMidpointHelpText;
+
+        protected override string FeatureWidthTooltip => TransformFeatureProperties.FeatureStateThresholdWidthHelpText;
     }
 }

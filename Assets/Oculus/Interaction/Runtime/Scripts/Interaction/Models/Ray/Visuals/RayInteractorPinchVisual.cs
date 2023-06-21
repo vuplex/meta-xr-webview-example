@@ -29,7 +29,7 @@ namespace Oculus.Interaction
     public class RayInteractorPinchVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
 
         private IHand Hand;
 
@@ -83,10 +83,10 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(_skinnedMeshRenderer);
-            Assert.IsNotNull(_remapCurve);
-            Assert.IsNotNull(_rayInteractor);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(_skinnedMeshRenderer, nameof(_skinnedMeshRenderer));
+            this.AssertField(_remapCurve, nameof(_remapCurve));
+            this.AssertField(_rayInteractor, nameof(_rayInteractor));
             this.EndStart(ref _started);
         }
 
@@ -155,7 +155,7 @@ namespace Oculus.Interaction
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
 

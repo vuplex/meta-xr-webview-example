@@ -8,4 +8,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly:InternalsVisibleTo("Facebook.Wit.Tests")]
+[assembly:InternalsVisibleTo("Meta.WitAi.Tests")]

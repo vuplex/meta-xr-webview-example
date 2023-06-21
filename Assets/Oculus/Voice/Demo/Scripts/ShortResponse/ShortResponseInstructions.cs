@@ -44,12 +44,18 @@ namespace Oculus.Voice.Demo
                 _handler = gameObject.GetComponent<ShortResponseColorHandler>();
             }
             ShapeSelected(null);
-            _handler.OnShapeSelected += ShapeSelected;
+            if (_handler != null)
+            {
+                _handler.OnShapeSelected += ShapeSelected;
+            }
         }
         // Remove delegates
         private void OnDisable()
         {
-            _handler.OnShapeSelected -= ShapeSelected;
+            if (_handler != null)
+            {
+                _handler.OnShapeSelected -= ShapeSelected;
+            }
         }
 
         // Shape selected

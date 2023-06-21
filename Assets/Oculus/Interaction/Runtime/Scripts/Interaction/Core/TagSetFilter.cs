@@ -59,8 +59,8 @@ namespace Oculus.Interaction
 
         public bool Filter(GameObject gameObject)
         {
-            TagSet tagSet = gameObject.GetComponent<TagSet>();
-            if (tagSet == null && _requireTagSet.Count > 0)
+            bool hasTagSet = gameObject.TryGetComponent(out TagSet tagSet);
+            if (!hasTagSet && _requireTagSet.Count > 0)
             {
                 return false;
             }
@@ -73,7 +73,7 @@ namespace Oculus.Interaction
                 }
             }
 
-            if (tagSet == null)
+            if (!hasTagSet)
             {
                 return true;
             }

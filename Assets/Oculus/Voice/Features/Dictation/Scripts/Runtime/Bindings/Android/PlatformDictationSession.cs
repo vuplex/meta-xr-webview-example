@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 
-using Facebook.WitAi.Dictation.Data;
+using Meta.WitAi.Dictation.Data;
 
 namespace Oculus.Voice.Dictation.Bindings.Android
 {

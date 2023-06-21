@@ -7,11 +7,11 @@
  */
 
 using System.Reflection;
-using Facebook.WitAi.Utilities;
+using Meta.WitAi.Utilities;
 using UnityEditor;
 using UnityEngine;
 
-namespace Facebook.WitAi.Drawers
+namespace Meta.WitAi.Drawers
 {
     [CustomPropertyDrawer(typeof(DynamicRangeAttribute))]
     public class DynamicRangeAttributeDrawer : PropertyDrawer

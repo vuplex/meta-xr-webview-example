@@ -25,9 +25,6 @@ namespace Oculus.Interaction.Input
 {
     public class Hmd : DataModifier<HmdDataAsset>, IHmd
     {
-        public ITrackingToWorldTransformer TrackingToWorldTransformer =>
-          GetData().Config.TrackingToWorldTransformer;
-
         public event Action WhenUpdated = delegate { };
 
         protected override void Apply(HmdDataAsset data)
@@ -45,7 +42,7 @@ namespace Oculus.Interaction.Input
             }
         }
 
-        public bool GetRootPose(out Pose pose)
+        public bool TryGetRootPose(out Pose pose)
         {
             var currentData = GetData();
 
@@ -54,8 +51,13 @@ namespace Oculus.Interaction.Input
                 pose = Pose.identity;
                 return false;
             }
-            pose = TrackingToWorldTransformer.ToWorldPose(currentData.Root);
+            ITrackingToWorldTransformer transformer = GetData().Config.TrackingToWorldTransformer;
+            pose = transformer.ToWorldPose(currentData.Root);
             return true;
         }
+
+        #region Inject
+
+        #endregion
     }
 }

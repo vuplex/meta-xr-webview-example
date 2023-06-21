@@ -237,7 +237,9 @@ MonoBehaviour:
   _interactorFilters: []
   _maxInteractors: -1
   _maxSelectingInteractors: -1
+  _data: {fileID: 0}
   _pointableElement: {fileID: 0}
   _surface: {fileID: 4628751021272877255}
   _selectSurface: {fileID: 0}
   _movementProvider: {fileID: 0}
+  _tiebreakerScore: 0

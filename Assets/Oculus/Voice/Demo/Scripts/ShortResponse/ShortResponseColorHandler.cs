@@ -19,10 +19,9 @@
  */
 
 using System;
-using Facebook.WitAi;
-using Facebook.WitAi.Data;
-using Facebook.WitAi.Data.Intents;
-using Facebook.WitAi.Lib;
+using Meta.WitAi;
+using Meta.WitAi.Data;
+using Meta.WitAi.Data.Configuration;
 using UnityEngine;
 
 namespace Oculus.Voice.Demo
@@ -48,6 +47,9 @@ namespace Oculus.Voice.Demo
 
         [Header("Color Settings")]
         // Color override
+#if UNITY_2021_3_2 || UNITY_2021_3_3 || UNITY_2021_3_4 || UNITY_2021_3_5
+        [NonReorderable]
+#endif
         [SerializeField] private ColorOverride[] _colorOverride;
         // On shape selected
         public Action<Renderer, Color> OnShapeColorChanged;
@@ -60,49 +62,30 @@ namespace Oculus.Voice.Demo
         // On enable, find shapes
         private void OnEnable()
         {
+            VoiceService service = GameObject.FindObjectOfType<VoiceService>();
+            if (service != null)
+            {
+                WitConfiguration configuration = service.GetComponent<IWitRuntimeConfigProvider>()?.RuntimeConfiguration?.witConfiguration;
+                if (configuration != null && !configuration.useConduit)
+                {
+                    VLog.E("ShortResponseDemo only works with Conduit!  Please enable Conduit on your wit configuration to try this demo.");
+                }
+            }
             if (_shapeContainer != null)
             {
                 _shapes = _shapeContainer.GetComponentsInChildren<Renderer>(true);
             }
             SelectShape(-1);
         }
-        // Validate partial response
-        public void OnValidatePartialResponse(VoiceSession sessionData)
-        {
-            if (sessionData == null || sessionData.response == null)
-            {
-                return;
-            }
-
-            // Determine current intent
-            WitIntentData intent = sessionData.response.GetFirstIntentData();
-            if (intent == null || intent.confidence < MIN_CONFIDENCE)
-            {
-                return;
-            }
-
-            // Handle shape intent
-            if (string.Equals(intent.name, SHAPE_SELECT_INTENT_ID, StringComparison.CurrentCultureIgnoreCase))
-            {
-                string shape = sessionData.response.GetFirstEntityValue("shape:shape");
-                OnValidateShapeSelect(sessionData, shape);
-            }
-            // Handle color intent
-            else if (string.Equals(intent.name, COLOR_SET_INTENT_ID, StringComparison.CurrentCultureIgnoreCase))
-            {
-                string color = sessionData.response.GetFirstEntityValue("color:color");
-                OnValidateColorSet(sessionData, color);
-            }
-        }
 
         #region SHAPES
-        // On short response handler
+        // Validate & set shape
+        [ValidatePartialIntent(intent:SHAPE_SELECT_INTENT_ID, minConfidence:MIN_CONFIDENCE)]
         public void OnValidateShapeSelect(VoiceSession sessionData, string shape)
         {
             int index;
             if (TryGetShapeIndex(shape, out index))
             {
-                Debug.Log("Shape: " + shape);
                 SelectShape(index);
                 sessionData.validResponse = true;
             }
@@ -133,7 +116,8 @@ namespace Oculus.Voice.Demo
         #endregion
 
         #region COLORS
-        // On short response handler
+        // Validate & set color
+        [ValidatePartialIntent(intent:COLOR_SET_INTENT_ID,minConfidence:MIN_CONFIDENCE)]
         public void OnValidateColorSet(VoiceSession sessionData, string color)
         {
             Color c;

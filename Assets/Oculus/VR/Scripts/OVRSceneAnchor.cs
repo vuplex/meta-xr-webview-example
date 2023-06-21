@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -46,10 +45,15 @@ public sealed class OVRSceneAnchor : MonoBehaviour
     /// </summary>
     public Guid Uuid { get; private set; }
 
+    /// <summary>
+    /// Indicates whether this anchor is tracked by the system.
+    /// </summary>
+    public bool IsTracked { get; internal set; }
+
     private static readonly Quaternion RotateY180 = Quaternion.Euler(0, 180, 0);
     private OVRPlugin.Posef? _pose = null;
 
-    private bool IsComponentEnabled(OVRPlugin.SpaceComponentType spaceComponentType) =>
+    internal bool IsComponentEnabled(OVRPlugin.SpaceComponentType spaceComponentType) =>
         OVRPlugin.GetSpaceComponentStatus(Space, spaceComponentType, out var componentEnabled, out _)
         && componentEnabled;
 
@@ -86,18 +90,14 @@ public sealed class OVRSceneAnchor : MonoBehaviour
 
         Space = space;
         Uuid = uuid;
+
         ClearPoseCache();
 
+        SceneAnchors[this.Uuid] = this;
         SceneAnchorsList.Add(this);
 
         AnchorReferenceCountDictionary.TryGetValue(Space, out var referenceCount);
         AnchorReferenceCountDictionary[Space] = referenceCount + 1;
-
-        if (!IsComponentEnabled(OVRPlugin.SpaceComponentType.Locatable))
-        {
-            OVRSceneManager.Development.LogError(nameof(OVRSceneAnchor),
-                $"[{uuid}] Is missing the {nameof(OVRPlugin.SpaceComponentType.Locatable)} component.");
-        }
 
         // Generally, we want to set the transform as soon as possible, but there is a valid use case where we want to
         // disable this component as soon as its added to override the transform.
@@ -108,6 +108,7 @@ public sealed class OVRSceneAnchor : MonoBehaviour
             // This should work; so add some development-only logs so we know if something is wrong here.
             if (updateTransformSucceeded)
             {
+                IsTracked = true;
                 OVRSceneManager.Development.Log(nameof(OVRSceneAnchor), $"[{uuid}] Initial transform set.");
             }
             else
@@ -136,6 +137,20 @@ public sealed class OVRSceneAnchor : MonoBehaviour
         Initialize(other.Space, other.Uuid);
     }
 
+    /// <summary>
+    /// Get the list of all scene anchors.
+    /// </summary>
+    /// <param name="anchors">A list of <see cref="OVRSceneAnchor"/> to populate.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="anchors"/> is `null`.</exception>
+    public static void GetSceneAnchors(List<OVRSceneAnchor> anchors)
+    {
+        if (anchors == null)
+            throw new ArgumentNullException(nameof(anchors));
+
+        anchors.Clear();
+        anchors.AddRange(SceneAnchorsList);
+    }
+
     internal bool TryUpdateTransform(bool useCache)
     {
         if (!Space.Valid || !enabled) return false;
@@ -146,6 +161,7 @@ public sealed class OVRSceneAnchor : MonoBehaviour
             {
                 return false;
             }
+
             _pose = pose;
         }
 
@@ -180,7 +196,13 @@ public sealed class OVRSceneAnchor : MonoBehaviour
 
     private void OnDestroy()
     {
+        SceneAnchors.Remove(this.Uuid);
         SceneAnchorsList.Remove(this);
+
+        if (!Space.Valid)
+        {
+            return;
+        }
 
         if (!AnchorReferenceCountDictionary.TryGetValue(Space, out var referenceCount))
         {
@@ -209,6 +231,7 @@ public sealed class OVRSceneAnchor : MonoBehaviour
     private static readonly Dictionary<OVRSpace, int> AnchorReferenceCountDictionary =
         new Dictionary<OVRSpace, int>();
 
+    internal static readonly Dictionary<Guid, OVRSceneAnchor> SceneAnchors = new Dictionary<Guid, OVRSceneAnchor>();
     internal static readonly List<OVRSceneAnchor> SceneAnchorsList = new List<OVRSceneAnchor>();
 }
 

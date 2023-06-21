@@ -39,8 +39,8 @@ namespace Oculus.Interaction.PoseDetection.Debug
 
         protected virtual void Awake()
         {
-            Assert.IsNotNull(_transformRecognizerActiveState);
-            Assert.IsNotNull(_vectorVisualPrefab);
+            this.AssertField(_transformRecognizerActiveState, nameof(_transformRecognizerActiveState));
+            this.AssertField(_vectorVisualPrefab, nameof(_vectorVisualPrefab));
         }
 
         protected virtual void Start()

@@ -29,7 +29,7 @@ public class SpatialAnchorLoader : MonoBehaviour
             PlayerPrefs.SetInt(Anchor.NumUuidsPlayerPref, 0);
         }
 
-        var playerUuidCount = PlayerPrefs.GetInt("numUuids");
+        var playerUuidCount = PlayerPrefs.GetInt(Anchor.NumUuidsPlayerPref);
         Log($"Attempting to load {playerUuidCount} saved anchors.");
         if (playerUuidCount == 0)
             return;
@@ -46,7 +46,6 @@ public class SpatialAnchorLoader : MonoBehaviour
 
         Load(new OVRSpatialAnchor.LoadOptions
         {
-            MaxAnchorCount = 100,
             Timeout = 0,
             StorageLocation = OVRSpace.StorageLocation.Local,
             Uuids = uuids

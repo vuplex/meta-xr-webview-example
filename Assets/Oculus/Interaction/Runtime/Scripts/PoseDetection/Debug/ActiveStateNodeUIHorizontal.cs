@@ -65,10 +65,10 @@ namespace Oculus.Interaction.PoseDetection.Debug
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_childArea);
-            Assert.IsNotNull(_connectingLine);
-            Assert.IsNotNull(_activeImage);
-            Assert.IsNotNull(_label);
+            this.AssertField(_childArea, nameof(_childArea));
+            this.AssertField(_connectingLine, nameof(_connectingLine));
+            this.AssertField(_activeImage, nameof(_activeImage));
+            this.AssertField(_label, nameof(_label));
         }
 
         protected virtual void Update()
@@ -81,9 +81,9 @@ namespace Oculus.Interaction.PoseDetection.Debug
         private string GetLabelText(IActiveStateTreeNode node)
         {
             string label = _isDuplicate ? "<i>" : "";
-            if (node.ActiveState is MonoBehaviour mono)
+            if (node.ActiveState is UnityEngine.Object obj)
             {
-                label += mono.gameObject.name + System.Environment.NewLine;
+                label += obj.name + System.Environment.NewLine;
             }
             label += string.Format(OBJNAME_FORMAT, node.ActiveState.GetType().Name);
             return label;

@@ -21,6 +21,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using static Oculus.Interaction.HandGrab.HandGrabUtils;
+
 namespace Oculus.Interaction.HandGrab
 {
     /// <summary>

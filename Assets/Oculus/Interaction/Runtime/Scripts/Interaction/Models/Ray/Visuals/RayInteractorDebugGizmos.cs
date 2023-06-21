@@ -90,7 +90,7 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_rayInteractor);
+            this.AssertField(_rayInteractor, nameof(_rayInteractor));
         }
 
         private void LateUpdate()

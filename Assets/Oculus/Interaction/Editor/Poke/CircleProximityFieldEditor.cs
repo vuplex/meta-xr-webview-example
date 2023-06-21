@@ -18,34 +18,8 @@
  * limitations under the License.
  */
 
-using UnityEditor;
-using UnityEngine;
-
-namespace Oculus.Interaction.Editor
+namespace Oculus.Interaction.Deprecated
 {
-    [CustomEditor(typeof(CircleProximityField))]
-    public class CircleProximityFieldEditor : UnityEditor.Editor
-    {
-        private SerializedProperty _transformProperty;
-        private SerializedProperty _radiusProperty;
-
-        private void Awake()
-        {
-            _transformProperty = serializedObject.FindProperty("_transform");
-            _radiusProperty = serializedObject.FindProperty("_radius");
-        }
-
-        public void OnSceneGUI()
-        {
-            Handles.color = EditorConstants.PRIMARY_COLOR;
-
-            Transform transform = _transformProperty.objectReferenceValue as Transform;
-            float radius = _radiusProperty.floatValue * transform.lossyScale.x;
-#if UNITY_2020_2_OR_NEWER
-            Handles.DrawWireDisc(transform.position, -transform.forward, radius, EditorConstants.LINE_THICKNESS);
-#else
-            Handles.DrawWireDisc(transform.position, -transform.forward, radius);
-#endif
-        }
-    }
+    [System.Obsolete("Replaced by CircleSurfaceEditor")]
+    public class CircleProximityFieldEditor { }
 }

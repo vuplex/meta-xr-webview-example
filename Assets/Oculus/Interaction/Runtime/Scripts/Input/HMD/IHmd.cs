@@ -25,7 +25,7 @@ namespace Oculus.Interaction.Input
 {
     public interface IHmd
     {
-        bool GetRootPose(out Pose pose);
+        bool TryGetRootPose(out Pose pose);
         event Action WhenUpdated;
     }
 }

@@ -99,15 +99,19 @@ namespace Oculus.Interaction.PoseDetection
         [Serializable]
         public class JointVelocityFeatureConfig : FeatureConfigBase<HandJointId>
         {
+            [Tooltip("The detection axis will be in this coordinate space.")]
             [SerializeField]
             private RelativeTo _relativeTo = RelativeTo.Hand;
 
+            [Tooltip("The world axis used for detection.")]
             [SerializeField]
             private WorldAxis _worldAxis = WorldAxis.PositiveZ;
 
+            [Tooltip("The axis of the hand root pose used for detection.")]
             [SerializeField]
             private HandAxis _handAxis = HandAxis.WristForward;
 
+            [Tooltip("The axis of the head pose used for detection.")]
             [SerializeField]
             private HeadAxis _headAxis = HeadAxis.HeadForward;
 
@@ -118,23 +122,38 @@ namespace Oculus.Interaction.PoseDetection
 
         }
 
+        [Tooltip("Provided joints will be sourced from this IHand.")]
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         public IHand Hand { get; private set; }
 
+        [Tooltip("JointDeltaProvider caches joint deltas to avoid " +
+            "unnecessary recomputing of deltas.")]
+        [SerializeField, Interface(typeof(IJointDeltaProvider))]
+        private UnityEngine.Object _jointDeltaProvider;
+        public IJointDeltaProvider JointDeltaProvider { get; private set; }
+
+        [Tooltip("Reference to the Hmd providing the HeadAxis pose.")]
         [SerializeField, Optional, Interface(typeof(IHmd))]
-        private MonoBehaviour _hmd;
+        private UnityEngine.Object _hmd;
         public IHmd Hmd { get; private set; }
 
         [SerializeField]
         private JointVelocityFeatureConfigList _featureConfigs;
 
+        [Tooltip("The velocity used for the detection " +
+            "threshold, in units per second.")]
         [SerializeField, Min(0)]
         private float _minVelocity = 0.5f;
 
+        [Tooltip("The min velocity value will be modified by this width " +
+            "to create differing enter/exit thresholds. Used to prevent " +
+            "chattering at the threshold edge.")]
         [SerializeField, Min(0)]
         private float _thresholdWidth = 0.02f;
 
+        [Tooltip("A new state must be maintaned for at least this " +
+            "many seconds before the Active property changes.")]
         [SerializeField, Min(0)]
         private float _minTimeInState = 0.05f;
 
@@ -162,7 +181,6 @@ namespace Oculus.Interaction.PoseDetection
             new Dictionary<JointVelocityFeatureConfig, JointVelocityFeatureState>();
 
         private JointDeltaConfig _jointDeltaConfig;
-        private JointDeltaProvider JointDeltaProvider { get; set; }
 
         private Func<float> _timeProvider;
         private int _lastStateUpdateFrame;
@@ -176,6 +194,7 @@ namespace Oculus.Interaction.PoseDetection
         protected virtual void Awake()
         {
             Hand = _hand as IHand;
+            JointDeltaProvider = _jointDeltaProvider as IJointDeltaProvider;
             _timeProvider = () => Time.time;
 
             if (_hmd != null)
@@ -188,9 +207,10 @@ namespace Oculus.Interaction.PoseDetection
         {
             this.BeginStart(ref _started);
 
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(FeatureConfigs);
-            Assert.IsNotNull(_timeProvider);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(JointDeltaProvider, nameof(JointDeltaProvider));
+            this.AssertField(_jointDeltaProvider, nameof(_jointDeltaProvider));
+            this.AssertField(_timeProvider, nameof(_timeProvider));
 
             IList<HandJointId> allTrackedJoints = new List<HandJointId>();
             foreach (var config in FeatureConfigs)
@@ -199,12 +219,12 @@ namespace Oculus.Interaction.PoseDetection
                 _featureStates.Add(config, new JointVelocityFeatureState());
 
                 Assert.IsTrue(config.RelativeTo != RelativeTo.Head || Hmd != null);
+
+                this.AssertIsTrue(config.RelativeTo != RelativeTo.Head || Hmd != null,
+                    $"One of the {AssertUtils.Nicify(nameof(FeatureConfigs))} is not relative to the head or the {nameof(Hmd)}");
             }
             _jointDeltaConfig = new JointDeltaConfig(GetInstanceID(), allTrackedJoints);
 
-            bool foundAspect = Hand.TryGetAspect(out JointDeltaProvider aspect);
-            Assert.IsTrue(foundAspect);
-            JointDeltaProvider = aspect;
 
             _lastUpdateTime = _timeProvider();
             this.EndStart(ref _started);
@@ -366,7 +386,7 @@ namespace Oculus.Interaction.PoseDetection
 
         private Vector3 GetHeadAxisVector(HeadAxis axis)
         {
-            Hmd.GetRootPose(out Pose headPose);
+            Hmd.TryGetRootPose(out Pose headPose);
 
             Vector3 result;
             switch (axis)
@@ -399,10 +419,11 @@ namespace Oculus.Interaction.PoseDetection
         #region Inject
 
         public void InjectAllJointVelocityActiveState(JointVelocityFeatureConfigList featureConfigs,
-                                                      IHand hand)
+                                                      IHand hand, IJointDeltaProvider jointDeltaProvider)
         {
             InjectFeatureConfigList(featureConfigs);
             InjectHand(hand);
+            InjectJointDeltaProvider(jointDeltaProvider);
         }
 
         public void InjectFeatureConfigList(JointVelocityFeatureConfigList featureConfigs)
@@ -412,8 +433,14 @@ namespace Oculus.Interaction.PoseDetection
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
+        }
+
+        public void InjectJointDeltaProvider(IJointDeltaProvider jointDeltaProvider)
+        {
+            JointDeltaProvider = jointDeltaProvider;
+            _jointDeltaProvider = jointDeltaProvider as UnityEngine.Object;
         }
 
         public void InjectOptionalTimeProvider(Func<float> timeProvider)
@@ -424,7 +451,7 @@ namespace Oculus.Interaction.PoseDetection
 
         public void InjectOptionalHmd(IHmd hmd)
         {
-            _hmd = hmd as MonoBehaviour;
+            _hmd = hmd as UnityEngine.Object;
             Hmd = hmd;
         }
 

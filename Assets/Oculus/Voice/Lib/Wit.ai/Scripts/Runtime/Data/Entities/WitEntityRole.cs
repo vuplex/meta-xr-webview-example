@@ -7,26 +7,9 @@
  */
 
 using System;
-using Facebook.WitAi.Lib;
-using UnityEngine;
 
-namespace Facebook.WitAi.Data.Entities
+namespace Oculus.Interaction.Deprecated
 {
-    [Serializable]
-    public class WitEntityRole
-    {
-        [SerializeField] public string id;
-        [SerializeField] public string name;
-
-#if UNITY_EDITOR
-        public static WitEntityRole FromJson(WitResponseNode roleNode)
-        {
-            return new WitEntityRole()
-            {
-                id = roleNode["id"],
-                name = roleNode["name"]
-            };
-        }
-#endif
-    }
+    [Obsolete("Replaced by Meta.WitAi.Data.Info.WitEntityRoleInfo")]
+    public class WitEntityRole { }
 }

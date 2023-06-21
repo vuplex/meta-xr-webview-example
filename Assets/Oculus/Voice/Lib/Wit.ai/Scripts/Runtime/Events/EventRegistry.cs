@@ -9,7 +9,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Facebook.WitAi.Events
+namespace Meta.WitAi.Events
 {
     public class EventRegistry
     {

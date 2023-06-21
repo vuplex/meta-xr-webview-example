@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Profiling;
 
 namespace Oculus.Interaction.UnityCanvas
@@ -28,12 +27,15 @@ namespace Oculus.Interaction.UnityCanvas
     [DisallowMultipleComponent]
     public abstract class CanvasMesh : MonoBehaviour
     {
+        [Tooltip("Mesh construction will be driven by this texture.")]
         [SerializeField]
         protected CanvasRenderTexture _canvasRenderTexture;
 
+        [Tooltip("The mesh filter that will be driven.")]
         [SerializeField]
         protected MeshFilter _meshFilter;
 
+        [Tooltip("Optional mesh collider that will be driven.")]
         [SerializeField, Optional]
         protected MeshCollider _meshCollider = null;
 
@@ -54,14 +56,14 @@ namespace Oculus.Interaction.UnityCanvas
             Vector3 canvasLocalPosition = MeshInverseTransform(localToImposter) /
                                           _canvasRenderTexture.transform.localScale.x;
             Vector3 transformedWorldPosition = _canvasRenderTexture.transform.TransformPoint(canvasLocalPosition);
-            return transformedWorldPosition;//
+            return transformedWorldPosition;
         }
 
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(_meshFilter);
-            Assert.IsNotNull(_canvasRenderTexture);
+            this.AssertField(_meshFilter, nameof(_meshFilter));
+            this.AssertField(_canvasRenderTexture, nameof(_canvasRenderTexture));
             this.EndStart(ref _started);
         }
 
@@ -121,14 +123,20 @@ namespace Oculus.Interaction.UnityCanvas
 
         #region Inject
 
-        public void InjectAllCanvasMesh(CanvasRenderTexture canvasRenderTexture)
+        public void InjectAllCanvasMesh(CanvasRenderTexture canvasRenderTexture, MeshFilter meshFilter)
         {
             InjectCanvasRenderTexture(canvasRenderTexture);
+            InjectMeshFilter(meshFilter);
         }
 
         public void InjectCanvasRenderTexture(CanvasRenderTexture canvasRenderTexture)
         {
             _canvasRenderTexture = canvasRenderTexture;
+        }
+
+        public void InjectMeshFilter(MeshFilter meshFilter)
+        {
+            _meshFilter = meshFilter;
         }
 
         public void InjectOptionalMeshCollider(MeshCollider meshCollider)

@@ -1,5 +1,7 @@
 fileFormatVersion: 2
-guid: 9fa0825d6b962924e8124b0b7d0595f8
+guid: 868616af8391f7e4590189328af81942
+labels:
+- oculus_interaction_deprecated
 PrefabImporter:
   externalObjects: {}
   userData: 

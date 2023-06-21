@@ -55,38 +55,59 @@ namespace Oculus.Interaction.PoseDetection
         } =
             new Dictionary<FingerFeature, FeatureDescription>
             {
-                [FingerFeature.Curl] = new FeatureDescription(
-                    "Convex angle (in degrees) representing the top 2 joints of the fingers. Angle increases as finger curl becomes closed.",
-                    "Calculated from the average of the convex angles formed by the 2 bones connected to Joint 2, and 2 bones connected to Joint 3.\n" +
-                    "Values above 180 Positive show a curled state, while values below 180 represent hyper-extension.",
+                [FingerFeature.Curl] = new FeatureDescription(FeatureCurlShortHelpText,
+                    FeatureCurlDetailHelpText,
                     180,
                     260,
                     CurlFeatureStates),
                 [FingerFeature.Flexion] = new FeatureDescription(
-                    "Convex angle (in degrees) of joint 1 of the finger. Angle increases as finger flexion becomes closed.",
-                    "Calculated from the angle between the bones connected to finger Joint 1 around the Z axis of the joint.\n" +
-                    "For fingers, joint 1 is commonly known as the 'Knuckle'; but for the thumb it is alongside the wrist.\n" +
-                    "Values above 180 Positive show a curled state, while values below 180 represent hyper-extension." +
-                    "upwards from the palm.",
+                    FeatureFlexionShortHelpText,
+                    FeatureFlexionDetailHelpText,
                     180,
                     260,
                     FlexionFeatureStates),
                 [FingerFeature.Abduction] = new FeatureDescription(
-                    "Angle (in degrees) between the given finger, and the next finger towards the pinkie.",
-                    "Zero value implies that the two fingers are parallel.\n" +
-                    "Positive angles indicate that the fingertips are spread apart.\n" +
-                    "Small negative angles are possible, and indicate that the finger is pressed up against the next finger.",
+                    FeatureAbductionShortHelpText,
+                    FeatureAbductionDetailHelpText,
                     8,
                     90,
                     AbductionFeatureStates),
                 [FingerFeature.Opposition] = new FeatureDescription(
-                    "Distance between the tip of the given finger and the tip of the thumb.\n" +
-                    "Calculated tracking space, with a 1.0 hand scale.",
-                    "Positive values indicate that the fingertips are spread apart.\n" +
-                    "Negative values are not possible.",
+                    FeatureOppositionShortHelpText,
+                    FeatureOppositionDetailHelpText,
                     0,
                     0.2f,
                     OppositionFeatureStates)
             };
+
+        public const string FeatureCurlShortHelpText =
+                    "Convex angle (in degrees) representing the top 2 joints of the fingers. Angle increases as finger curl becomes closed.";
+        public const string FeatureCurlDetailHelpText =
+                    "Calculated from the average of the convex angles formed by the 2 bones connected to Joint 2, and 2 bones connected to Joint 3.\n" +
+                    "Values above 180 Positive show a curled state, while values below 180 represent hyper-extension.";
+        public const string FeatureFlexionShortHelpText =
+                    "Convex angle (in degrees) of joint 1 of the finger. Angle increases as finger flexion becomes closed.";
+        public const string FeatureFlexionDetailHelpText =
+                    "Calculated from the angle between the bones connected to finger Joint 1 around the Z axis of the joint.\n" +
+                    "For fingers, joint 1 is commonly known as the 'Knuckle'; but for the thumb it is alongside the wrist.\n" +
+                    "Values above 180 Positive show a curled state, while values below 180 represent hyper-extension." +
+                    "upwards from the palm.";
+        public const string FeatureAbductionShortHelpText =
+                    "Angle (in degrees) between the given finger, and the next finger towards the pinkie.";
+        public const string FeatureAbductionDetailHelpText =
+                    "Zero value implies that the two fingers are parallel.\n" +
+                    "Positive angles indicate that the fingertips are spread apart.\n" +
+                    "Small negative angles are possible, and indicate that the finger is pressed up against the next finger.";
+        public const string FeatureOppositionShortHelpText =
+            "Distance between the tip of the given finger and the tip of the thumb.\n" +
+                    "Calculated tracking space, with a 1.0 hand scale.";
+        public const string FeatureOppositionDetailHelpText =
+                    "Positive values indicate that the fingertips are spread apart.\n" +
+                    "Negative values are not possible.";
+
+        public const string FeatureStateThresholdMidpointHelpText = "The angle at which a state will transition from A > B (or B > A)";
+        public const string FeatureStateThresholdWidthHelpText =
+            "How far the angle must exceed the midpoint until the transition can occur. " +
+            "This is to prevent rapid flickering at transition edges.";
     }
 }

@@ -29,7 +29,7 @@ namespace Oculus.Interaction
     public class IndexPinchSelector : MonoBehaviour, ISelector
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         public IHand Hand { get; private set; }
 
         private bool _isIndexFingerPinching;
@@ -47,7 +47,7 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
+            this.AssertField(Hand, nameof(Hand));
             this.EndStart(ref _started);
         }
 
@@ -93,7 +93,7 @@ namespace Oculus.Interaction
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
 

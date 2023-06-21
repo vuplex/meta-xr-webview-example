@@ -27,7 +27,7 @@ namespace Oculus.Interaction.PoseDetection
     public class HmdOffset : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IHmd))]
-        private MonoBehaviour _hmd;
+        private UnityEngine.Object _hmd;
         private IHmd Hmd;
 
         [SerializeField]
@@ -42,6 +42,8 @@ namespace Oculus.Interaction.PoseDetection
         [SerializeField]
         private bool _disableRollFromSource = false;
 
+        protected bool _started;
+
         protected virtual void Awake()
         {
             Hmd = _hmd as IHmd;
@@ -49,12 +51,30 @@ namespace Oculus.Interaction.PoseDetection
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(Hmd);
+            this.BeginStart(ref _started);
+            this.AssertField(Hmd, nameof(Hmd));
+            this.EndStart(ref _started);
         }
 
-        protected virtual void Update()
+        protected virtual void OnEnable()
         {
-            if (!Hmd.GetRootPose(out Pose centerEyePose))
+            if (_started)
+            {
+                Hmd.WhenUpdated += HandleHmdUpdated;
+            }
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (_started)
+            {
+                Hmd.WhenUpdated -= HandleHmdUpdated;
+            }
+        }
+
+        protected virtual void HandleHmdUpdated()
+        {
+            if (!Hmd.TryGetRootPose(out Pose centerEyePose))
             {
                 return;
             }
@@ -96,7 +116,7 @@ namespace Oculus.Interaction.PoseDetection
 
         public void InjectHmd(IHmd hmd)
         {
-            _hmd = hmd as MonoBehaviour;
+            _hmd = hmd as UnityEngine.Object;
             Hmd = hmd;
         }
 

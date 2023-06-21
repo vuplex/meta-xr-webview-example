@@ -8,24 +8,26 @@
 
 using System.Text;
 using System.Collections.Generic;
-using Facebook.WitAi.Configuration;
-using Facebook.WitAi.Data.Configuration;
-using Facebook.WitAi.Data.Entities;
-using Facebook.WitAi.Interfaces;
-using Facebook.WitAi.Lib;
+using System.Web;
+using Meta.Voice;
+using Meta.WitAi.Configuration;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Data.Entities;
+using Meta.WitAi.Interfaces;
+using Meta.WitAi.Json;
+using Meta.WitAi.Requests;
 
-namespace Facebook.WitAi
+namespace Meta.WitAi
 {
     public static class WitRequestFactory
     {
-        private static WitRequest.QueryParam QueryParam(string key, string value)
+        private static VoiceServiceRequestOptions.QueryParam QueryParam(string key, string value)
         {
-            return new WitRequest.QueryParam() { key = key, value = value };
+            return new VoiceServiceRequestOptions.QueryParam() { key = key, value = value };
         }
 
         private static void HandleWitRequestOptions(WitRequestOptions requestOptions,
-            IDynamicEntitiesProvider[] additionalEntityProviders,
-            List<WitRequest.QueryParam> queryParams)
+            IDynamicEntitiesProvider[] additionalEntityProviders)
         {
             WitResponseClass entities = new WitResponseClass();
             bool hasEntities = false;
@@ -55,7 +57,7 @@ namespace Facebook.WitAi
             {
                 if (!string.IsNullOrEmpty(requestOptions.tag))
                 {
-                    queryParams.Add(QueryParam("tag", requestOptions.tag));
+                    requestOptions.QueryParams["tag"] = requestOptions.tag;
                 }
 
                 if (null != requestOptions.dynamicEntities)
@@ -70,7 +72,7 @@ namespace Facebook.WitAi
 
             if (hasEntities)
             {
-                queryParams.Add(QueryParam("entities", entities.ToString()));
+                requestOptions.QueryParams["entities"] = entities.ToString();
             }
         }
 
@@ -104,11 +106,31 @@ namespace Facebook.WitAi
                 }
                 else
                 {
-                    keywordObject = keyword.AsJson;
+                    keywordObject = JsonConvert.SerializeToken(keyword).AsObject;
                     map[keyword.keyword] = keywordObject;
                     mergedArray.Add(keywordObject);
                 }
             }
+        }
+
+        private static WitRequestOptions GetSetupOptions(WitRequestOptions newOptions,
+            IDynamicEntitiesProvider[] additionalDynamicEntities)
+        {
+            // Generate options exist
+            WitRequestOptions options = newOptions != null ? newOptions : new WitRequestOptions();
+            // Set intents
+            if (-1 != options.nBestIntents)
+            {
+                options.QueryParams["n"] = options.nBestIntents.ToString();
+            }
+            // Set dynamic entities
+            HandleWitRequestOptions(options, additionalDynamicEntities);
+            // Set tag
+            if (!string.IsNullOrEmpty(options.tag))
+            {
+                options.QueryParams["tag"] = options.tag;
+            }
+            return options;
         }
 
         /// <summary>
@@ -117,35 +139,10 @@ namespace Facebook.WitAi
         /// <param name="config"></param>
         /// <param name="query">Text string to process with the NLU</param>
         /// <returns></returns>
-        public static WitRequest MessageRequest(this WitConfiguration config, string query, WitRequestOptions requestOptions, IDynamicEntitiesProvider[] additionalDynamicEntities = null)
+        public static VoiceServiceRequest CreateMessageRequest(this WitConfiguration config, WitRequestOptions requestOptions, VoiceServiceRequestEvents requestEvents, IDynamicEntitiesProvider[] additionalEntityProviders = null)
         {
-            List<WitRequest.QueryParam> queryParams = new List<WitRequest.QueryParam>
-            {
-                QueryParam("q", query)
-            };
-
-            if (null != requestOptions && -1 != requestOptions.nBestIntents)
-            {
-                queryParams.Add(QueryParam("n", requestOptions.nBestIntents.ToString()));
-            }
-
-            HandleWitRequestOptions(requestOptions, additionalDynamicEntities, queryParams);
-
-            if (null != requestOptions && !string.IsNullOrEmpty(requestOptions.tag))
-            {
-                queryParams.Add(QueryParam("tag", requestOptions.tag));
-            }
-
-            var path = WitEndpointConfig.GetEndpointConfig(config).Message;
-            WitRequest request = new WitRequest(config, path, queryParams.ToArray());
-
-            if (null != requestOptions)
-            {
-                request.onResponse += requestOptions.onResponse;
-                request.requestId = requestOptions.requestID;
-            }
-
-            return request;
+            var options = GetSetupOptions(requestOptions, additionalEntityProviders);
+            return new WitUnityRequest(config, NLPRequestInputType.Text, options, requestEvents);
         }
 
         /// <summary>
@@ -153,27 +150,11 @@ namespace Facebook.WitAi
         /// </summary>
         /// <param name="config"></param>
         /// <returns></returns>
-        public static WitRequest SpeechRequest(this WitConfiguration config, WitRequestOptions requestOptions, IDynamicEntitiesProvider[] additionalEntityProviders = null)
+        public static WitRequest CreateSpeechRequest(this WitConfiguration config, WitRequestOptions requestOptions, VoiceServiceRequestEvents requestEvents, IDynamicEntitiesProvider[] additionalEntityProviders = null)
         {
-            List<WitRequest.QueryParam> queryParams = new List<WitRequest.QueryParam>();
-
-            if (null != requestOptions && -1 != requestOptions.nBestIntents)
-            {
-                queryParams.Add(QueryParam("n", requestOptions.nBestIntents.ToString()));
-            }
-
-            HandleWitRequestOptions(requestOptions, additionalEntityProviders, queryParams);
-
-            var path = WitEndpointConfig.GetEndpointConfig(config).Speech;
-            WitRequest request = new WitRequest(config, path, queryParams.ToArray());
-
-            if (null != requestOptions)
-            {
-                request.onResponse += requestOptions.onResponse;
-                request.requestId = requestOptions.requestID;
-            }
-
-            return request;
+            var options = GetSetupOptions(requestOptions, additionalEntityProviders);
+            var path = config.GetEndpointInfo().Speech;
+            return new WitRequest(config, path, options, requestEvents);
         }
 
         /// <summary>
@@ -182,139 +163,11 @@ namespace Facebook.WitAi
         ///<param name="config"></param>
         /// <param name="requestOptions"></param>
         /// <returns>WitRequest</returns>
-        public static WitRequest DictationRequest(this WitConfiguration config, WitRequestOptions requestOptions)
+        public static WitRequest CreateDictationRequest(this WitConfiguration config, WitRequestOptions requestOptions, VoiceServiceRequestEvents requestEvents = null)
         {
-            List<WitRequest.QueryParam> queryParams = new List<WitRequest.QueryParam>();
-            var path = WitEndpointConfig.GetEndpointConfig(config).Dictation;
-            WitRequest request = new WitRequest(config, path, queryParams.ToArray());
-            if (null != requestOptions)
-            {
-                request.onResponse += requestOptions.onResponse;
-                request.requestId = requestOptions.requestID;
-            }
-
-            return request;
+            var options = GetSetupOptions(requestOptions, null);
+            var path = config.GetEndpointInfo().Dictation;
+            return new WitRequest(config, path, options, requestEvents);
         }
-
-        #region IDE Only Requests
-        #if UNITY_EDITOR
-
-        /// <summary>
-        /// Requests a list of intents available under this configuration
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static WitRequest ListIntentsRequest(this WitConfiguration config)
-        {
-            return new WitRequest(config, WitRequest.WIT_ENDPOINT_INTENTS);
-        }
-
-        /// <summary>
-        /// Requests details on a specific intent
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="intentName">The name of the defined intent</param>
-        /// <returns></returns>
-        public static WitRequest GetIntentRequest(this WitConfiguration config, string intentName)
-        {
-            return new WitRequest(config, $"{WitRequest.WIT_ENDPOINT_INTENTS}/{intentName}");
-        }
-
-        /// <summary>
-        /// Requests a list of utterances
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static WitRequest ListUtterancesRequest(this WitConfiguration config)
-        {
-            return new WitRequest(config, WitRequest.WIT_ENDPOINT_UTTERANCES);
-        }
-
-        /// <summary>
-        /// Requests a list of available entites
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static WitRequest ListEntitiesRequest(this WitConfiguration config)
-        {
-            return new WitRequest(config, WitRequest.WIT_ENDPOINT_ENTITIES, true);
-        }
-
-        /// <summary>
-        /// Requests details of a specific entity
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="entityName">The name of the entity as it is defined in wit.ai</param>
-        /// <returns></returns>
-        public static WitRequest GetEntityRequest(this WitConfiguration config, string entityName)
-        {
-            return new WitRequest(config, $"{WitRequest.WIT_ENDPOINT_ENTITIES}/{entityName}", true);
-        }
-
-        /// <summary>
-        /// Requests a list of available traits
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static WitRequest ListTraitsRequest(this WitConfiguration config)
-        {
-            return new WitRequest(config, WitRequest.WIT_ENDPOINT_TRAITS, true);
-        }
-
-        /// <summary>
-        /// Requests details of a specific trait
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="traitName">The name of the trait as it is defined in wit.ai</param>
-        /// <returns></returns>
-        public static WitRequest GetTraitRequest(this WitConfiguration config, string traitName)
-        {
-            return new WitRequest(config, $"{WitRequest.WIT_ENDPOINT_TRAITS}/{traitName}", true);
-        }
-
-        /// <summary>
-        /// Requests a list of apps available to the account defined in the WitConfiguration
-        /// </summary>
-        /// <param name="config"></param>
-        /// <returns></returns>
-        public static WitRequest ListAppsRequest(string serverToken, int limit, int offset = 0)
-        {
-            return new WitRequest(serverToken, WitRequest.WIT_ENDPOINT_APPS,
-                QueryParam("limit", limit.ToString()),
-                QueryParam("offset", offset.ToString()));
-        }
-
-        /// <summary>
-        /// Requests details for a specific application
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="appId">The id of the app as it is defined in wit.ai</param>
-        /// <returns></returns>
-        public static WitRequest GetAppRequest(this WitConfiguration config, string appId)
-        {
-            return new WitRequest(config, $"{WitRequest.WIT_ENDPOINT_APPS}/{appId}", true);
-        }
-
-        /// <summary>
-        /// Requests a client token for an application
-        /// </summary>
-        /// <param name="config"></param>
-        /// <param name="appId">The id of the app as it is defined in wit.ai</param>
-        /// <param name="refresh">Should the token be refreshed</param>
-        /// <returns></returns>
-        public static WitRequest GetClientToken(this WitConfiguration config, string appId, bool refresh = false)
-        {
-            var postString = "{\"refresh\":" + refresh.ToString().ToLower() + "}";
-            var postData = Encoding.UTF8.GetBytes(postString);
-            var request = new WitRequest(config, $"{WitRequest.WIT_ENDPOINT_APPS}/{appId}/client_tokens", true)
-            {
-                postContentType = "application/json",
-                postData = postData
-            };
-
-            return request;
-        }
-        #endif
-        #endregion
     }
 }

@@ -36,21 +36,23 @@ namespace Oculus.Interaction
     [DefaultExecutionOrder(1)]
     public class ActiveStateTracker : MonoBehaviour
     {
+        [Tooltip("The IActiveState to be tracked.")]
         [SerializeField, Interface(typeof(IActiveState))]
-        private MonoBehaviour _activeState;
+        private UnityEngine.Object _activeState;
 
         private IActiveState ActiveState;
 
         [Header("Active state dependents")]
         [SerializeField]
+        [Tooltip("If true, all children of this object will be included as dependents.")]
         private bool _includeChildrenAsDependents = false;
 
         [SerializeField, Optional]
-        [Tooltip("Sets the `active` field on whole GameObjects")]
+        [Tooltip("Sets the `active` field on whole GameObjects.")]
         private List<GameObject> _gameObjects;
 
         [SerializeField, Optional]
-        [Tooltip("Sets the `enabled` field on individual components")]
+        [Tooltip("Sets the `enabled` field on individual components.")]
         private List<MonoBehaviour> _monoBehaviours;
 
         protected virtual void Awake()
@@ -62,7 +64,7 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(ActiveState);
+            this.AssertField(ActiveState, nameof(ActiveState));
 
             if (_includeChildrenAsDependents)
             {
@@ -105,7 +107,7 @@ namespace Oculus.Interaction
 
         public void InjectActiveState(IActiveState activeState)
         {
-            _activeState = activeState as MonoBehaviour;
+            _activeState = activeState as UnityEngine.Object;
             ActiveState = activeState;
         }
 

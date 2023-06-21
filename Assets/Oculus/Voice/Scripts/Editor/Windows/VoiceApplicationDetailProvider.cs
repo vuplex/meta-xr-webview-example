@@ -20,7 +20,7 @@
 
 using UnityEditor;
 using System.Reflection;
-using Facebook.WitAi.Windows;
+using Meta.WitAi.Windows;
 using Oculus.Voice.Inspectors;
 
 namespace Oculus.Voice.Windows
@@ -35,9 +35,10 @@ namespace Oculus.Voice.Windows
             {
                 switch (subfield.Name)
                 {
-                    case "id":
-                    case "createdAt":
-                    case "isPrivate":
+                    case "name":
+                    case "lang":
+                        return true;
+                    default:
                         return false;
                 }
             }

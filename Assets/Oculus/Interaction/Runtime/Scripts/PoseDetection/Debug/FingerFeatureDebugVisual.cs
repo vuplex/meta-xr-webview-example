@@ -39,7 +39,7 @@ namespace Oculus.Interaction.PoseDetection.Debug
         [SerializeField]
         private TextMeshPro _targetText;
 
-        private FingerFeatureStateProvider _fingerFeatureState;
+        private IFingerFeatureStateProvider _fingerFeatureState;
 
         private Material _material;
 
@@ -51,8 +51,8 @@ namespace Oculus.Interaction.PoseDetection.Debug
         protected virtual void Awake()
         {
             _material = _target.material;
-            Assert.IsNotNull(_material);
-            Assert.IsNotNull(_targetText);
+            this.AssertField(_material, nameof(_material));
+            this.AssertField(_targetText, nameof(_targetText));
 
             _material.color = _lastActiveValue ? _activeColor : _normalColor;
         }
@@ -64,7 +64,7 @@ namespace Oculus.Interaction.PoseDetection.Debug
 
         public void Initialize(HandFinger handFinger,
             ShapeRecognizer.FingerFeatureConfig config,
-            FingerFeatureStateProvider fingerFeatureState)
+            IFingerFeatureStateProvider fingerFeatureState)
         {
             _initialized = true;
             _handFinger = handFinger;

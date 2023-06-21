@@ -6,10 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Interfaces;
+using Meta.WitAi.Interfaces;
 using UnityEngine;
 
-namespace Facebook.WitAi.ServiceReferences
+namespace Meta.WitAi.ServiceReferences
 {
     public abstract class AudioInputServiceReference : MonoBehaviour, IAudioEventProvider
     {

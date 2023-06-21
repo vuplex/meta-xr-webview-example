@@ -43,8 +43,8 @@ namespace Oculus.Interaction
         protected override void Start()
         {
             base.Start();
-            Assert.IsNotNull(_boundsCollider);
-            Assert.IsTrue(_colliders.Count > 0);
+            this.AssertField(_boundsCollider, nameof(_boundsCollider));
+            this.AssertCollectionField(_colliders, nameof(_colliders));
             _colliderGroup = new ColliderGroup(_colliders, _boundsCollider);
         }
 

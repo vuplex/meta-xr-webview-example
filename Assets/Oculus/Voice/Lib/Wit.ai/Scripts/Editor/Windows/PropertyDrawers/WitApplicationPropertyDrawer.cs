@@ -9,7 +9,7 @@
 using UnityEditor;
 using System.Reflection;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     public class WitApplicationPropertyDrawer : WitPropertyDrawer
     {
@@ -35,6 +35,14 @@ namespace Facebook.WitAi.Windows
                     return WitTexts.Texts.ConfigurationApplicationPrivateLabel;
                 case "createdAt":
                     return WitTexts.Texts.ConfigurationApplicationCreatedLabel;
+                case "trainingStatus":
+                    return WitTexts.Texts.ConfigurationApplicationTrainingStatus;
+                case "lastTrainDuration":
+                    return WitTexts.Texts.ConfigurationApplicationTrainingLastDuration;
+                case "lastTrainedAt":
+                    return WitTexts.Texts.ConfigurationApplicationTrainingLast;
+                case "nextTrainAt":
+                    return WitTexts.Texts.ConfigurationApplicationTrainingNext;
             }
 
             // Default to base
@@ -45,7 +53,10 @@ namespace Facebook.WitAi.Windows
         {
             switch (subfield.Name)
             {
-                case "witConfiguration":
+                case "intents":
+                case "entities":
+                case "traits":
+                case "voices":
                     return false;
             }
             return base.ShouldLayoutField(property, subfield);

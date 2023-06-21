@@ -20,7 +20,6 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction.Input
 {
@@ -31,7 +30,7 @@ namespace Oculus.Interaction.Input
     public class HandRef : MonoBehaviour, IHand, IActiveState
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
 
         public IHand Hand { get; private set; }
 
@@ -49,9 +48,6 @@ namespace Oculus.Interaction.Input
 
         public bool IsTrackedDataValid => Hand.IsTrackedDataValid;
 
-        public bool IsCenterEyePoseValid => Hand.IsCenterEyePoseValid;
-
-        public Transform TrackingToWorldSpace => Hand.TrackingToWorldSpace;
         public int CurrentDataVersion => Hand.CurrentDataVersion;
 
         public event Action WhenHandUpdated
@@ -69,7 +65,7 @@ namespace Oculus.Interaction.Input
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(Hand);
+            this.AssertField(Hand, nameof(Hand));
         }
 
         public bool GetFingerIsPinching(HandFinger finger)
@@ -132,16 +128,6 @@ namespace Oculus.Interaction.Input
             return Hand.GetRootPose(out pose);
         }
 
-        public bool GetCenterEyePose(out Pose pose)
-        {
-            return Hand.GetCenterEyePose(out pose);
-        }
-
-        public bool TryGetAspect<TAspect>(out TAspect aspect) where TAspect : class
-        {
-            return Hand.TryGetAspect(out aspect);
-        }
-
         #region Inject
         public void InjectAllHandRef(IHand hand)
         {
@@ -150,7 +136,7 @@ namespace Oculus.Interaction.Input
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
         #endregion

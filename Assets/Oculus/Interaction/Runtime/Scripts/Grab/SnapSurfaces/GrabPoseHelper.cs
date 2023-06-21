@@ -24,110 +24,105 @@ namespace Oculus.Interaction.Grab
 {
     public static class GrabPoseHelper
     {
-        public delegate Pose PoseCalculator(in Pose desiredPose, in Pose referencePose);
+        public delegate Pose PoseCalculator(in Pose desiredPose, Transform relativeTo);
 
         /// <summary>
         /// Finds the best pose comparing the one that requires the minimum rotation
         /// and minimum translation.
         /// </summary>
         /// <param name="desiredPose">Pose to measure from.</param>
-        /// <param name="referencePose">Reference pose of the surface.</param>
-        /// <param name="bestPose">Nearest pose to the desired one at the surface.</param>
+        /// <param name="bestPose">Nearest pose to the desired one at the hand grab pose.</param>
         /// <param name="scoringModifier">Modifiers for the score based in rotation and distance.</param>
-        /// <param name="minimalTranslationPoseCalculator">Delegate to calculate the nearest, by position, pose at a surface.</param>
-        /// <param name="minimalRotationPoseCalculator">Delegate to calculate the nearest, by rotation, pose at a surface.</param>
+        /// <param name="relativeTo">The reference transform to apply the calculators to</param>
+        /// <param name="minimalTranslationPoseCalculator">Delegate to calculate the nearest, by position, pose at a hand grab pose.</param>
+        /// <param name="minimalRotationPoseCalculator">Delegate to calculate the nearest, by rotation, pose at a hand grab pose.</param>
         /// <returns>The score, normalized, of the best pose.</returns>
-        public static float CalculateBestPoseAtSurface(in Pose desiredPose, in Pose referencePose, out Pose bestPose,
-            in PoseMeasureParameters scoringModifier,
+        public static GrabPoseScore CalculateBestPoseAtSurface(in Pose desiredPose, out Pose bestPose,
+            in PoseMeasureParameters scoringModifier, Transform relativeTo,
             PoseCalculator minimalTranslationPoseCalculator, PoseCalculator minimalRotationPoseCalculator)
         {
-            float bestScore;
-            Pose minimalRotationPose = minimalRotationPoseCalculator(desiredPose, referencePose);
-            if (scoringModifier.MaxDistance > 0)
+            if (scoringModifier.PositionRotationWeight == 1f)
             {
-                Pose minimalTranslationPose = minimalTranslationPoseCalculator(desiredPose, referencePose);
+                bestPose = minimalRotationPoseCalculator(desiredPose, relativeTo);
+                return new GrabPoseScore(desiredPose, bestPose, 1f);
+            }
 
-                bestPose = SelectBestPose(minimalRotationPose, minimalTranslationPose, desiredPose, scoringModifier, out bestScore);
-            }
-            else
+            if (scoringModifier.PositionRotationWeight == 0f)
             {
-                bestPose = minimalRotationPose;
-                bestScore = RotationalSimilarity(desiredPose.rotation, bestPose.rotation);
+                bestPose = minimalTranslationPoseCalculator(desiredPose, relativeTo);
+                return new GrabPoseScore(desiredPose, bestPose, 0f);
             }
+
+            Pose minimalTranslationPose = minimalTranslationPoseCalculator(desiredPose, relativeTo);
+            Pose minimalRotationPose = minimalRotationPoseCalculator(desiredPose, relativeTo);
+            bestPose = SelectBestPose(minimalRotationPose, minimalTranslationPose,
+                desiredPose, scoringModifier, out GrabPoseScore bestScore);
             return bestScore;
+
         }
 
         /// <summary>
         /// Compares two poses to a reference and returns the most similar one
         /// </summary>
-        /// <param name="a">First pose to compare with the reference.</param>
-        /// <param name="b">Second pose to compare with the reference.</param>
+        /// <param name="poseA">First Pose to compare with the reference.</param>
+        /// <param name="poseB">Second Pose to compare with the reference.</param>
         /// <param name="reference">Reference pose to measure from.</param>
         /// <param name="scoringModifier">Modifiers for the score based in rotation and distance.</param>
-        /// <param name="maxDistance">Max distance to measure the score.</param>
         /// <param name="bestScore">Out value with the score of the best pose.</param>
-        /// <returns>The most similar pose to reference out of a and b</returns>
-        public static Pose SelectBestPose(in Pose a, in Pose b, in Pose reference, PoseMeasureParameters scoringModifier, out float bestScore)
+        /// <returns>The most similar pose to reference out of the poses</returns>
+        public static Pose SelectBestPose(in Pose poseA, in Pose poseB, in Pose reference,
+            PoseMeasureParameters scoringModifier, out GrabPoseScore bestScore)
         {
-            float aScore = Similarity(reference, a, scoringModifier);
-            float bScore = Similarity(reference, b, scoringModifier);
-            if (aScore >= bScore)
+            GrabPoseScore poseAScore = new GrabPoseScore(reference, poseA,
+                scoringModifier.PositionRotationWeight);
+            GrabPoseScore poseBScore = new GrabPoseScore(reference, poseB,
+                scoringModifier.PositionRotationWeight);
+
+            if (poseAScore.IsBetterThan(poseBScore))
             {
-                bestScore = aScore;
-                return a;
+                bestScore = poseAScore;
+                return poseA;
             }
-            bestScore = bScore;
-            return b;
-        }
-
-
-        /// <summary>
-        /// Indicates how similar two poses are.
-        /// </summary>
-        /// <param name="from">First pose to compare.</param>
-        /// <param name="to">Second pose to compare.</param>
-        /// <param name="maxDistance">The max distance in which the poses can be similar.</param>
-        /// <returns>0 indicates no similitude, 1 for equal poses</returns>
-        public static float Similarity(in Pose from, in Pose to, PoseMeasureParameters scoringModifier)
-        {
-            float rotationDifference = RotationalSimilarity(from.rotation, to.rotation);
-            float positionDifference = PositionalSimilarity(from.position, to.position, scoringModifier.MaxDistance);
-            return positionDifference * (1f - scoringModifier.PositionRotationWeight)
-                + rotationDifference * (scoringModifier.PositionRotationWeight);
-        }
-
-        /// <summary>
-        /// Get how similar two positions are.
-        /// It uses a maximum value to normalize the output
-        /// </summary>
-        /// <param name="from">The first position.</param>
-        /// <param name="to">The second position.</param>
-        /// <param name="maxDistance">The Maximum distance used to normalise the output</param>
-        /// <returns>0 when the input positions are further than maxDistance, 1 for equal positions.</returns>
-        public static float PositionalSimilarity(in Vector3 from, in Vector3 to, float maxDistance)
-        {
-            float distance = Vector3.Distance(from, to);
-            if (distance == 0)
+            else
             {
-                return 1f;
+                bestScore = poseBScore;
+                return poseB;
             }
-            return 1f - Mathf.Clamp01(distance / maxDistance);
         }
 
         /// <summary>
-        /// Get how similar two rotations are.
-        /// Since the Quaternion.Dot is bugged in unity. We compare the
-        /// dot products of the forward and up vectors of the rotations.
+        /// Calculates the score from a point to a set of colliders.
+        /// When the point is outside the colliders the further from their surface means the
+        /// lower the score.
+        /// When the point is inside any of the colliders the score is always higher.
         /// </summary>
-        /// <param name="from">The first rotation.</param>
-        /// <param name="to">The second rotation.</param>
-        /// <returns>0 for opposite rotations, 1 for equal rotations.</returns>
-        public static float RotationalSimilarity(in Quaternion from, in Quaternion to)
+        /// <param name="position">Position to measure against the colliders</param>
+        /// <param name="colliders">Group of colliders to measure the score</param>
+        /// <param name="hitPoint">Output point in the surface or inside the colliders that is near the position</param>
+        /// <returns>A GrabPoseScore value containing the score of the position in reference to the colliders</returns>
+        public static GrabPoseScore CollidersScore(Vector3 position, Collider[] colliders,
+            out Vector3 hitPoint)
         {
-            float forwardDifference = Vector3.Dot(from * Vector3.forward, to * Vector3.forward) * 0.5f + 0.5f;
-            float upDifference = Vector3.Dot(from * Vector3.up, to * Vector3.up) * 0.5f + 0.5f;
-            return forwardDifference * upDifference;
-        }
+            GrabPoseScore bestScore = GrabPoseScore.Max;
+            GrabPoseScore score;
+            hitPoint = position;
+            foreach (Collider collider in colliders)
+            {
+                bool isPointInsideCollider = Collisions.IsPointWithinCollider(position, collider);
+                Vector3 measuringPoint = isPointInsideCollider ? collider.bounds.center
+                    : collider.ClosestPoint(position);
 
+                score = new GrabPoseScore(position, measuringPoint,
+                    isPointInsideCollider);
+
+                if (score.IsBetterThan(bestScore))
+                {
+                    hitPoint = isPointInsideCollider ? position : measuringPoint;
+                    bestScore = score;
+                }
+            }
+
+            return bestScore;
+        }
     }
 }

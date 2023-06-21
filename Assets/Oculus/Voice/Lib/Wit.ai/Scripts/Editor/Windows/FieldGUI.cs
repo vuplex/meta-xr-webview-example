@@ -10,7 +10,7 @@ using System;
 using System.Reflection;
 using UnityEditor;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     public class FieldGUI
     {

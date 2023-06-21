@@ -9,7 +9,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Facebook.WitAi.Inspectors
+namespace Meta.WitAi.Inspectors
 {
     public class WitInspector : Editor
     {
@@ -74,9 +74,9 @@ namespace Facebook.WitAi.Inspectors
 
         private void InitializeActivationLogging()
         {
-            wit.events.OnFullTranscription.AddListener(UpdateTranscription);
-            wit.events.OnPartialTranscription.AddListener(UpdateTranscription);
-            wit.events.OnMicLevelChanged.AddListener(OnMicLevelChanged);
+            wit.VoiceEvents.OnFullTranscription.AddListener(UpdateTranscription);
+            wit.VoiceEvents.OnPartialTranscription.AddListener(UpdateTranscription);
+            wit.VoiceEvents.OnMicLevelChanged.AddListener(OnMicLevelChanged);
             micMin = Mathf.Infinity;
             micMax = Mathf.NegativeInfinity;
             EditorApplication.update += UpdateWhileActive;
@@ -100,9 +100,9 @@ namespace Facebook.WitAi.Inspectors
             if (!wit.Active)
             {
                 EditorApplication.update -= UpdateWhileActive;
-                wit.events.OnFullTranscription.RemoveListener(UpdateTranscription);
-                wit.events.OnPartialTranscription.RemoveListener(UpdateTranscription);
-                wit.events.OnMicLevelChanged.RemoveListener(OnMicLevelChanged);
+                wit.VoiceEvents.OnFullTranscription.RemoveListener(UpdateTranscription);
+                wit.VoiceEvents.OnPartialTranscription.RemoveListener(UpdateTranscription);
+                wit.VoiceEvents.OnMicLevelChanged.RemoveListener(OnMicLevelChanged);
             }
         }
     }

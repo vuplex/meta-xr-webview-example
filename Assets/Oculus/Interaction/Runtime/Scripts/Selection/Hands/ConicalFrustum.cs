@@ -37,7 +37,7 @@ namespace Oculus.Interaction
         private float _radiusStart = 0.03f;
 
         [SerializeField]
-        [Range(0f, 60f)]
+        [Range(0f, 90f)]
         private float _apertureDegrees = 20f;
 
         public Pose Pose => this.transform.GetPose();
@@ -138,8 +138,7 @@ namespace Oculus.Interaction
 
         public float ConeFrustumRadiusAtLength(float length)
         {
-            float angleRadius = Mathf.Asin(_apertureDegrees * Mathf.Deg2Rad);
-            float radiusEnd = angleRadius * _maxLength;
+            float radiusEnd = _maxLength * Mathf.Tan(_apertureDegrees * Mathf.Deg2Rad);
 
             float lengthRatio = length / _maxLength;
             float radiusAtLength = Mathf.Lerp(_radiusStart, radiusEnd, lengthRatio);

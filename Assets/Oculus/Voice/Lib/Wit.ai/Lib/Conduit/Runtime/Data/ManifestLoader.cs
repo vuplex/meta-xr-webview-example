@@ -6,7 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Meta.Wit.LitJson;
+using Meta.WitAi;
+using Meta.WitAi.Json;
 using UnityEngine;
 
 namespace Meta.Conduit
@@ -16,32 +17,33 @@ namespace Meta.Conduit
     /// </summary>
     class ManifestLoader : IManifestLoader
     {
-        /// <summary>
-        /// Loads the manifest from file and into a <see cref="Manifest"/> structure.
-        /// </summary>
-        /// <param name="filePath">The path to the manifest file.</param>
-        /// <returns>The loaded manifest object.</returns>
+        /// <inheritdoc/>
         public Manifest LoadManifest(string manifestLocalPath)
         {
-            Debug.Log($"Loaded Conduit manifest from Resources/{manifestLocalPath}");
-            int extIndex = manifestLocalPath.LastIndexOf('.');
-            string ignoreEnd = extIndex == -1 ? manifestLocalPath : manifestLocalPath.Substring(0, extIndex);
-            TextAsset jsonFile = Resources.Load<TextAsset>(ignoreEnd);
+            var extIndex = manifestLocalPath.LastIndexOf('.');
+            var ignoreEnd = extIndex == -1 ? manifestLocalPath : manifestLocalPath.Substring(0, extIndex);
+            var jsonFile = Resources.Load<TextAsset>(ignoreEnd);
             if (jsonFile == null)
             {
-                Debug.LogError($"Conduit Error - No Manifest found at Resources/{manifestLocalPath}");
+                VLog.E($"Conduit Error - No Manifest found at Resources/{manifestLocalPath}");
                 return null;
             }
 
-            string rawJson = jsonFile.text;
-            var manifest = JsonMapper.ToObject<Manifest>(rawJson);
+            var rawJson = jsonFile.text;
+            return LoadManifestFromString(rawJson);
+        }
+
+        /// <inheritdoc/>
+        public Manifest LoadManifestFromString(string manifestText)
+        {
+            var manifest = JsonConvert.DeserializeObject<Manifest>(manifestText, null, true);
             if (manifest.ResolveActions())
             {
-                Debug.Log($"Successfully Loaded Conduit manifest");
+                VLog.D($"Successfully Loaded Conduit manifest");
             }
             else
             {
-                Debug.LogError($"Fail to resolve actions from Conduit manifest");
+                VLog.E($"Fail to resolve actions from Conduit manifest");
             }
 
             return manifest;

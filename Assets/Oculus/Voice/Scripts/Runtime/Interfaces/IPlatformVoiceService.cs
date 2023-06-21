@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 
-using Facebook.WitAi;
-using Facebook.WitAi.Configuration;
+using Meta.WitAi;
+using Meta.WitAi.Configuration;
 
 namespace Oculus.Voice.Interfaces
 {

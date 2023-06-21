@@ -6,10 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Events.Editor;
+using Meta.WitAi.Events.Editor;
 using UnityEditor;
 
-namespace Facebook.WitAi.Dictation.Events.Editor
+namespace Meta.WitAi.Dictation.Events.Editor
 {
     [CustomPropertyDrawer(typeof(DictationEvents))]
     public class DictationEventPropertyDrawer : EventPropertyDrawer<DictationEvents>

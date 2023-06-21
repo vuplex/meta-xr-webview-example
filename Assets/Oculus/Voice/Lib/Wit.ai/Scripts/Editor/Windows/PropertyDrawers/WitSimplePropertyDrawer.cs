@@ -9,7 +9,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     // Handles layout of very simple property drawer
     public abstract class WitSimplePropertyDrawer : PropertyDrawer

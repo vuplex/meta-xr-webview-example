@@ -26,11 +26,11 @@ using UnityEngine.Assertions;
 
 namespace Oculus.Interaction
 {
-    public class HandVisual : MonoBehaviour
+    public class HandVisual : MonoBehaviour, IHandVisual
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
-        public IHand Hand;
+        private UnityEngine.Object _hand;
+        public IHand Hand { get; private set; }
 
         [SerializeField]
         private SkinnedMeshRenderer _skinnedMeshRenderer;
@@ -56,7 +56,7 @@ namespace Oculus.Interaction
 
         private int _wristScalePropertyId;
 
-        public List<Transform> Joints => _jointTransforms;
+        public IList<Transform> Joints => _jointTransforms;
 
         public bool ForceOffVisibility { get; set; }
 
@@ -74,8 +74,8 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(_skinnedMeshRenderer);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(_skinnedMeshRenderer, nameof(_skinnedMeshRenderer));
             if (_handMaterialPropertyBlockEditor != null)
             {
                 _wristScalePropertyId = Shader.PropertyToID("_WristScale");
@@ -165,6 +165,11 @@ namespace Oculus.Interaction
             return _jointTransforms[(int)handJointId];
         }
 
+        public Pose GetJointPose(HandJointId jointId, Space space)
+        {
+            return GetTransformByHandJointId(jointId).GetPose(space);
+        }
+
         #region Inject
 
         public void InjectAllHandSkeletonVisual(IHand hand, SkinnedMeshRenderer skinnedMeshRenderer)
@@ -175,7 +180,7 @@ namespace Oculus.Interaction
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
 
@@ -203,6 +208,7 @@ namespace Oculus.Interaction
         {
             _handMaterialPropertyBlockEditor = editor;
         }
+
         #endregion
     }
 }

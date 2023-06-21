@@ -7,13 +7,13 @@
  */
 
 using System;
-using Facebook.WitAi.Data.Configuration;
-using Facebook.WitAi.Interfaces;
-using Facebook.WitAi.Utilities;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Interfaces;
+using Meta.WitAi.Utilities;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Facebook.WitAi.Configuration
+namespace Meta.WitAi.Configuration
 {
     [Serializable]
     public class WitRuntimeConfiguration
@@ -31,17 +31,19 @@ namespace Facebook.WitAi.Configuration
         [Tooltip(
             "The amount of time in seconds an activation will be kept open after volume is under the keep alive threshold")]
         [SerializeField]
+        [DynamicRange("RecordingTimeRange")]
         public float minKeepAliveTimeInSeconds = 2f;
 
         [FormerlySerializedAs("minTranscriptionKeepAliveTime")]
         [Tooltip(
             "The amount of time in seconds an activation will be kept open after words have been detected in the live transcription")]
         [SerializeField]
+        [DynamicRange("RecordingTimeRange")]
         public float minTranscriptionKeepAliveTimeInSeconds = 1f;
 
         [Tooltip("The maximum amount of time in seconds the mic will stay active")]
-        [DynamicRange("RecordingTimeRange")]
         [SerializeField]
+        [DynamicRange("RecordingTimeRange")]
         public float maxRecordingTime = 20;
 
         protected virtual Vector2 RecordingTimeRange => new Vector2(0, 20);

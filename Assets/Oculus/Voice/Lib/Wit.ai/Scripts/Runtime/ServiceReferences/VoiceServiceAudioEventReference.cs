@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Interfaces;
-using Facebook.WitAi.Utilities;
+using Meta.WitAi.Interfaces;
+using Meta.WitAi.Utilities;
 using UnityEngine;
 
-namespace Facebook.WitAi.ServiceReferences
+namespace Meta.WitAi.ServiceReferences
 {
     public class VoiceServiceAudioEventReference : AudioInputServiceReference
     {

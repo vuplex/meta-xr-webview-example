@@ -33,8 +33,8 @@ namespace Oculus.Interaction.Samples
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_toRotate);
-            Assert.IsNotNull(_target);
+            this.AssertField(_toRotate, nameof(_toRotate));
+            this.AssertField(_target, nameof(_target));
         }
 
         protected virtual void Update()

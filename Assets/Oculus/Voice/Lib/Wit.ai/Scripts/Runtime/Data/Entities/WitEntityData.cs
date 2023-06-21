@@ -6,10 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Lib;
+using System;
+using Meta.WitAi.Json;
 using UnityEngine;
+using UnityEngine.Scripting;
 
-namespace Facebook.WitAi.Data.Entities
+namespace Meta.WitAi.Data.Entities
 {
     public abstract class WitEntityDataBase<T>
     {
@@ -32,24 +34,14 @@ namespace Facebook.WitAi.Data.Entities
 
         public WitResponseArray entities;
 
+        [Preserve]
         public WitEntityDataBase<T> FromEntityWitResponseNode(WitResponseNode node)
         {
             responseNode = node;
-            id = node[WitEntity.Fields.ID];
-            name = node[WitEntity.Fields.NAME];
-            role = node[WitEntity.Fields.ROLE];
-            start = node[WitEntity.Fields.START].AsInt;
-            end = node[WitEntity.Fields.END].AsInt;
-            type = node[WitEntity.Fields.TYPE];
-            body = node[WitEntity.Fields.BODY];
-            confidence = node[WitEntity.Fields.CONFIDENCE].AsFloat;
-            hasData = !string.IsNullOrEmpty(node.Value);
-            value = OnParseValue(node);
-            entities = node[WitEntity.Fields.ENTITIES].AsArray;
-            return this;
+            WitEntityDataBase<T> result = this;
+            JsonConvert.DeserializeIntoObject(ref result, node);
+            return result;
         }
-
-        protected abstract T OnParseValue(WitResponseNode node);
 
         public override string ToString()
         {
@@ -59,16 +51,13 @@ namespace Facebook.WitAi.Data.Entities
 
     public class WitEntityData : WitEntityDataBase<string>
     {
+        [Preserve]
         public WitEntityData() {}
 
+        [Preserve]
         public WitEntityData(WitResponseNode node)
         {
             FromEntityWitResponseNode(node);
-        }
-
-        protected override string OnParseValue(WitResponseNode node)
-        {
-            return node[WitEntity.Fields.VALUE];
         }
 
         public static implicit operator bool(WitEntityData data) => null != data && !string.IsNullOrEmpty(data.value);
@@ -90,21 +79,19 @@ namespace Facebook.WitAi.Data.Entities
 
     public class WitEntityFloatData : WitEntityDataBase<float>
     {
+        [Preserve]
         public WitEntityFloatData() {}
 
+        [Preserve]
         public WitEntityFloatData(WitResponseNode node)
         {
             FromEntityWitResponseNode(node);
-        }
-        protected override float OnParseValue(WitResponseNode node)
-        {
-            return node[WitEntity.Fields.VALUE].AsFloat;
         }
 
         public static implicit operator bool(WitEntityFloatData data) =>
             null != data && data.hasData;
 
-        public bool Approximately(float v) => Mathf.Approximately(value, v);
+        public bool Approximately(float v, float tolerance = .001f) => Math.Abs(v - value) < tolerance;
         public static bool operator ==(WitEntityFloatData data, float value) => data?.value == value;
         public static bool operator !=(WitEntityFloatData data, float value) => !(data == value);
         public static bool operator ==(WitEntityFloatData data, int value) => data?.value == value;
@@ -128,15 +115,13 @@ namespace Facebook.WitAi.Data.Entities
 
     public class WitEntityIntData : WitEntityDataBase<int>
     {
+        [Preserve]
         public WitEntityIntData() {}
 
+        [Preserve]
         public WitEntityIntData(WitResponseNode node)
         {
             FromEntityWitResponseNode(node);
-        }
-        protected override int OnParseValue(WitResponseNode node)
-        {
-            return node[WitEntity.Fields.VALUE].AsInt;
         }
 
         public static implicit operator bool(WitEntityIntData data) =>

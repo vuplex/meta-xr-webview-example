@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
@@ -32,9 +32,13 @@ namespace Oculus.Interaction
     public class InteractorUnityEventWrapper : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IInteractorView))]
-        private MonoBehaviour _interactorView;
+        private UnityEngine.Object _interactorView;
         private IInteractorView InteractorView;
 
+        [SerializeField]
+        private UnityEvent _whenEnabled;
+        [SerializeField]
+        private UnityEvent _whenDisabled;
         [SerializeField]
         private UnityEvent _whenHover;
         [SerializeField]
@@ -44,6 +48,8 @@ namespace Oculus.Interaction
         [SerializeField]
         private UnityEvent _whenUnselect;
 
+        public UnityEvent WhenDisabled => _whenDisabled;
+        public UnityEvent WhenEnabled => _whenEnabled;
         public UnityEvent WhenHover => _whenHover;
         public UnityEvent WhenUnhover => _whenUnhover;
         public UnityEvent WhenSelect => _whenSelect;
@@ -59,7 +65,7 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(InteractorView);
+            this.AssertField(InteractorView, nameof(InteractorView));
             this.EndStart(ref _started);
         }
 
@@ -83,12 +89,18 @@ namespace Oculus.Interaction
         {
             switch (args.NewState)
             {
+                case InteractorState.Disabled:
+                    _whenDisabled.Invoke();
+                    break;
                 case InteractorState.Normal:
                     if (args.PreviousState == InteractorState.Hover)
                     {
                         _whenUnhover.Invoke();
                     }
-
+                    else if (args.PreviousState == InteractorState.Disabled)
+                    {
+                        _whenEnabled.Invoke();
+                    }
                     break;
                 case InteractorState.Hover:
                     if (args.PreviousState == InteractorState.Normal)
@@ -120,7 +132,7 @@ namespace Oculus.Interaction
 
         public void InjectInteractorView(IInteractorView interactorView)
         {
-            _interactorView = interactorView as MonoBehaviour;
+            _interactorView = interactorView as UnityEngine.Object;
             InteractorView = interactorView;
         }
 

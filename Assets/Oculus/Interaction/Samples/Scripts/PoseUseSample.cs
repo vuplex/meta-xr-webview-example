@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Meta Platforms, Inc. and affiliates.
  * All rights reserved.
  *
@@ -21,19 +21,37 @@
 using Oculus.Interaction.Input;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Oculus.Interaction.Samples
 {
     public class PoseUseSample : MonoBehaviour
     {
-        [SerializeField] private ActiveStateSelector[] _poses;
-        [SerializeField] private Material[] _onSelectIcons;
-        [SerializeField] private GameObject _poseActiveVisualPrefab;
+        [SerializeField, Interface(typeof(IHmd))]
+        private UnityEngine.Object _hmd;
+        private IHmd Hmd { get; set; }
+
+        [SerializeField]
+        private ActiveStateSelector[] _poses;
+
+        [SerializeField]
+        private Material[] _onSelectIcons;
+
+        [SerializeField]
+        private GameObject _poseActiveVisualPrefab;
 
         private GameObject[] _poseActiveVisuals;
 
-        private void Start()
+        protected virtual void Awake()
         {
+            Hmd = _hmd as IHmd;
+        }
+
+        protected virtual void Start()
+        {
+            this.AssertField(Hmd, nameof(Hmd));
+            this.AssertField(_poseActiveVisualPrefab, nameof(_poseActiveVisualPrefab));
+
             _poseActiveVisuals = new GameObject[_poses.Length];
             for (int i = 0; i < _poses.Length; i++)
             {
@@ -49,11 +67,14 @@ namespace Oculus.Interaction.Samples
         }
         private void ShowVisuals(int poseNumber)
         {
-            var centerEyePos = FindObjectOfType<OVRCameraRig>().centerEyeAnchor.position;
-            Vector3 spawnSpot = centerEyePos + FindObjectOfType<OVRCameraRig>().centerEyeAnchor.forward;
+            if (!Hmd.TryGetRootPose(out Pose hmdPose))
+            {
+                return;
+            }
 
+            Vector3 spawnSpot = hmdPose.position + hmdPose.forward;
             _poseActiveVisuals[poseNumber].transform.position = spawnSpot;
-            _poseActiveVisuals[poseNumber].transform.LookAt(2 * _poseActiveVisuals[poseNumber].transform.position - centerEyePos);
+            _poseActiveVisuals[poseNumber].transform.LookAt(2 * _poseActiveVisuals[poseNumber].transform.position - hmdPose.position);
 
             var hands = _poses[poseNumber].GetComponents<HandRef>();
             Vector3 visualsPos = Vector3.zero;

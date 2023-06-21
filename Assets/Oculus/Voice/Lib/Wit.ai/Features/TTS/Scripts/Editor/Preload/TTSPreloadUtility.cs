@@ -12,12 +12,14 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Facebook.WitAi.Utilities;
-using Facebook.WitAi.TTS.Data;
-using Facebook.WitAi.Data.Configuration;
-using Facebook.WitAi.Lib;
+using Meta.WitAi;
+using Meta.WitAi.TTS.Data;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Json;
+using Meta.WitAi.TTS.Utilities;
+using UnityEngine.SceneManagement;
 
-namespace Facebook.WitAi.TTS.Editor.Preload
+namespace Meta.WitAi.TTS.Editor.Preload
 {
     public static class TTSPreloadUtility
     {
@@ -45,7 +47,7 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             string assetPath = savePath.Replace("\\", "/");
             if (!assetPath.StartsWith(Application.dataPath))
             {
-                Debug.LogError(
+                VLog.E(
                     $"TTS Preload Utility - Cannot Create Setting Outside of Assets Directory\nPath: {assetPath}");
                 return null;
             }
@@ -86,32 +88,59 @@ namespace Facebook.WitAi.TTS.Editor.Preload
         {
             return _performer != null;
         }
-        // Iterate phrases
-        private static void IteratePhrases(TTSService service, TTSPreloadData preloadData, TTSPreloadIterateDelegate onIterate, Action<float> onProgress, Action<string> onComplete)
+        // Perform a check of all data
+        private static bool CheckIterateData(TTSService service, TTSPreloadData preloadData, TTSPreloadIterateDelegate onIterate, Action<float> onProgress, Action<string> onComplete)
         {
             // No service
             if (service == null)
             {
+                onProgress?.Invoke(1f);
                 onComplete?.Invoke("\nNo TTSService found in current scene");
-                return;
+                return false;
             }
             // No preload data
             if (preloadData == null)
             {
+                onProgress?.Invoke(1f);
                 onComplete?.Invoke("\nTTS Preload Data Not Found");
-                return;
+                return false;
+            }
+            // No preload data
+            if (preloadData.voices == null)
+            {
+                onProgress?.Invoke(1f);
+                onComplete?.Invoke("\nTTS Preload Data Voices Not Found");
+                return false;
             }
             // Ignore if running
             if (Application.isPlaying)
             {
+                onProgress?.Invoke(1f);
                 onComplete?.Invoke("Cannot preload while running");
+                return false;
+            }
+            // Ignore if running
+            if (onIterate == null)
+            {
+                onProgress?.Invoke(1f);
+                onComplete?.Invoke("Code recompiled mid update");
+                return false;
+            }
+            return true;
+        }
+        // Iterate phrases
+        private static void IteratePhrases(TTSService service, TTSPreloadData preloadData, TTSPreloadIterateDelegate onIterate, Action<float> onProgress, Action<string> onComplete)
+        {
+            // Skip if check fails
+            if (!CheckIterateData(service, preloadData, onIterate, onProgress, onComplete))
+            {
                 return;
             }
 
             // Unload previous coroutine performer
             if (_performer != null)
             {
-                MonoBehaviour.DestroyImmediate(_performer.gameObject);
+                _performer.gameObject.DestroySafely();
                 _performer = null;
             }
 
@@ -126,6 +155,7 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             {
                 DiskCacheLocation = TTSDiskCacheLocation.Preload
             };
+
             // Get total phrases
             int phraseTotal = 0;
             foreach (var voice in preloadData.voices)
@@ -151,6 +181,10 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             {
                 // Get voice data
                 TTSPreloadVoiceData voiceData = preloadData.voices[v];
+                if (voiceData.phrases == null)
+                {
+                    continue;
+                }
 
                 // Get voice
                 TTSVoiceSettings voiceSettings = service.GetPresetVoiceSettings(voiceData.presetVoiceID);
@@ -169,9 +203,15 @@ namespace Facebook.WitAi.TTS.Editor.Preload
                     onProgress?.Invoke(progress);
                     phraseCount++;
 
-                    // Iterate
+                    // Iterate Load
                     yield return onIterate(service, cacheSettings, voiceSettings, voiceData.phrases[p],
                         (p2) => onProgress?.Invoke(progress + p2 * phraseInc), (l) => log += l);
+
+                    // Skip if check fails
+                    if (!CheckIterateData(service, preloadData, onIterate, onProgress, onComplete))
+                    {
+                        yield break;
+                    }
                 }
             }
 
@@ -364,21 +404,21 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             // Check for file
             if (!File.Exists(textFilePath))
             {
-                Debug.LogError($"TTS Preload Utility - Preload file does not exist\nPath: {textFilePath}");
+                VLog.E($"TTS Preload Utility - Preload file does not exist\nPath: {textFilePath}");
                 return false;
             }
             // Load file
             string textFileContents = File.ReadAllText(textFilePath);
             if (string.IsNullOrEmpty(textFileContents))
             {
-                Debug.LogError($"TTS Preload Utility - Preload file load failed\nPath: {textFilePath}");
+                VLog.E($"TTS Preload Utility - Preload file load failed\nPath: {textFilePath}");
                 return false;
             }
             // Parse file
             WitResponseNode node = WitResponseNode.Parse(textFileContents);
             if (node == null)
             {
-                Debug.LogError($"TTS Preload Utility - Preload file parse failed\nPath: {textFilePath}");
+                VLog.E($"TTS Preload Utility - Preload file parse failed\nPath: {textFilePath}");
                 return false;
             }
             // Iterate children for texts
@@ -417,6 +457,80 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             return ImportData(preloadSettings, textsByVoice);
         }
         /// <summary>
+        /// Find all ITTSPhraseProviders loaded in scenes & generate
+        /// data file to import all phrases associated with the files.
+        /// </summary>
+        public static bool ImportPhrases(TTSPreloadSettings preloadSettings)
+        {
+            // Find phrase providers in all scenes
+            List<ITTSPhraseProvider> phraseProviders = new List<ITTSPhraseProvider>();
+            for (int s = 0; s < SceneManager.sceneCount; s++)
+            {
+                Scene scene = SceneManager.GetSceneAt(s);
+                foreach (var root in scene.GetRootGameObjects())
+                {
+                    ITTSPhraseProvider[] found = root.GetComponentsInChildren<ITTSPhraseProvider>(true);
+                    if (found != null)
+                    {
+                        phraseProviders.AddRange(found);
+                    }
+                }
+            }
+            // Get all phrases by voice id
+            Dictionary<string, List<string>> textsByVoice = new Dictionary<string, List<string>>();
+            foreach (var phraseProvider in phraseProviders)
+            {
+                // Ignore if no voices are found
+                string[] voiceIds = phraseProvider.GetVoiceIds();
+                if (voiceIds == null || voiceIds.Length == 0)
+                {
+                    continue;
+                }
+
+                // Iterate voice ids
+                foreach (var voiceId in voiceIds)
+                {
+                    // Ignore empty voice id
+                    if (string.IsNullOrEmpty(voiceId))
+                    {
+                        continue;
+                    }
+
+                    // Ignore if phrases are null
+                    string[] phrases = phraseProvider.GetVoicePhrases(voiceId);
+                    if (phrases == null || phrases.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    // Get phrase list
+                    List<string> voicePhrases;
+                    if (textsByVoice.ContainsKey(voiceId))
+                    {
+                        voicePhrases = textsByVoice[voiceId];
+                    }
+                    else
+                    {
+                        voicePhrases = new List<string>();
+                    }
+
+                    // Append unique phrases
+                    foreach (var phrase in phrases)
+                    {
+                        if (!string.IsNullOrEmpty(phrase) && !voicePhrases.Contains(phrase))
+                        {
+                            voicePhrases.Add(phrase);
+                        }
+                    }
+
+                    // Apply phrase list
+                    textsByVoice[voiceId] = voicePhrases;
+                }
+            }
+            // Import with data
+            return ImportData(preloadSettings, textsByVoice);
+        }
+        /// <summary>
         /// Imported dictionary data into an existing TTSPreloadSettings asset
         /// </summary>
         public static bool ImportData(TTSPreloadSettings preloadSettings, Dictionary<string, List<string>> textsByVoice)
@@ -424,7 +538,7 @@ namespace Facebook.WitAi.TTS.Editor.Preload
             // Import
             if (preloadSettings == null)
             {
-                Debug.LogError("TTS Preload Utility - Import Failed - Null Preload Settings");
+                VLog.E("TTS Preload Utility - Import Failed - Null Preload Settings");
                 return false;
             }
 

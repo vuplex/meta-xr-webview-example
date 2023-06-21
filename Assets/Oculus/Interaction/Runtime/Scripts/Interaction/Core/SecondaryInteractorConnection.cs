@@ -29,9 +29,9 @@ namespace Oculus.Interaction
     public class SecondaryInteractorConnection : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IInteractorView))]
-        private MonoBehaviour _primaryInteractor;
+        private UnityEngine.Object _primaryInteractor;
         [SerializeField, Interface(typeof(IInteractorView))]
-        private MonoBehaviour _secondaryInteractor;
+        private UnityEngine.Object _secondaryInteractor;
         public IInteractorView PrimaryInteractor { get; private set; }
         public IInteractorView SecondaryInteractor { get; private set; }
 
@@ -43,8 +43,8 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(PrimaryInteractor);
-            Assert.IsNotNull(SecondaryInteractor);
+            this.AssertField(PrimaryInteractor, nameof(PrimaryInteractor));
+            this.AssertField(SecondaryInteractor, nameof(SecondaryInteractor));
         }
 
         #region Inject
@@ -59,13 +59,13 @@ namespace Oculus.Interaction
         public void InjectPrimaryInteractor(IInteractorView interactorView)
         {
             PrimaryInteractor = interactorView;
-            _primaryInteractor = interactorView as MonoBehaviour;
+            _primaryInteractor = interactorView as UnityEngine.Object;
         }
 
         public void InjectSecondaryInteractorConnection(IInteractorView interactorView)
         {
             SecondaryInteractor = interactorView;
-            _secondaryInteractor = interactorView as MonoBehaviour;
+            _secondaryInteractor = interactorView as UnityEngine.Object;
         }
 
         #endregion

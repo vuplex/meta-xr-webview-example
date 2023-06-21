@@ -7,29 +7,39 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
-using Facebook.WitAi.Configuration;
-using Facebook.WitAi.Data.Entities;
-using Facebook.WitAi.Data.Intents;
-using Facebook.WitAi.Data.Traits;
+using Meta.WitAi.Configuration;
+using Meta.WitAi;
+using Meta.WitAi.Data.Info;
 using UnityEngine;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace Facebook.WitAi.Data.Configuration
+namespace Meta.WitAi.Data.Configuration
 {
-    public class WitConfiguration : ScriptableObject
+    public class WitConfiguration : ScriptableObject, IWitRequestConfiguration
     {
-        [HideInInspector]
-        [SerializeField] public WitApplication application;
-        [HideInInspector] [SerializeField] public string configId;
-
         /// <summary>
         /// Access token used in builds to make requests for data from Wit.ai
         /// </summary>
         [Tooltip("Access token used in builds to make requests for data from Wit.ai")]
-        [SerializeField] public string clientAccessToken;
+        [FormerlySerializedAs("clientAccessToken")]
+        [SerializeField] private string _clientAccessToken;
+
+        /// <summary>
+        /// Application info
+        /// </summary>
+        [FormerlySerializedAs("application")]
+        [SerializeField] private WitAppInfo _appInfo;
+
+        /// <summary>
+        /// Configuration id
+        /// </summary>
+        [FormerlySerializedAs("configId")]
+        [HideInInspector] [SerializeField] private string _configurationId;
 
         [Tooltip("The number of milliseconds to wait before requests to Wit.ai will timeout")]
         [SerializeField] public int timeoutMS = 10000;
@@ -40,106 +50,172 @@ namespace Facebook.WitAi.Data.Configuration
         [Tooltip("Configuration parameters to set up a custom endpoint for testing purposes and request forwarding. The default values here will work for most.")]
         [SerializeField] public WitEndpointConfig endpointConfiguration = new WitEndpointConfig();
 
-        [SerializeField] public WitEntity[] entities;
-        [SerializeField] public WitIntent[] intents;
-        [SerializeField] public WitTrait[] traits;
-
+        /// <summary>
+        /// True if this configuration should not show up in the demo list
+        /// </summary>
         [SerializeField] public bool isDemoOnly;
 
         /// <summary>
         /// When set to true, will use Conduit to dispatch voice commands.
         /// </summary>
         [Tooltip("Conduit enables manifest-based dispatching to invoke callbacks with native types directly without requiring manual parsing.")]
-        [SerializeField] public bool useConduit;
+        [SerializeField] public bool useConduit = true;
 
         /// <summary>
         /// The path to the Conduit manifest.
         /// </summary>
-        [SerializeField] public string manifestLocalPath;
+        [SerializeField] private string _manifestLocalPath;
 
-        public string WitApplicationId
+        /// <summary>
+        /// The assemblies that we want to exclude from Conduit.
+        /// </summary>
+        [SerializeField] public List<string> excludedAssemblies = new List<string>
+        {
+            "Oculus.Voice.Demo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null",
+            "Meta.WitAi.Samples, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
+        };
+
+        [Tooltip("When true, Conduit will attempt to match incoming requests by type when no exact matches are found. This increases tolerance but reduces runtime performance.")]
+        [SerializeField] public bool relaxedResolution;
+
+        /// <summary>
+        /// Safe access of local path
+        /// </summary>
+        public string ManifestLocalPath
         {
             get
             {
-                if (String.IsNullOrEmpty(application?.id))
+                #if UNITY_EDITOR
+                if (string.IsNullOrEmpty(_manifestLocalPath))
                 {
-                    // NOTE: If a dev only provides a client token we may not have the application id.
-                    if (!string.IsNullOrEmpty(clientAccessToken))
-                    {
-                        return INVALID_APP_ID_WITH_CLIENT_TOKEN;
-                    }
-
-                    return INVALID_APP_ID_NO_CLIENT_TOKEN;
+                    _manifestLocalPath = $"ConduitManifest-{Guid.NewGuid()}.json";
+                    SaveConfiguration();
                 }
-
-                return application.id;
+                #endif
+                return _manifestLocalPath;
             }
         }
-
-
         #if UNITY_EDITOR
-        // Manifest editor path
-        public string ManifestEditorPath
+        /// <summary>
+        /// Returns manifest full editor path
+        /// </summary>
+        public string GetManifestEditorPath()
         {
-            get
+            if (string.IsNullOrEmpty(_manifestLocalPath)) return string.Empty;
+
+            string lookup = Path.GetFileNameWithoutExtension(_manifestLocalPath);
+            string[] guids = UnityEditor.AssetDatabase.FindAssets(lookup);
+            if (guids != null && guids.Length > 0)
             {
-                if (string.IsNullOrEmpty(_manifestFullPath) || !File.Exists(_manifestFullPath))
-                {
-                    string lookup = Path.GetFileNameWithoutExtension(manifestLocalPath);
-                    string[] guids = UnityEditor.AssetDatabase.FindAssets(lookup);
-                    if (guids != null && guids.Length > 0)
-                    {
-                        _manifestFullPath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
-                    }
-                }
-                return _manifestFullPath;
+                return UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
             }
+            return string.Empty;
         }
-        private string _manifestFullPath;
         #endif
 
         /// <summary>
-        /// When true, Conduit will automatically generate manifests each time code changes.
+        /// Reset all data
         /// </summary>
-        [SerializeField] public bool autoGenerateManifest = false;
-
-        /// <summary>
-        /// When true, will open Conduit manifests when they are manually generated.
-        /// </summary>
-        [SerializeField] public bool openManifestOnGeneration = false;
-
-        public const string INVALID_APP_ID_NO_CLIENT_TOKEN = "App Info Not Set - No Client Token";
-
-        public const string INVALID_APP_ID_WITH_CLIENT_TOKEN =
-            "App Info Not Set - Has Client Token";
-
-        public WitApplication Application => application;
-
-        private void OnEnable()
-        {
-            #if UNITY_EDITOR
-            if (string.IsNullOrEmpty(configId))
-            {
-                configId = GUID.Generate().ToString();
-                EditorUtility.SetDirty(this);
-            }
-
-            if (string.IsNullOrEmpty(manifestLocalPath))
-            {
-                manifestLocalPath = $"ConduitManifest-{Guid.NewGuid()}.json";
-                EditorUtility.SetDirty(this);
-            }
-
-            #endif
-        }
-
         public void ResetData()
         {
-            application = null;
-            clientAccessToken = null;
-            entities = null;
-            intents = null;
-            traits = null;
+            _configurationId = null;
+            _appInfo = new WitAppInfo();
+            endpointConfiguration = new WitEndpointConfig();
         }
+
+        // Logger invalid warnings
+        private const string INVALID_APP_ID_NO_CLIENT_TOKEN = "App Info Not Set - No Client Token";
+        private const string INVALID_APP_ID_WITH_CLIENT_TOKEN =
+            "App Info Not Set - Has Client Token";
+        public string GetLoggerAppId()
+        {
+            // Get application id
+            string applicationId = GetApplicationId();
+            if (String.IsNullOrEmpty(applicationId))
+            {
+                // NOTE: If a dev only provides a client token we may not have the application id.
+                string clientAccessToken = GetClientAccessToken();
+                if (!string.IsNullOrEmpty(clientAccessToken))
+                {
+                    return INVALID_APP_ID_WITH_CLIENT_TOKEN;
+                }
+                return INVALID_APP_ID_NO_CLIENT_TOKEN;
+            }
+            return applicationId;
+        }
+
+        #region IWitRequestConfiguration
+        /// <summary>
+        /// Returns unique configuration guid
+        /// </summary>
+        public string GetConfigurationId()
+        {
+            #if UNITY_EDITOR
+            // Ensure configuration id is generated
+            if (string.IsNullOrEmpty(_configurationId))
+            {
+                _configurationId = Guid.NewGuid().ToString();
+            }
+            #endif
+            // Return configuration id
+            return _configurationId;
+        }
+        /// <summary>
+        /// Returns unique application id
+        /// </summary>
+        public string GetApplicationId() => _appInfo.id;
+        /// <summary>
+        /// Returns application info
+        /// </summary>
+        public WitAppInfo GetApplicationInfo() => _appInfo;
+        /// <summary>
+        /// Return endpoint override
+        /// </summary>
+        public IWitRequestEndpointInfo GetEndpointInfo() => endpointConfiguration;
+        /// <summary>
+        /// Returns client access token
+        /// </summary>
+        public string GetClientAccessToken()
+        {
+            return _clientAccessToken;
+        }
+        #if UNITY_EDITOR
+        /// <summary>
+        /// Editor only setter
+        /// </summary>
+        public void SetClientAccessToken(string newToken)
+        {
+            _clientAccessToken = newToken;
+            SaveConfiguration();
+        }
+        /// <summary>
+        /// Returns server access token (Editor Only)
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public string GetServerAccessToken()
+        {
+            return WitAuthUtility.GetAppServerToken(GetApplicationId());
+        }
+        /// <summary>
+        /// Set application info
+        /// </summary>
+        public void SetApplicationInfo(WitAppInfo newInfo)
+        {
+            _appInfo = newInfo;
+            SaveConfiguration();
+        }
+        // Save this configuration asset
+        private void SaveConfiguration()
+        {
+            EditorUtility.SetDirty(this);
+            #if UNITY_2021_3_OR_NEWER
+            AssetDatabase.SaveAssetIfDirty(this);
+            #else
+            AssetDatabase.SaveAssets();
+            #endif
+        }
+        #endif
+        #endregion
     }
 }

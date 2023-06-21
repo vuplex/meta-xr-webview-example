@@ -28,7 +28,7 @@ namespace Oculus.Interaction
     public class ControllerPointerPose : MonoBehaviour, IActiveState
     {
         [SerializeField, Interface(typeof(IController))]
-        private MonoBehaviour _controller;
+        private UnityEngine.Object _controller;
         public IController Controller { get; private set; }
 
         [SerializeField]
@@ -46,7 +46,7 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Controller);
+            this.AssertField(Controller, nameof(Controller));
             this.EndStart(ref _started);
         }
 
@@ -85,7 +85,7 @@ namespace Oculus.Interaction
 
         public void InjectController(IController controller)
         {
-            _controller = controller as MonoBehaviour;
+            _controller = controller as UnityEngine.Object;
             Controller = controller;
         }
 

@@ -44,15 +44,19 @@ namespace Oculus.Interaction.PoseDetection
         }
 
         [SerializeField]
+        [Tooltip(TransformFeatureProperties.FeatureStateThresholdMidpointHelpText)]
         private float _thresholdMidpoint;
 
         [SerializeField]
+        [Tooltip(TransformFeatureProperties.FeatureStateThresholdWidthHelpText)]
         private float _thresholdWidth;
 
         [SerializeField]
+        [Tooltip("State to transition to when value passes below the threshold")]
         private string _firstState;
 
         [SerializeField]
+        [Tooltip("State to transition to when value passes above the threshold")]
         private string _secondState;
 
         public float ToFirstWhenBelow => _thresholdMidpoint - _thresholdWidth * 0.5f;
@@ -78,9 +82,13 @@ namespace Oculus.Interaction.PoseDetection
         }
 
         [SerializeField]
+        [Tooltip("Which feature this collection of thresholds controls. " +
+            "Each feature should exist at most once.")]
         private TransformFeature _feature;
 
         [SerializeField]
+        [Tooltip("List of state transitions, with thresold settings. " +
+            "The entries in this list must be in ascending order, based on their 'midpoint' values.")]
         private List<TransformFeatureStateThreshold> _thresholds;
 
         [SerializeField]
@@ -101,6 +109,7 @@ namespace Oculus.Interaction.PoseDetection
         IFeatureThresholds<TransformFeature, string>
     {
         [SerializeField]
+        [Tooltip("List of all supported transform features, along with the state entry/exit thresholds.")]
         private List<TransformFeatureThresholds> _featureThresholds;
 
         [SerializeField]

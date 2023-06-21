@@ -6,82 +6,59 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Lib;
+using System;
+using Meta.WitAi.Json;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.CallbackHandlers
+namespace Meta.WitAi.CallbackHandlers
 {
     [AddComponentMenu("Wit.ai/Response Matchers/Simple Intent Handler")]
-    public class SimpleIntentHandler : WitResponseHandler
+    public class SimpleIntentHandler : WitIntentMatcher
     {
-        [SerializeField] public string intent;
-        [Range(0, 1f)]
-        [SerializeField] public float confidence = .9f;
         [SerializeField] private UnityEvent onIntentTriggered = new UnityEvent();
 
         [Tooltip("Confidence ranges are executed in order. If checked, all confidence values will be checked instead of stopping on the first one that matches.")]
         [SerializeField] public bool allowConfidenceOverlap;
+#if UNITY_2021_3_2 || UNITY_2021_3_3 || UNITY_2021_3_4 || UNITY_2021_3_5
+        [NonReorderable]
+#endif
         [SerializeField] public ConfidenceRange[] confidenceRanges;
 
         public UnityEvent OnIntentTriggered => onIntentTriggered;
 
-        protected override void OnHandleResponse(WitResponseNode response)
+        protected override void OnResponseSuccess(WitResponseNode response)
         {
-            if (null == response) return;
-
-            bool matched = false;
-            foreach (var intentNode in response?["intents"]?.Childs)
-            {
-                var resultConfidence = intentNode["confidence"].AsFloat;
-                if (intent == intentNode["name"].Value)
-                {
-                    matched = true;
-                    if (resultConfidence >= confidence)
-                    {
-                        onIntentTriggered.Invoke();
-                    }
-
-                    CheckInsideRange(resultConfidence);
-                    CheckOutsideRange(resultConfidence);
-                }
-            }
-
-            if(!matched)
-            {
-                CheckInsideRange(0);
-                CheckOutsideRange(0);
-            }
+            onIntentTriggered.Invoke();
+            UpdateRanges(response);
+        }
+        protected override void OnResponseInvalid(WitResponseNode response, string error)
+        {
+            UpdateRanges(response);
         }
 
-        private void CheckOutsideRange(float resultConfidence)
+        private void UpdateRanges(WitResponseNode response)
         {
-            for (int i = 0; null != confidenceRanges && i < confidenceRanges.Length; i++)
+            // Find intents if possible
+            var intents = response?.GetIntents();
+            if (intents == null)
             {
-                var range = confidenceRanges[i];
-                if (resultConfidence < range.minConfidence ||
-                    resultConfidence > range.maxConfidence)
-                {
-                    range.onOutsideConfidenceRange?.Invoke();
+                return;
+            }
 
-                    if (!allowConfidenceOverlap) break;
+            // Iterate intents
+            foreach (var intentData in intents)
+            {
+                if (string.Equals(intent, intentData.name, StringComparison.CurrentCultureIgnoreCase))
+                {
+                    // Found intent
+                    RefreshConfidenceRange(intentData.confidence, confidenceRanges, allowConfidenceOverlap);
+                    return;
                 }
             }
-        }
 
-        private void CheckInsideRange(float resultConfidence)
-        {
-            for (int i = 0; null != confidenceRanges && i < confidenceRanges.Length; i++)
-            {
-                var range = confidenceRanges[i];
-                if (resultConfidence >= range.minConfidence &&
-                    resultConfidence <= range.maxConfidence)
-                {
-                    range.onWithinConfidenceRange?.Invoke();
-
-                    if (!allowConfidenceOverlap) break;
-                }
-            }
+            // Not matched
+            RefreshConfidenceRange(0, confidenceRanges, allowConfidenceOverlap);
         }
     }
 }

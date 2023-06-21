@@ -19,10 +19,11 @@
  */
 
 using System;
-using Facebook.WitAi;
-using Facebook.WitAi.Configuration;
-using Facebook.WitAi.Data;
-using Facebook.WitAi.Data.Configuration;
+using Meta.WitAi;
+using Meta.WitAi.Configuration;
+using Meta.WitAi.Data;
+using Meta.WitAi.Data.Configuration;
+using Meta.WitAi.Windows;
 using UnityEditor;
 using UnityEngine;
 
@@ -64,7 +65,7 @@ namespace Oculus.Voice.Data
         [MenuItem("Assets/Create/Voice SDK/Configuration", false, 200)]
         public static void CreateWitConfiguration()
         {
-            WitConfigurationUtility.CreateConfiguration(WitAuthUtility.ServerToken);
+            WitWindowUtility.OpenSetupWindow(null);
         }
     }
 }

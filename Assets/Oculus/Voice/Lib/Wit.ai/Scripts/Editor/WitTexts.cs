@@ -8,7 +8,7 @@
 
 using UnityEngine;
 
-namespace Facebook.WitAi
+namespace Meta.WitAi
 {
     public static class WitTexts
     {
@@ -23,6 +23,9 @@ namespace Facebook.WitAi
             public string WitAppSettingsEndpoint;
             public string WitAppUnderstandingEndpoint;
             public string WitOpenButtonLabel;
+            public string WitDocsTitle;
+            public string WitDocsUrl;
+            public string VLogLevelLabel;
             public string ConfigurationFileManagerLabel;
             public string ConfigurationFileNameLabel;
             public string ConfigurationSelectLabel;
@@ -31,6 +34,9 @@ namespace Facebook.WitAi
             public string SetupTitleLabel;
             public string SetupSubheaderLabel;
             public string SetupServerTokenLabel;
+            public string SetupServerTokenVerifyLabel;
+            public string SetupServerTokenVerifyWarning;
+            public string SetupClientTokenWarningLabel;
             public string SetupSubmitButtonLabel;
             public string SetupSubmitFailLabel;
             [Header("Understanding Viewer Texts")]
@@ -48,12 +54,14 @@ namespace Facebook.WitAi
             public string UnderstandingViewerAbortButtonLabel;
             public string UnderstandingViewerListeningLabel;
             public string UnderstandingViewerLoadingLabel;
+            public string UnderstandingViewerSelectLabel;
             [Header("Settings Texts")]
             public string SettingsTitleLabel;
             public string SettingsServerTokenLabel;
             public string SettingsServerTokenTooltip;
             public string SettingsRelinkButtonLabel;
             public string SettingsAddButtonLabel;
+            public string SettingsAddMainButtonLabel;
             [Header("Configuration Texts")]
             public string ConfigurationHeaderLabel;
             public string ConfigurationRefreshButtonLabel;
@@ -69,6 +77,11 @@ namespace Facebook.WitAi
             public string ConfigurationEndpointPortLabel;
             public string ConfigurationEndpointApiLabel;
             public string ConfigurationEndpointSpeechLabel;
+            public string ConfigurationEndpointMessageLabel;
+            public string ConfigurationEndpointDictationLabel;
+            public string ConfigurationEndpointSynthesizeLabel;
+            public string ConfigurationEndpointComposerEventLabel;
+            public string ConfigurationEndpointComposerConverseLabel;
             [Header("Configuration Application Texts")]
             public string ConfigurationApplicationTabLabel;
             public string ConfigurationApplicationMissingLabel;
@@ -77,6 +90,14 @@ namespace Facebook.WitAi
             public string ConfigurationApplicationLanguageLabel;
             public string ConfigurationApplicationPrivateLabel;
             public string ConfigurationApplicationCreatedLabel;
+            [Header("Configuration Application Training Texts")]
+            public string ConfigurationApplicationTrainingStatus;
+            public string ConfigurationApplicationTrainingLast;
+            public string ConfigurationApplicationTrainingLastDuration;
+            public string ConfigurationApplicationTrainingNext;
+
+            [Header("Configuration Conduit Texts")]
+            public string ConfigurationConduitMissingTokenLabel;
 
             [Header("Configuration Intent Texts")]
             public string ConfigurationIntentsTabLabel;
@@ -89,11 +110,20 @@ namespace Facebook.WitAi
             public string ConfigurationEntitiesIdLabel;
             public string ConfigurationEntitiesLookupsLabel;
             public string ConfigurationEntitiesRolesLabel;
+            public string ConfigurationEntitiesKeywordsLabel;
             [Header("Configuration Trait Texts")]
             public string ConfigurationTraitsTabLabel;
             public string ConfigurationTraitsMissingLabel;
             public string ConfigurationTraitsIdLabel;
             public string ConfigurationTraitsValuesLabel;
+            [Header("Configuration Voice Texts")]
+            public string ConfigurationVoicesTabLabel;
+            public string ConfigurationVoicesMissingLabel;
+            [Header("Configuration Composer Texts")]
+            public string ConfigurationComposerTabLabel;
+            public string ConfigurationComposerMissingLabel;
+            [Header("Tooltip Texts")]
+            public string ShowTooltipsLabel;
         }
 
         // Wit
@@ -124,7 +154,7 @@ namespace Facebook.WitAi
             TextAsset textAsset = Resources.Load<TextAsset>(textFilePath);
             if (textAsset == null)
             {
-                Debug.LogError($"WitStyles - Add localization to Resources/{textFilePath}\nLanguage: {languageID}");
+                VLog.E($"WitStyles - Add localization to Resources/{textFilePath}\nLanguage: {languageID}");
                 return;
             }
             Texts = JsonUtility.FromJson<WitText>(textAsset.text);
@@ -140,6 +170,7 @@ namespace Facebook.WitAi
             ConfigurationClientTokenContent = new GUIContent(WitTexts.Texts.ConfigurationClientTokenLabel);
             ConfigurationRequestTimeoutContent = new GUIContent(WitTexts.Texts.ConfigurationRequestTimeoutLabel);
         }
+
         // Get urls
         public static string GetAppURL(string appId, WitAppEndpointType endpointType)
         {

@@ -18,11 +18,13 @@
  * limitations under the License.
  */
 
+using System;
 using UnityEngine;
 
 namespace Oculus.Interaction
 {
-    public interface IDistanceInteractable : IInteractableView
+    [Obsolete("Use IRelativeToRef instead")]
+    public interface IDistanceInteractable
     {
         Transform RelativeTo { get; }
     }

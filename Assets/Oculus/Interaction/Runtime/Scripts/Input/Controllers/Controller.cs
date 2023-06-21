@@ -27,11 +27,6 @@ namespace Oculus.Interaction.Input
         DataModifier<ControllerDataAsset>,
         IController
     {
-
-        [SerializeField]
-        [Tooltip("Provides access to additional functionality on top of what the IController interface provides.")]
-        private Component[] _aspects;
-
         public Handedness Handedness => GetData().Config.Handedness;
 
         public bool IsConnected
@@ -69,7 +64,7 @@ namespace Oculus.Interaction.Input
             GetData().Config.TrackingToWorldTransformer;
 
         public float Scale => TrackingToWorldTransformer != null
-            ? TrackingToWorldTransformer.Transform.localScale.x
+            ? TrackingToWorldTransformer.Transform.lossyScale.x
             : 1;
 
         public bool IsButtonUsageAnyActive(ControllerButtonUsage buttonUsage)
@@ -136,19 +131,8 @@ namespace Oculus.Interaction.Input
             // Default implementation does nothing, to allow instantiation of this modifier directly
         }
 
-        public bool TryGetAspect<TAspect>(out TAspect foundAspect) where TAspect : class
-        {
-            foreach (Component aspect in _aspects)
-            {
-                foundAspect = aspect as TAspect;
-                if (foundAspect != null)
-                {
-                    return true;
-                }
-            }
+        #region Inject
 
-            foundAspect = null;
-            return false;
-        }
+        #endregion
     }
 }

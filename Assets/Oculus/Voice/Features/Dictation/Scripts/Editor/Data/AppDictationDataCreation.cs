@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.Configuration;
-using Facebook.WitAi.Data;
+using Meta.WitAi.Configuration;
+using Meta.WitAi.Data;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,7 +21,7 @@ namespace Oculus.Voice.Dictation.Data
             var witGo = new GameObject();
             witGo.name = "App Dictation Experience";
             var wit = witGo.AddComponent<AppDictationExperience>();
-            wit.RuntimeConfiguration = new WitDictationRuntimeConfiguration
+            wit.RuntimeDictationConfiguration = new WitDictationRuntimeConfiguration
             {
                 witConfiguration = WitDataCreation.FindDefaultWitConfig()
             };

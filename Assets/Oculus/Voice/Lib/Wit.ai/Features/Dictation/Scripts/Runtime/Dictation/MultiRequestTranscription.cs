@@ -1,9 +1,9 @@
 using System;
 using System.Text;
-using Facebook.WitAi.Events;
+using Meta.WitAi.Events;
 using UnityEngine;
 
-namespace Facebook.WitAi.Dictation
+namespace Meta.WitAi.Dictation
 {
     public class MultiRequestTranscription : MonoBehaviour
     {
@@ -51,7 +51,6 @@ namespace Facebook.WitAi.Dictation
             _activeText = string.Empty;
             witDictation.VoiceEvents.OnFullTranscription.RemoveListener(OnFullTranscription);
             witDictation.VoiceEvents.OnPartialTranscription.RemoveListener(OnPartialTranscription);
-            witDictation.VoiceEvents.OnAborting.RemoveListener(OnCancelled);
         }
 
         private void OnCancelled()

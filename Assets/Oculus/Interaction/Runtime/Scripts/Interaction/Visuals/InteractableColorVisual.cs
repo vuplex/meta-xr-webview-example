@@ -19,15 +19,16 @@
  */
 
 using System;
+using System.Collections;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction
 {
     public class InteractableColorVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IInteractableView))]
-        private MonoBehaviour _interactableView;
+        private UnityEngine.Object _interactableView;
+        private IInteractableView InteractableView { get; set; }
 
         [SerializeField]
         private MaterialPropertyBlockEditor _editor;
@@ -44,23 +45,19 @@ namespace Oculus.Interaction
         }
 
         [SerializeField]
-        private ColorState _normalColorState;
-
+        private ColorState _normalColorState = new ColorState() { Color = Color.white };
         [SerializeField]
-        private ColorState _hoverColorState;
-
+        private ColorState _hoverColorState = new ColorState() { Color = Color.blue };
         [SerializeField]
-        private ColorState _selectColorState;
-
-        private ColorState _targetState;
+        private ColorState _selectColorState = new ColorState() { Color = Color.green };
+        [SerializeField]
+        private ColorState _disabledColorState = new ColorState() { Color = Color.grey };
 
         private Color _currentColor;
-        private Color _startColor;
-
-        private float _timer;
-
-        private IInteractableView InteractableView;
+        private ColorState _target;
         private int _colorShaderID;
+        private Coroutine _routine = null;
+        private static readonly YieldInstruction _waiter = new WaitForEndOfFrame();
 
         protected bool _started = false;
 
@@ -72,13 +69,9 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(InteractableView);
 
-            Assert.IsNotNull(_editor);
-
-            _targetState = _normalColorState;
-            _startColor = _currentColor = _normalColorState.Color;
-            _timer = _normalColorState.ColorTime;
+            this.AssertField(InteractableView, nameof(InteractableView));
+            this.AssertField(_editor, nameof(_editor));
 
             _colorShaderID = Shader.PropertyToID(_colorShaderPropertyName);
 
@@ -103,39 +96,74 @@ namespace Oculus.Interaction
             }
         }
 
+        private void UpdateVisualState(InteractableStateChangeArgs args)
+        {
+            UpdateVisual();
+        }
+
         protected virtual void UpdateVisual()
         {
-            switch (InteractableView.State)
+            ColorState target = ColorForState(InteractableView.State);
+            if (target != _target)
+            {
+                _target = target;
+                CancelRoutine();
+                _routine = StartCoroutine(ChangeColor(target));
+            }
+        }
+
+        private ColorState ColorForState(InteractableState state)
+        {
+            switch (state)
             {
                 case InteractableState.Select:
-                    _targetState = _selectColorState;
-                    break;
+                    return _selectColorState;
                 case InteractableState.Hover:
-                    _targetState = _hoverColorState;
-                    break;
+                    return _hoverColorState;
+                case InteractableState.Normal:
+                    return _normalColorState;
+                case InteractableState.Disabled:
+                    return _disabledColorState;
                 default:
-                    _targetState = _normalColorState;
-                    break;
+                    return _normalColorState;
             }
-            _timer = 0.0f;
-            _startColor = _currentColor;
         }
 
-        private void Update()
+        private IEnumerator ChangeColor(ColorState targetState)
         {
-            _timer += Time.deltaTime;
-            float _normalizedTimer = Mathf.Clamp01(_timer / _targetState.ColorTime);
-            float t = _targetState.ColorCurve.Evaluate(_normalizedTimer);
-            _currentColor = Color.Lerp(_startColor, _targetState.Color, t);
-            _editor.MaterialPropertyBlock.SetColor(_colorShaderID, _currentColor);
+            Color startColor = _currentColor;
+            float timer = 0f;
+            do
+            {
+                timer += Time.deltaTime;
+                float normalizedTimer = Mathf.Clamp01(timer / targetState.ColorTime);
+                float t = targetState.ColorCurve.Evaluate(normalizedTimer);
+                SetColor(Color.Lerp(startColor, targetState.Color, t));
+
+                yield return _waiter;
+            }
+            while (timer <= targetState.ColorTime);
         }
 
-        private void UpdateVisualState(InteractableStateChangeArgs args) => UpdateVisual();
+        private void SetColor(Color color)
+        {
+            _currentColor = color;
+            _editor.MaterialPropertyBlock.SetColor(_colorShaderID, color);
+        }
+
+        private void CancelRoutine()
+        {
+            if (_routine != null)
+            {
+                StopCoroutine(_routine);
+                _routine = null;
+            }
+        }
 
         #region Inject
 
         public void InjectAllInteractableColorVisual(IInteractableView interactableView,
-                                                     MaterialPropertyBlockEditor editor)
+            MaterialPropertyBlockEditor editor)
         {
             InjectInteractableView(interactableView);
             InjectMaterialPropertyBlockEditor(editor);
@@ -143,7 +171,7 @@ namespace Oculus.Interaction
 
         public void InjectInteractableView(IInteractableView interactableview)
         {
-            _interactableView = interactableview as MonoBehaviour;
+            _interactableView = interactableview as UnityEngine.Object;
             InteractableView = interactableview;
         }
 

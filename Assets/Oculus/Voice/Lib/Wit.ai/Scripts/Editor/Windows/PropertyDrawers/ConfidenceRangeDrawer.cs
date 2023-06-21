@@ -9,9 +9,9 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Facebook.WitAi.CallbackHandlers;
+using Meta.WitAi.CallbackHandlers;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     [CustomPropertyDrawer(typeof(ConfidenceRange))]
     public class ConfidenceRangeDrawer : WitPropertyDrawer

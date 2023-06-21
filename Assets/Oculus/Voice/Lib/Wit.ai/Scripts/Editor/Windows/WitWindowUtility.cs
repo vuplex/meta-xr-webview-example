@@ -9,9 +9,9 @@
 using System;
 using System.Reflection;
 using UnityEditor;
-using Facebook.WitAi.Data.Configuration;
+using Meta.WitAi.Data.Configuration;
 
-namespace Facebook.WitAi.Windows
+namespace Meta.WitAi.Windows
 {
     public static class WitWindowUtility
     {
@@ -39,6 +39,15 @@ namespace Facebook.WitAi.Windows
                 return false;
             });
             return result;
+        }
+
+        // Opens Setup Window
+        public static void OpenGettingStarted(Action<WitConfiguration> onSetupComplete)
+        {
+            // Get wizard (Title is overwritten)
+            WitWelcomeWizard wizard = (WitWelcomeWizard)ScriptableWizard.DisplayWizard(WitTexts.Texts.SetupTitleLabel, SetupWindowType, WitTexts.Texts.SetupSubmitButtonLabel);
+            // Set success callback
+            wizard.successAction = onSetupComplete;
         }
 
         // Opens Setup Window

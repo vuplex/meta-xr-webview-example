@@ -127,38 +127,9 @@ namespace Oculus.Interaction.Input
         bool GetRootPose(out Pose pose);
 
         /// <summary>
-        /// Will return true if an HMD Center Eye pose available, that can be retrieved via
-        /// <see cref="GetCenterEyePose"/>
-        /// </summary>
-        bool IsCenterEyePoseValid { get; }
-
-        /// <summary>
-        /// Gets the pose of the center eye (HMD), in world space.
-        /// Will return true if a pose was available; false otherwise.
-        /// </summary>
-        bool GetCenterEyePose(out Pose pose);
-
-        /// <summary>
-        /// The transform that was applied to all tracking space poses to convert them to world
-        /// space.
-        /// </summary>
-        Transform TrackingToWorldSpace { get; }
-
-        /// <summary>
         /// Incremented every time the source tracking or state data changes.
         /// </summary>
         int CurrentDataVersion { get; }
-
-        /// <summary>
-        /// An Aspect provides additional functionality on top of what the HandState provides.
-        /// The underlying hand is responsible for finding the most appropriate component.
-        /// It is usually, but not necessarily, located within the same GameObject as the
-        /// underlying hand.
-        /// For example, this method can be used to source the SkinnedMeshRenderer representing the
-        /// hand, if one exists.
-        /// <returns>true if an aspect of the requested type was found, false otherwise</returns>
-        /// </summary>
-        bool TryGetAspect<TAspect>(out TAspect aspect) where TAspect : class;
 
         event Action WhenHandUpdated;
     }

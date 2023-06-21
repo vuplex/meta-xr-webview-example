@@ -44,8 +44,13 @@ namespace Oculus.Interaction.PoseDetection
     public class TransformRecognizerActiveState : MonoBehaviour, IActiveState
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         public IHand Hand { get; private set; }
+
+        [SerializeField, Interface(typeof(ITransformFeatureStateProvider))]
+        private UnityEngine.Object _transformFeatureStateProvider;
+
+        protected ITransformFeatureStateProvider TransformFeatureStateProvider;
 
         [SerializeField]
         private TransformFeatureConfigList _transformFeatureConfigs;
@@ -59,26 +64,23 @@ namespace Oculus.Interaction.PoseDetection
 
         public TransformConfig TransformConfig => _transformConfig;
 
-        private TransformFeatureStateProvider FeatureStateProvider { get; set; }
-
         protected bool _started = false;
 
         protected virtual void Awake()
         {
             Hand = _hand as IHand;
+            TransformFeatureStateProvider =
+                _transformFeatureStateProvider as ITransformFeatureStateProvider;
         }
 
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Hand);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(TransformFeatureStateProvider, nameof(TransformFeatureStateProvider));
 
-            bool foundAspect = Hand.TryGetAspect(out TransformFeatureStateProvider aspect);
-            Assert.IsTrue(foundAspect);
-            FeatureStateProvider = aspect;
-
-            Assert.IsNotNull(_transformFeatureConfigs);
-            Assert.IsNotNull(_transformConfig);
+            this.AssertField(_transformFeatureConfigs, nameof(_transformFeatureConfigs));
+            this.AssertField(_transformConfig, nameof(_transformConfig));
 
             _transformConfig.InstanceId = GetInstanceID();
             this.EndStart(ref _started);
@@ -88,7 +90,7 @@ namespace Oculus.Interaction.PoseDetection
         {
             if (_started)
             {
-                FeatureStateProvider.RegisterNewConfig(_transformConfig);
+                TransformFeatureStateProvider.RegisterConfig(_transformConfig);
 
                 // Warm up the proactive evaluation
                 InitStateProvider();
@@ -99,7 +101,7 @@ namespace Oculus.Interaction.PoseDetection
         {
             if (_started)
             {
-                FeatureStateProvider.UnRegisterConfig(_transformConfig);
+                TransformFeatureStateProvider.UnRegisterConfig(_transformConfig);
             }
         }
 
@@ -107,14 +109,14 @@ namespace Oculus.Interaction.PoseDetection
         {
             foreach(var featureConfig in FeatureConfigs)
             {
-                FeatureStateProvider.GetCurrentState(_transformConfig, featureConfig.Feature, out _);
+                TransformFeatureStateProvider.GetCurrentState(_transformConfig, featureConfig.Feature, out _);
             }
         }
 
         public void GetFeatureVectorAndWristPos(TransformFeature feature, bool isHandVector,
             ref Vector3? featureVec, ref Vector3? wristPos)
         {
-            FeatureStateProvider.GetFeatureVectorAndWristPos(
+            TransformFeatureStateProvider.GetFeatureVectorAndWristPos(
                 TransformConfig, feature, isHandVector, ref featureVec, ref wristPos);
         }
 
@@ -128,7 +130,7 @@ namespace Oculus.Interaction.PoseDetection
                 }
                 foreach(var featureConfig in FeatureConfigs)
                 {
-                    if (!FeatureStateProvider.IsStateActive(
+                    if (! TransformFeatureStateProvider.IsStateActive(
                         _transformConfig,
                         featureConfig.Feature,
                         featureConfig.Mode,
@@ -144,18 +146,27 @@ namespace Oculus.Interaction.PoseDetection
 
         #region Inject
 
-        public void InjectAllTransformRecognizerActiveState(IHand hand, TransformFeatureConfigList transformFeatureList,
+        public void InjectAllTransformRecognizerActiveState(IHand hand,
+            ITransformFeatureStateProvider transformFeatureStateProvider,
+            TransformFeatureConfigList transformFeatureList,
             TransformConfig transformConfig)
         {
             InjectHand(hand);
+            InjectTransformFeatureStateProvider(transformFeatureStateProvider);
             InjectTransformFeatureList(transformFeatureList);
             InjectTransformConfig(transformConfig);
         }
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
+        }
+
+        public void InjectTransformFeatureStateProvider(ITransformFeatureStateProvider transformFeatureStateProvider)
+        {
+            TransformFeatureStateProvider = transformFeatureStateProvider;
+            _transformFeatureStateProvider = transformFeatureStateProvider as UnityEngine.Object;
         }
 
         public void InjectTransformFeatureList(TransformFeatureConfigList transformFeatureList)

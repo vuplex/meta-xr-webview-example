@@ -20,7 +20,6 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction
 {
@@ -29,14 +28,12 @@ namespace Oculus.Interaction
         where TInteractor : Interactor<TInteractor, TInteractable>
         where TInteractable : PointerInteractable<TInteractor, TInteractable>
     {
-        [SerializeField, Interface(typeof(IPointableElement)), Optional]
-        private MonoBehaviour _pointableElement;
-
-        public IPointableElement PointableElement { get; private set; }
+        [SerializeField, Interface(typeof(IPointableElement))]
+        [Optional(OptionalAttribute.Flag.DontHide)]
+        private UnityEngine.Object _pointableElement;
+        public IPointableElement PointableElement { get; protected set; }
 
         public event Action<PointerEvent> WhenPointerEventRaised = delegate { };
-
-        protected bool _started = false;
 
         public void PublishPointerEvent(PointerEvent evt)
         {
@@ -46,10 +43,7 @@ namespace Oculus.Interaction
         protected override void Awake()
         {
             base.Awake();
-            if (_pointableElement != null)
-            {
-                PointableElement = _pointableElement as IPointableElement;
-            }
+            PointableElement = _pointableElement as IPointableElement;
         }
 
         protected override void Start()
@@ -57,7 +51,7 @@ namespace Oculus.Interaction
             this.BeginStart(ref _started, () => base.Start());
             if (_pointableElement != null)
             {
-                Assert.IsNotNull(PointableElement);
+                this.AssertField(PointableElement, nameof(PointableElement));
             }
             this.EndStart(ref _started);
         }
@@ -91,7 +85,7 @@ namespace Oculus.Interaction
         public void InjectOptionalPointableElement(IPointableElement pointableElement)
         {
             PointableElement = pointableElement;
-            _pointableElement = pointableElement as MonoBehaviour;
+            _pointableElement = pointableElement as UnityEngine.Object;
         }
 
         #endregion

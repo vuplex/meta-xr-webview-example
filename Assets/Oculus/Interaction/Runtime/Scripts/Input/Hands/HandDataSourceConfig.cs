@@ -28,6 +28,5 @@ namespace Oculus.Interaction.Input
         public Handedness Handedness { get; set; }
         public ITrackingToWorldTransformer TrackingToWorldTransformer { get; set; }
         public HandSkeleton HandSkeleton { get; set; }
-        public IDataSource<HmdDataAsset> HmdData { get; set; }
     }
 }

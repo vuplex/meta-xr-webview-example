@@ -9,7 +9,7 @@
 using System;
 using UnityEngine.Events;
 
-namespace Facebook.WitAi.Events
+namespace Meta.WitAi.Events
 {
     [Serializable]
     public class WitRequestCreatedEvent : UnityEvent<WitRequest>

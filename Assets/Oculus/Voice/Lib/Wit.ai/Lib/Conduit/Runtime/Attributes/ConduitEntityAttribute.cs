@@ -17,5 +17,20 @@ namespace Meta.Conduit
     [AttributeUsage(System.AttributeTargets.Enum)]
     public class ConduitEntityAttribute : Attribute
     {
+        /// <summary>
+        /// The current name of this entity
+        /// </summary>
+        public string Name { get; }
+        /// <summary>
+        /// The specific entity id
+        /// </summary>
+        public string ID { get; }
+
+        // ID used for auto generation
+        public ConduitEntityAttribute(string name, string id = null)
+        {
+            this.Name = name;
+            this.ID = id;
+        }
     }
 }

@@ -19,18 +19,18 @@
  */
 
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.UI;
 
 namespace Oculus.Interaction
 {
     /// <summary>
-    /// PointerCanvas allows any IPointable to forward its
+    /// PointableCanvas allows any IPointable to forward its
     /// events onto an associated Canvas via the IPointableCanvas interface
     /// Requires a PointableCanvasModule present in the scene.
     /// </summary>
     public class PointableCanvas : PointableElement, IPointableCanvas
     {
+        [Tooltip("PointerEvents will be forwarded to this Unity Canvas.")]
         [SerializeField]
         private Canvas _canvas;
         public Canvas Canvas => _canvas;
@@ -40,9 +40,9 @@ namespace Oculus.Interaction
         protected override void Start()
         {
             base.Start();
-            Assert.IsNotNull(Canvas);
-            Assert.IsNotNull(Canvas.GetComponent<GraphicRaycaster>(),
-        "PointableCanvas requires that the Canvas object has an attached GraphicRaycaster.");
+            this.AssertField(Canvas, nameof(Canvas));
+            this.AssertIsTrue(Canvas.TryGetComponent(out GraphicRaycaster raycaster),
+                $"{nameof(PointableCanvas)} requires that the {nameof(Canvas)} object has an attached GraphicRaycaster.");
         }
 
         private void Register()

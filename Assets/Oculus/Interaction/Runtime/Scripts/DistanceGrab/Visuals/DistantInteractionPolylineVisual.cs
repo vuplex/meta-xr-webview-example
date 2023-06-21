@@ -18,9 +18,7 @@
  * limitations under the License.
  */
 
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -67,7 +65,7 @@ namespace Oculus.Interaction.DistanceReticles
         protected override void Start()
         {
             base.Start();
-            Assert.IsNotNull(_lineMaterial);
+            this.AssertField(_lineMaterial, nameof(_lineMaterial));
             _polylineRenderer = new PolylineRenderer(_lineMaterial);
             _linePointsVec4 = new List<Vector4>(new Vector4[NumLinePoints]);
         }
@@ -77,11 +75,19 @@ namespace Oculus.Interaction.DistanceReticles
             _polylineRenderer.Cleanup();
         }
 
-        protected override void RenderLine(List<Vector3> linePoints)
+        protected override void RenderLine(Vector3[] linePoints)
         {
-            _linePointsVec4 = linePoints.Select(p => new Vector4(p.x, p.y, p.z, _lineWidth)).ToList();
+            for (int i = 0; i < linePoints.Length; i++)
+            {
+                Vector3 p = linePoints[i];
+                _linePointsVec4[i] = new Vector4(p.x, p.y, p.z, _lineWidth);
+            }
             _polylineRenderer.SetLines(_linePointsVec4, _color);
             _polylineRenderer.RenderLines();
+        }
+
+        protected override void HideLine()
+        {
         }
 
         #region Inject
@@ -103,7 +109,6 @@ namespace Oculus.Interaction.DistanceReticles
         {
             _lineMaterial = material;
         }
-
         #endregion
     }
 }

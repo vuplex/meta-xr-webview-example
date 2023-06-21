@@ -30,7 +30,7 @@ namespace Oculus.Interaction.Samples
     /// </summary>
     public class CountdownTimer : MonoBehaviour
     {
-        [SerializeField]
+        [SerializeField, Min(0)]
         private float _countdownTime = 1.0f;
 
         [SerializeField]

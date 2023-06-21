@@ -6,13 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace Facebook.WitAi.TTS.Editor.Voices
+using System;
+
+namespace Oculus.Interaction.Deprecated
 {
-    public struct TTSWitVoiceData
-    {
-        public string name;
-        public string locale;
-        public string gender;
-        public string[] styles;
-    }
+    [Obsolete("Replaced by Meta.WitAi.Data.Lib.WitVoiceInfo")]
+    public class TTSWitVoiceData { }
 }

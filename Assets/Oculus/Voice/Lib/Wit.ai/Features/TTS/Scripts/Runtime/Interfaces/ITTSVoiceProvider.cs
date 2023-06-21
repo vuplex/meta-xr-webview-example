@@ -7,9 +7,9 @@
  */
 
 using System.Collections.Generic;
-using Facebook.WitAi.TTS.Data;
+using Meta.WitAi.TTS.Data;
 
-namespace Facebook.WitAi.TTS.Interfaces
+namespace Meta.WitAi.TTS.Interfaces
 {
     public interface ITTSVoiceProvider
     {

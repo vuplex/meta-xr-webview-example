@@ -1,8 +1,9 @@
 {
     "name": "Facebook.Wit.Dictation.Editor",
+    "rootNamespace": "",
     "references": [
-        "GUID:fa958eb9f0171754fb207d563a15ddfa",
-        "GUID:910a956078d2ff4429c717211dcfaecb"
+        "GUID:910a956078d2ff4429c717211dcfaecb",
+        "GUID:fa958eb9f0171754fb207d563a15ddfa"
     ],
     "includePlatforms": [
         "Editor"

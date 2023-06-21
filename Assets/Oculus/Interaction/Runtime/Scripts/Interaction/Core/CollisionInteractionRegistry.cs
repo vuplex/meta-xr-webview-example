@@ -102,16 +102,16 @@ namespace Oculus.Interaction
             }
         }
 
-        public override IEnumerable<TInteractable> List(TInteractor interactor)
+        public override InteractableSet List(TInteractor interactor)
         {
             HashSet<TInteractable> colliding;
             if (_rigidbodyCollisionMap.TryGetValue(interactor.Rigidbody, out colliding))
             {
-                return PruneInteractables(colliding, interactor);
+                return List(interactor, colliding);
             }
             return _empty;
         }
 
-        private static readonly List<TInteractable> _empty = new List<TInteractable>();
+        private static readonly InteractableSet _empty = new InteractableSet();
     }
 }

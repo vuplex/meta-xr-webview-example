@@ -25,7 +25,7 @@ Material:
     m_Colors:
     - _BottomColor: {r: 0.3372549, g: 0.34509805, b: 0.36862746, a: 1}
     - _Direction: {r: 0, g: 1, b: 0, a: 1}
-    - _MiddleColor: {r: 0.622944, g: 0.633456, b: 0.672, a: 1}
-    - _TopColor: {r: 0.92941177, g: 0.91361177, b: 0.8662118, a: 1}
+    - _MiddleColor: {r: 0.67058825, g: 0.6909091, b: 0.74509805, a: 1}
+    - _TopColor: {r: 0.937, g: 0.9236477, b: 0.883591, a: 1}
     - _Up: {r: 0, g: 1, b: 0, a: 1}
   m_BuildTextureStacks: []

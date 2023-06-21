@@ -6,12 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-using Facebook.WitAi.TTS.Data;
-using Facebook.WitAi.TTS.Integrations;
+using Meta.WitAi.TTS.Data;
+using Meta.WitAi.TTS.Integrations;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Facebook.WitAi.TTS.Samples
+namespace Meta.WitAi.TTS.Samples
 {
     public class TTSCacheToggle : MonoBehaviour
     {

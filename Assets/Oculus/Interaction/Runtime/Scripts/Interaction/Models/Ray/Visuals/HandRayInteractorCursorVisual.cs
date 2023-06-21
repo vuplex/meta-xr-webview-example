@@ -29,7 +29,7 @@ namespace Oculus.Interaction
     public class HandRayInteractorCursorVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IHand))]
-        private MonoBehaviour _hand;
+        private UnityEngine.Object _hand;
         private IHand Hand;
 
         [SerializeField]
@@ -89,11 +89,11 @@ namespace Oculus.Interaction
         {
             this.BeginStart(ref _started);
             Hand = _hand as IHand;
-            Assert.IsNotNull(Hand);
-            Assert.IsNotNull(_rayInteractor);
-            Assert.IsNotNull(_renderer);
-            Assert.IsNotNull(_cursor);
-            Assert.IsNotNull(_selectObject);
+            this.AssertField(Hand, nameof(Hand));
+            this.AssertField(_rayInteractor, nameof(_rayInteractor));
+            this.AssertField(_renderer, nameof(_renderer));
+            this.AssertField(_cursor, nameof(_cursor));
+            this.AssertField(_selectObject, nameof(_selectObject));
             this.EndStart(ref _started);
         }
 
@@ -177,7 +177,7 @@ namespace Oculus.Interaction
 
         public void InjectHand(IHand hand)
         {
-            _hand = hand as MonoBehaviour;
+            _hand = hand as UnityEngine.Object;
             Hand = hand;
         }
 

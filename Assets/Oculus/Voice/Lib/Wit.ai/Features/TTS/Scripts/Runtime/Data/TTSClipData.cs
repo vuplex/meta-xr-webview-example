@@ -10,7 +10,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Facebook.WitAi.TTS.Data
+namespace Meta.WitAi.TTS.Data
 {
     // Various request load states
     public enum TTSClipLoadState
@@ -29,7 +29,7 @@ namespace Facebook.WitAi.TTS.Data
         // Unique identifier
         public string clipID;
         // Audio type
-        public AudioType audioType = AudioType.WAV; // Default
+        public AudioType audioType;
         // Voice settings for request
         public TTSVoiceSettings voiceSettings;
         // Cache settings for request
@@ -58,5 +58,41 @@ namespace Facebook.WitAi.TTS.Data
         /// Returns an error if there was an issue
         /// </summary>
         public Action<string> onDownloadComplete;
+
+        /// <summary>
+        /// Compare clips if possible
+        /// </summary>
+        public override bool Equals(object obj)
+        {
+            if (obj is TTSClipData other)
+            {
+                return Equals(other);
+            }
+            return false;
+        }
+        /// <summary>
+        /// Compare clip ids
+        /// </summary>
+        public bool Equals(TTSClipData other)
+        {
+            return HasClipId(other?.clipID);
+        }
+        /// <summary>
+        /// Compare clip ids
+        /// </summary>
+        public bool HasClipId(string clipId)
+        {
+            return string.Equals(clipID, clipId, StringComparison.CurrentCultureIgnoreCase);
+        }
+        /// <summary>
+        /// Get hash code
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            var hash = 17;
+            hash = hash * 31 + clipID.GetHashCode();
+            return hash;
+        }
     }
 }

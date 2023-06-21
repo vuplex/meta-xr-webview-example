@@ -27,7 +27,7 @@ namespace Oculus.Interaction
     public class PointableDebugVisual : MonoBehaviour
     {
         [SerializeField, Interface(typeof(IPointable))]
-        private MonoBehaviour _pointable;
+        private UnityEngine.Object _pointable;
 
         [SerializeField]
         private Renderer _renderer;
@@ -92,8 +92,8 @@ namespace Oculus.Interaction
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(Pointable);
-            Assert.IsNotNull(_renderer);
+            this.AssertField(Pointable, nameof(Pointable));
+            this.AssertField(_renderer, nameof(_renderer));
 
             _material = _renderer.material;
             _material.color = _normalColor;
@@ -162,7 +162,7 @@ namespace Oculus.Interaction
 
         public void InjectPointable(IPointable pointable)
         {
-            _pointable = pointable as MonoBehaviour;
+            _pointable = pointable as UnityEngine.Object;
             Pointable = pointable;
         }
 

@@ -20,7 +20,6 @@
 
 using UnityEngine;
 using UnityEngine.Profiling;
-using UnityEngine.Assertions;
 
 namespace Oculus.Interaction.UnityCanvas
 {
@@ -28,16 +27,20 @@ namespace Oculus.Interaction.UnityCanvas
     {
         private static readonly int MainTexShaderID = Shader.PropertyToID("_MainTex");
 
+        [Tooltip("The canvas texture that will be rendered.")]
         [SerializeField]
         protected CanvasRenderTexture _canvasRenderTexture;
 
+        [Tooltip("The mesh renderer that will be driven.")]
         [SerializeField]
         protected MeshRenderer _meshRenderer;
 
+        [Tooltip("Determines the shader used for rendering. " +
+            "See the documentation for details on these rendering modes.")]
         [SerializeField]
         protected int _renderingMode = (int)RenderingMode.AlphaCutout;
 
-        [Tooltip("Requires MSAA.  Provides limited transparency useful for " +
+        [Tooltip("Requires MSAA. Provides limited transparency useful for " +
                  "anti-aliasing soft edges of UI elements.")]
         [SerializeField]
         private bool _useAlphaToMask = true;
@@ -101,8 +104,8 @@ namespace Oculus.Interaction.UnityCanvas
         protected virtual void Start()
         {
             this.BeginStart(ref _started);
-            Assert.IsNotNull(_meshRenderer);
-            Assert.IsNotNull(_canvasRenderTexture);
+            this.AssertField(_meshRenderer, nameof(_meshRenderer));
+            this.AssertField(_canvasRenderTexture, nameof(_canvasRenderTexture));
             this.EndStart(ref _started);
         }
 

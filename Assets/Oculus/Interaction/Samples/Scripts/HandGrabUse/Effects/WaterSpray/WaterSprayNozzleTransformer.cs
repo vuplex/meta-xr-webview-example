@@ -59,8 +59,8 @@ namespace Oculus.Interaction.Demo
             Vector3 localAxis = Vector3.forward;
             Vector3 worldAxis = targetTransform.TransformDirection(localAxis);
 
-            Vector3 initialVector = Vector3.ProjectOnPlane(_previousGrabPose.up, worldAxis).normalized;
-            Vector3 targetVector = Vector3.ProjectOnPlane(grabPoint.up, worldAxis).normalized;
+            Vector3 initialVector = Vector3.ProjectOnPlane(_previousGrabPose.right, worldAxis).normalized;
+            Vector3 targetVector = Vector3.ProjectOnPlane(grabPoint.right, worldAxis).normalized;
 
             float angleDelta = Vector3.SignedAngle(initialVector, targetVector, worldAxis) * _factor;
 

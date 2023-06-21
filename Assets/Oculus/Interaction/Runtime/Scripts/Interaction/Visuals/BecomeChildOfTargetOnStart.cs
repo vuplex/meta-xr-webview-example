@@ -33,7 +33,7 @@ namespace Oculus.Interaction
 
         protected virtual void Start()
         {
-            Assert.IsNotNull(_target);
+            this.AssertField(_target, nameof(_target));
             transform.SetParent(_target, _keepWorldPosition);
         }
 

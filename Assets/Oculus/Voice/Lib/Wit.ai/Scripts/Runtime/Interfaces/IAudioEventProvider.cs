@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-namespace Facebook.WitAi.Interfaces
+namespace Meta.WitAi.Interfaces
 {
     public interface IAudioEventProvider
     {

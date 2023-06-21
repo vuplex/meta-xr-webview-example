@@ -18,8 +18,8 @@
  * limitations under the License.
  */
 
-using Facebook.WitAi;
-using Facebook.WitAi.Data.Configuration;
+using Meta.WitAi;
+using Meta.WitAi.Data.Configuration;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -99,8 +99,8 @@ namespace Oculus.Voice.Demo.UIShapesDemo
             {
                 currentStep = Step.MissingServerToken;
             }
-            else if (string.IsNullOrEmpty(appVoiceExperience.RuntimeConfiguration?.witConfiguration
-                .clientAccessToken))
+            else if (string.IsNullOrEmpty(appVoiceExperience.RuntimeConfiguration?.witConfiguration?
+                .GetClientAccessToken()))
             {
                 currentStep = Step.MissingClientToken;
             }
