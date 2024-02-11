@@ -1,10 +1,8 @@
-# Oculus WebView Example
+# Meta Quest WebView Example
 
-This Unity project demonstrates how to view and interact with web content in VR on Oculus Quest, Quest Pro, and Rift using [Vuplex 3D WebView](https://developer.vuplex.com/webview/overview). It includes the [Oculus Integration](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022) package, so the only additional thing you must import is one or more 3D WebView packages:
+This Unity project demonstrates how to view and interact with web content in VR on Meta Quest headsets (2, 3, Pro) using [Vuplex 3D WebView](https://developer.vuplex.com/webview/overview). It includes the [Oculus Integration](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022) package, so the only additional thing you must import is [3D WebView for Android](https://store.vuplex.com/webview/android).
 
-- For Oculus Quest / Quest Pro: [3D WebView for Android](https://store.vuplex.com/webview/android) (or the [Gecko package](https://support.vuplex.com/articles/android-comparison))
-  - Note: 3D WebView's native Android plugins can't run in the editor, so a [mock webview](https://support.vuplex.com/articles/mock-webview) implementation is used by default while running in the editor unless [3D WebView for Windows and macOS](https://store.vuplex.com/webview/windows-mac) is also installed.
-- For Oculus Rift: [3D WebView for Windows and macOS](https://store.vuplex.com/webview/windows-mac)
+Note: 3D WebView's native Android plugins can't run in the editor, so a [mock webview](https://support.vuplex.com/articles/mock-webview) implementation is used by default while running in the editor unless [3D WebView for Windows and macOS](https://store.vuplex.com/webview/windows-mac) is also installed.
 
 <p align="center">
   <img alt="demo" src="./demo.gif" width="640">
