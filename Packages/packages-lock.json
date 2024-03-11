@@ -77,12 +77,31 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.meta.xr.sdk.interaction.ovr.samples": {
+      "version": "file:/Users/nate/Downloads/com.meta.xr.sdk.interaction.ovr.samples-62.0.0.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {
+        "com.meta.xr.sdk.interaction.ovr": "62.0.0",
+        "com.meta.xr.sdk.sharedassets": "62.0.0"
+      }
+    },
     "com.meta.xr.sdk.platform": {
       "version": "62.0.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {
         "com.meta.xr.sdk.core": "62.0.0",
+        "com.unity.ugui": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
+    "com.meta.xr.sdk.sharedassets": {
+      "version": "62.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.textmeshpro": "3.0.6",
         "com.unity.ugui": "1.0.0"
       },
       "url": "https://packages.unity.com"
