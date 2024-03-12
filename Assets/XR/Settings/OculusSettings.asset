@@ -28,6 +28,6 @@ MonoBehaviour:
   EnableTrackingOriginStageMode: 0
   SpaceWarp: 0
   TargetQuest2: 1
-  TargetQuestPro: 0
-  TargetQuest3: 0
+  TargetQuestPro: 1
+  TargetQuest3: 1
   SystemSplashScreen: {fileID: 0}
