@@ -1,6 +1,6 @@
 # Meta Quest WebView Example
 
-This Unity project demonstrates how to view and interact with web content in VR on Meta Quest headsets (2, 3, Pro) using [Vuplex 3D WebView](https://developer.vuplex.com/webview/overview). It includes the [Oculus Integration](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022) package, so the only additional thing you must import is [3D WebView for Android](https://store.vuplex.com/webview/android).
+This Unity project demonstrates how to view and interact with web content in VR on Meta Quest headsets (2, 3, Pro) using [Vuplex 3D WebView](https://developer.vuplex.com/webview/overview). It includes the [Meta XR All-In-One SDK](https://assetstore.unity.com/packages/tools/integration/meta-xr-all-in-one-sdk-269657), so the only additional thing you must import is [3D WebView for Android](https://store.vuplex.com/webview/android).
 
 Note: 3D WebView's native Android plugins can't run in the editor, so a [mock webview](https://support.vuplex.com/articles/mock-webview) implementation is used by default while running in the editor unless [3D WebView for Windows and macOS](https://store.vuplex.com/webview/windows-mac) is also installed.
 
@@ -10,18 +10,13 @@ Note: 3D WebView's native Android plugins can't run in the editor, so a [mock we
 
 ## Steps taken to create this project
 
-1. Created a new project with Unity 2021.3.11.
-2. Installed the [Oculus Integration package](https://assetstore.unity.com/packages/tools/integration/oculus-integration-82022) (v54.1).
-3. Installed [3D WebView](https://developer.vuplex.com) ([.gitignore](https://github.com/vuplex/oculus-webview-example/blob/69d404181ba188937c124d154d7b1eab6173f609/.gitignore#L62)).
-4. Created a new scene named OculusWebViewDemoScene to combine 3D WebView's [WebViewPrefab](https://developer.vuplex.com/webview/WebViewPrefab) and [Keyboard](https://developer.vuplex.com/webview/Keyboard) prefabs with the Oculus OVRCameraRig.
-5. Added support for controllers by adding the Oculus [UIHelpers prefab](Assets/Oculus/SampleFramework/Core/DebugUI/Prefabs/UIHelpers.prefab) to the scene.
-6. Made the following tweaks to the scene's UIHelpers prefab instance:
-    - Updated the OVRInputModule script's "Ray Transform" and "Joypad Click Button" values
-    - Disabled the Sphere cursor visual
-    - Enabled the LaserPointer's line renderer and set its material
-
-## License
-
-The Oculus Integration library located in Assets/Oculus is Copyright © Facebook Technologies, LLC and its affiliates. All rights reserved. The Oculus Integration Library is licensed under the [Oculus SDK License](https://developer.oculus.com/licenses/sdk-3.5/).
-
-All other code and assets are Copyright © Vuplex, Inc and licensed under the MIT License.
+1. Created a new project with Unity 2022.3.17 using the default 3D project template.
+2. Imported the [Meta XR All-In-One SDK](https://assetstore.unity.com/packages/tools/integration/meta-xr-all-in-one-sdk-269657) (v62.0).
+3. Added the [Meta XR Interaction SDK OVR Samples](https://developer.oculus.com/downloads/package/meta-xr-interaction-sdk-ovr-samples/) package and imported the "Example Scenes" samples.
+4. Made a copy of the RayExamples scene from the OVR Samples.
+5. Imported [3D WebView](https://developer.vuplex.com).
+6. Made the following modifications to the RayExamples scene copy:
+    - Renamed the scene MetaXRWebViewExample.
+    - Added a [CanvasWebViewPrefab](https://developer.vuplex.com/webview/CanvasWebViewPrefab) and [CanvasKeyboard](https://developer.vuplex.com/webview/CanvasKeyboard) to the middle Canvas.
+    - Removed unneeded objects from the scene.
+    - Added the MetaXRWebViewExample.cs script to demonstrate using 3D WebView's scripting APIs.

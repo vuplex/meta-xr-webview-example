@@ -1,10 +1,6 @@
-The Oculus Integration library located in Assets/Oculus is Copyright © Facebook Technologies, LLC and its affiliates. All rights reserved. The Oculus Integration Library is licensed under the Oculus SDK License:
-
-https://developer.oculus.com/licenses/sdk-3.5/
-
-All other code and assets Copyright © Vuplex, Inc and licensed under the MIT License.
-
 MIT License
+
+Copyright (c) 2024 Vuplex, Inc
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
