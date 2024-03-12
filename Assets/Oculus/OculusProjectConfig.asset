@@ -27,7 +27,7 @@ MonoBehaviour:
   virtualKeyboardSupport: 0
   sceneSupport: 2
   disableBackups: 1
-  enableNSCConfig: 1
+  enableNSCConfig: 0
   securityXmlPath: 
   skipUnneededShaders: 0
   focusAware: 1

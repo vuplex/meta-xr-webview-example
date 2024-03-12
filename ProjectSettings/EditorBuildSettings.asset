@@ -5,13 +5,7 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Samples/Meta XR Interaction SDK OVR Samples/62.0.0/Feature Scenes/RayCanvasCurved.unity
-    guid: a59598fb46d366b45ad435a0f942ce62
   - enabled: 1
-    path: Assets/Samples/Meta XR Interaction SDK OVR Samples/62.0.0/Feature Scenes/RayCanvasFlat.unity
-    guid: 7f5c84932632e2a4eb3d90db823935f1
-  - enabled: 0
     path: Assets/Samples/Meta XR Interaction SDK OVR Samples/62.0.0/Example Scenes/RayExamples.unity
     guid: 1b2d3f90c0f50b94cb910c66c773d00d
   m_configObjects:
