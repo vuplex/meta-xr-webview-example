@@ -12,7 +12,7 @@ Note: 3D WebView's native Android plugins can't run in the editor, so a [mock we
 
 1. Created a new project with Unity 2022.3.17 using the default 3D project template.
 2. Imported the [Meta XR All-In-One SDK](https://assetstore.unity.com/packages/tools/integration/meta-xr-all-in-one-sdk-269657) (v62.0).
-3. Added the [Meta XR Interaction SDK OVR Samples](https://developer.oculus.com/downloads/package/meta-xr-interaction-sdk-ovr-samples/) package and imported the "Example Scenes" samples.
+3. Added the [Meta XR Interaction SDK OVR Samples](https://developer.oculus.com/downloads/package/meta-xr-interaction-sdk-ovr-samples/) package and imported its "Example Scenes" samples.
 4. Made a copy of the RayExamples scene from the OVR Samples.
 5. Imported [3D WebView](https://developer.vuplex.com).
 6. Made the following modifications to the RayExamples scene copy:
