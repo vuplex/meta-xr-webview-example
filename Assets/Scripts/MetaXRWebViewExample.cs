@@ -14,14 +14,11 @@ public class MetaXRWebViewExample : MonoBehaviour {
 
     CanvasWebViewPrefab canvasWebViewPrefab;
 
-    void Awake() {
+    async void Start() {
 
         // Use a desktop User-Agent to request the desktop versions of websites.
         // https://developer.vuplex.com/webview/Web#SetUserAgent
         Web.SetUserAgent(false);
-    }
-
-    async void Start() {
 
         // Get a reference to the CanvasWebViewPrefab.
         // https://support.vuplex.com/articles/how-to-reference-a-webview
