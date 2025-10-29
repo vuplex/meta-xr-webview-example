@@ -1,0 +1,138 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7f04c07ecd6ce84aab090677fb9d914, type: 3}
+  m_Name: ISDKExampleScenes
+  m_EditorClassIdentifier: 
+  _groupName: Samples
+  _groupEnabled: 1
+  _groupDisplayOrder: -1
+  _sceneInfos:
+  - DisplayName: Comprehensive
+    SceneName: ComprehensiveRigExample
+    SceneGuid: 2efe93cb8972cae439bfba2dcd4165f0
+    Thumbnail: {fileID: 21300000, guid: 56caf8c6e89440e46935713b552cd3cd, type: 3}
+  - DisplayName: Simultaneous Hands & Controllers
+    SceneName: ConcurrentHandsControllersExamples
+    SceneGuid: 10824ac1a08b9a0459de4c071e1db2aa
+    Thumbnail: {fileID: 21300000, guid: fa047035784b7564aa31af557d724fb4, type: 3}
+  - DisplayName: UI Set
+    SceneName: UISetExamples
+    SceneGuid: 07e3686372a704147b219707ee3c6f62
+    Thumbnail: {fileID: 21300000, guid: 4e236ccd95d5ce541ad024c504327587, type: 3}
+  - DisplayName: Poke
+    SceneName: PokeExamples
+    SceneGuid: ada3086bde0ab18459589e22d8d9e182
+    Thumbnail: {fileID: 21300000, guid: b14c65405a4651e45a7d4d6718558ce0, type: 3}
+  - DisplayName: Ray
+    SceneName: RayExamples
+    SceneGuid: 1b2d3f90c0f50b94cb910c66c773d00d
+    Thumbnail: {fileID: 21300000, guid: 25f8c026e84ba6e4186ef5c2868f05be, type: 3}
+  - DisplayName: Distance Grab
+    SceneName: DistanceGrabExamples
+    SceneGuid: e1c1f1d4144ac8849ac1833b99bdfd23
+    Thumbnail: {fileID: 21300000, guid: e3264794d9076b544acc21c001eb349d, type: 3}
+  - DisplayName: Hand Grab
+    SceneName: HandGrabExamples
+    SceneGuid: 39ae0e546b9edc0408d3b11c6a7c2814
+    Thumbnail: {fileID: 21300000, guid: f18a401b75c8c4c46ba88c481b9f19f9, type: 3}
+  - DisplayName: Touch Grab
+    SceneName: TouchGrabExamples
+    SceneGuid: ade7d3882b4495145a8fe79f5624beab
+    Thumbnail: {fileID: 21300000, guid: 11f27b21546fe9244a5bbc7fc9f48837, type: 3}
+  - DisplayName: Hand Grab Use
+    SceneName: HandGrabUseExamples
+    SceneGuid: 509f8fa80c708b343a603a4771d35c85
+    Thumbnail: {fileID: 21300000, guid: 698aa40b47e1876469e0ecb2cfa4e7b4, type: 3}
+  - DisplayName: Snap
+    SceneName: SnapExamples
+    SceneGuid: 01ca63189b69e00488487d660224a315
+    Thumbnail: {fileID: 21300000, guid: 5a93026f5a66d914a93d97691bc26161, type: 3}
+  - DisplayName: Transformers
+    SceneName: TransformerExamples
+    SceneGuid: 7475942f60c376744ba1ec487d140105
+    Thumbnail: {fileID: 21300000, guid: 7c63d563d806e7d4c8d67d4e01643be0, type: 3}
+  - DisplayName: Panel With Manipulators
+    SceneName: PanelWithManipulators
+    SceneGuid: bafd0df297556dd44832193b22fca1ae
+    Thumbnail: {fileID: 21300000, guid: 9cb4d3e251adc8143bdf2a9427f8bc5b, type: 3}
+  - DisplayName: Gestures
+    SceneName: GestureExamples
+    SceneGuid: 4ee2a082a0e621b49ab01667c66f1599
+    Thumbnail: {fileID: 21300000, guid: b412fb1201633044088b76928d997acb, type: 3}
+  - DisplayName: Hand Pose
+    SceneName: PoseExamples
+    SceneGuid: 4fe358b21fe17764db89a9ab9f202327
+    Thumbnail: {fileID: 21300000, guid: 4a728abfb8951a44fbe9b376213a4f26, type: 3}
+  - DisplayName: Locomotion
+    SceneName: LocomotionExamples
+    SceneGuid: d37ed7e92220d1045a36bc73c7c4cf16
+    Thumbnail: {fileID: 21300000, guid: da11b7adabd2ca84ba3cfe51fee4d7a1, type: 3}
+  - DisplayName: Body Pose
+    SceneName: BodyPoseDetectionExamples
+    SceneGuid: 06a339ff5513d7f49a91ab90cbe194d4
+    Thumbnail: {fileID: 21300000, guid: 7b243791ea5e1394cb054c3cc372b3aa, type: 3}
+  - DisplayName: Hand On Hand Interaction
+    SceneName: HandOnHandInteraction
+    SceneGuid: 9a14d66ca19a74d40a9faa05357bddc1
+    Thumbnail: {fileID: 21300000, guid: 22bd2d8cb611d194199ba808d815b4b8, type: 3}
+  _sceneInfoAssets:
+  - DisplayName: Comprehensive
+    SceneAsset: {fileID: 102900000, guid: 2efe93cb8972cae439bfba2dcd4165f0, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 56caf8c6e89440e46935713b552cd3cd, type: 3}
+  - DisplayName: Simultaneous Hands & Controllers
+    SceneAsset: {fileID: 102900000, guid: 10824ac1a08b9a0459de4c071e1db2aa, type: 3}
+    Thumbnail: {fileID: 21300000, guid: fa047035784b7564aa31af557d724fb4, type: 3}
+  - DisplayName: UI Set
+    SceneAsset: {fileID: 102900000, guid: 07e3686372a704147b219707ee3c6f62, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 4e236ccd95d5ce541ad024c504327587, type: 3}
+  - DisplayName: Poke
+    SceneAsset: {fileID: 102900000, guid: ada3086bde0ab18459589e22d8d9e182, type: 3}
+    Thumbnail: {fileID: 21300000, guid: b14c65405a4651e45a7d4d6718558ce0, type: 3}
+  - DisplayName: Ray
+    SceneAsset: {fileID: 102900000, guid: 1b2d3f90c0f50b94cb910c66c773d00d, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 25f8c026e84ba6e4186ef5c2868f05be, type: 3}
+  - DisplayName: Distance Grab
+    SceneAsset: {fileID: 102900000, guid: e1c1f1d4144ac8849ac1833b99bdfd23, type: 3}
+    Thumbnail: {fileID: 21300000, guid: e3264794d9076b544acc21c001eb349d, type: 3}
+  - DisplayName: Hand Grab
+    SceneAsset: {fileID: 102900000, guid: 39ae0e546b9edc0408d3b11c6a7c2814, type: 3}
+    Thumbnail: {fileID: 21300000, guid: f18a401b75c8c4c46ba88c481b9f19f9, type: 3}
+  - DisplayName: Touch Grab
+    SceneAsset: {fileID: 102900000, guid: ade7d3882b4495145a8fe79f5624beab, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 11f27b21546fe9244a5bbc7fc9f48837, type: 3}
+  - DisplayName: Hand Grab Use
+    SceneAsset: {fileID: 102900000, guid: 509f8fa80c708b343a603a4771d35c85, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 698aa40b47e1876469e0ecb2cfa4e7b4, type: 3}
+  - DisplayName: Snap
+    SceneAsset: {fileID: 102900000, guid: 01ca63189b69e00488487d660224a315, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 5a93026f5a66d914a93d97691bc26161, type: 3}
+  - DisplayName: Transformers
+    SceneAsset: {fileID: 102900000, guid: 7475942f60c376744ba1ec487d140105, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 7c63d563d806e7d4c8d67d4e01643be0, type: 3}
+  - DisplayName: Panel With Manipulators
+    SceneAsset: {fileID: 102900000, guid: bafd0df297556dd44832193b22fca1ae, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 9cb4d3e251adc8143bdf2a9427f8bc5b, type: 3}
+  - DisplayName: Gestures
+    SceneAsset: {fileID: 102900000, guid: 4ee2a082a0e621b49ab01667c66f1599, type: 3}
+    Thumbnail: {fileID: 21300000, guid: b412fb1201633044088b76928d997acb, type: 3}
+  - DisplayName: Hand Pose
+    SceneAsset: {fileID: 102900000, guid: 4fe358b21fe17764db89a9ab9f202327, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 4a728abfb8951a44fbe9b376213a4f26, type: 3}
+  - DisplayName: Locomotion
+    SceneAsset: {fileID: 102900000, guid: d37ed7e92220d1045a36bc73c7c4cf16, type: 3}
+    Thumbnail: {fileID: 21300000, guid: da11b7adabd2ca84ba3cfe51fee4d7a1, type: 3}
+  - DisplayName: Body Pose
+    SceneAsset: {fileID: 102900000, guid: 06a339ff5513d7f49a91ab90cbe194d4, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 7b243791ea5e1394cb054c3cc372b3aa, type: 3}
+  - DisplayName: Hand On Hand Interaction
+    SceneAsset: {fileID: 102900000, guid: 9a14d66ca19a74d40a9faa05357bddc1, type: 3}
+    Thumbnail: {fileID: 21300000, guid: 22bd2d8cb611d194199ba808d815b4b8, type: 3}
