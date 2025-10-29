@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MetaXRWebViewExample.unity
-    guid: dc102527d60fc4743bf95f4d5ccb8646
+    path: Assets/Scenes/SampleScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:
-    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 0b7f9f2afedb04cab9015f6387510224, type: 2}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a156a3e9a3d7e4eff8f0f34138afab1a, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  m_UseUCBPForAssetBundles: 0
