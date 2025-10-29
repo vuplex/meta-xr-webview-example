@@ -29,7 +29,7 @@ MonoBehaviour:
   sceneSupport: 2
   boundaryVisibilitySupport: 0
   disableBackups: 1
-  enableNSCConfig: 1
+  enableNSCConfig: 0
   securityXmlPath: 
   horizonOsSdkEnabled: 0
   minHorizonOsSdkVersion: 68

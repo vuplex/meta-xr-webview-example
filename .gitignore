@@ -65,3 +65,5 @@ Assets/Vuplex*
 oculussig*
 vuplex-webview-gecko-extension*
 .utmp
+*_ButDontShipItWithYourGame
+*_DoNotShip
