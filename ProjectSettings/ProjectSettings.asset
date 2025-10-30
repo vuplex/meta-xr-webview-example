@@ -828,7 +828,7 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OPENXR_META_QUEST;VUPLEX_STANDALONE
+    Android: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OPENXR_META_QUEST
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
